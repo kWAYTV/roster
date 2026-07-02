@@ -15,6 +15,7 @@ pub fn import_text(text: &str) -> Result<String, String> {
         return Err("Nothing to import.".to_string());
     }
 
+    let _guard = crate::steam_client::mutation_guard();
     let install = install_dir()?;
     loginusers::require_config_files(&install.join("config"))?;
     let cache = cache_dir()?;
