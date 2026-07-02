@@ -5,7 +5,7 @@ import { ConfirmDialog } from "./feedback/confirm-dialog";
 import { useToast } from "./feedback/toast";
 import { useForget } from "./forget/use-forget";
 import { ImportDialog } from "./intake/import-dialog";
-import { onStatus, onStatusError } from "./ipc/events";
+import { onImportRequest, onStatus, onStatusError } from "./ipc/events";
 import { useSignIn } from "./login/use-login";
 import { SettingsDialog } from "./preferences/settings-dialog";
 import { usePreferences } from "./preferences/use-preferences";
@@ -26,6 +26,7 @@ export function App() {
 
   const [query, setQuery] = useState("");
   const [importOpen, setImportOpen] = useState(false);
+  const [importPrefill, setImportPrefill] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<AccountView | null>(null);
   const [cooldownTarget, setCooldownTarget] = useState<AccountView | null>(null);
@@ -43,7 +44,14 @@ export function App() {
   );
 
   useEffect(() => {
-    const subscriptions = [onStatus(notify), onStatusError((message) => notify(message, "error"))];
+    const subscriptions = [
+      onStatus(notify),
+      onStatusError((message) => notify(message, "error")),
+      onImportRequest((text) => {
+        setImportPrefill(text);
+        setImportOpen(true);
+      }),
+    ];
     return () => {
       subscriptions.forEach((subscription) => subscription.then((stop) => stop()));
     };
@@ -78,6 +86,7 @@ export function App() {
         <input
           className="field"
           placeholder="Search accounts"
+          aria-label="Search accounts"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
@@ -99,7 +108,14 @@ export function App() {
         <ResetControl />
       </footer>
 
-      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+      <ImportDialog
+        open={importOpen}
+        prefill={importPrefill}
+        onClose={() => {
+          setImportOpen(false);
+          setImportPrefill("");
+        }}
+      />
       <SettingsDialog
         open={settingsOpen}
         preferences={preferences}

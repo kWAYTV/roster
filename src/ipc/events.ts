@@ -18,6 +18,12 @@ export function onAccountsChanged(handler: () => void): Promise<UnlistenFn> {
   return listen("accounts-changed", () => handler());
 }
 
+/// Fired by the tray Import action; carries the clipboard contents so the
+/// import dialog can open prefilled for review.
+export function onImportRequest(handler: (text: string) => void): Promise<UnlistenFn> {
+  return listen<string>("import-request", (event) => handler(event.payload));
+}
+
 /// Fired after preferences are saved (e.g. from the tray).
 export function onPreferencesChanged(handler: () => void): Promise<UnlistenFn> {
   return listen("preferences-changed", () => handler());

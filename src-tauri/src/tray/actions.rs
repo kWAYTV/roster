@@ -28,14 +28,11 @@ pub(super) fn on_icon(tray: &TrayIcon, event: TrayIconEvent) {
     }
 }
 
+/// Open the import dialog prefilled with the clipboard, so tray imports get
+/// the same preview and confirm step as window imports.
 fn import(app: &AppHandle) {
     window::show(app);
-    match crate::intake::import_text(&clipboard_or_empty()) {
-        Ok(message) => announce(app, message),
-        Err(error) => {
-            let _ = app.emit("status-error", error);
-        }
-    }
+    let _ = app.emit("import-request", clipboard_or_empty());
 }
 
 fn sign_in(app: &AppHandle, steamid: &str) {
