@@ -11,9 +11,7 @@ pub(super) fn on_menu(app: &AppHandle, event: MenuEvent) {
         SHOW => window::show(app),
         QUIT => app.exit(0),
         IMPORT => import(app),
-        id if id.starts_with(SIGN_IN_PREFIX) => {
-            sign_in(app, id.trim_start_matches(SIGN_IN_PREFIX))
-        }
+        id if id.starts_with(SIGN_IN_PREFIX) => sign_in(app, id.trim_start_matches(SIGN_IN_PREFIX)),
         _ => {}
     }
 }

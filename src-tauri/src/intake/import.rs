@@ -50,7 +50,11 @@ pub fn import_text(text: &str) -> Result<String, String> {
 fn store_entry(entry: &str, install: &Path, cache: &Path) -> Result<(String, String), String> {
     let (username, token) = parse::parse(entry)?;
     let steamid = jwt::steamid(&token)?;
-    config_vdf::add_account(&install.join("config").join("config.vdf"), &username, &steamid)?;
+    config_vdf::add_account(
+        &install.join("config").join("config.vdf"),
+        &username,
+        &steamid,
+    )?;
     connect_cache::store_token(cache, &username, &token)?;
     Ok((username, steamid))
 }

@@ -16,7 +16,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy
+          components: clippy, rustfmt
 
       - uses: actions/cache@v4
         with:
@@ -25,6 +25,9 @@ jobs:
             ~/.cargo/git
             src-tauri/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+
+      - name: Format
+        run: cargo fmt --check
 
       - name: Clippy
         run: cargo clippy --all-targets --locked -- -D warnings

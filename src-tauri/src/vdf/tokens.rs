@@ -34,7 +34,10 @@ mod tests {
 
     #[test]
     fn reads_lone_header() {
-        assert_eq!(quoted_fields("\t\"76561199843081825\""), ["76561199843081825"]);
+        assert_eq!(
+            quoted_fields("\t\"76561199843081825\""),
+            ["76561199843081825"]
+        );
     }
 
     #[test]

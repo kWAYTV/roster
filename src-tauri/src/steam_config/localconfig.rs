@@ -26,5 +26,5 @@ fn template() -> String {
      \t\t\"SignIntoFriends\"\t\t\"1\"\n\
      \t}\n\
      }\n"
-        .to_string()
+    .to_string()
 }

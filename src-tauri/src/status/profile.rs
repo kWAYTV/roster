@@ -59,7 +59,9 @@ fn game_from_state_message(message: &str) -> String {
         Some(index) => &text[index + "in-game".len()..],
         None => text.as_str(),
     };
-    after.trim_matches([' ', ':', '/', '\\', '\n', '-']).to_string()
+    after
+        .trim_matches([' ', ':', '/', '\\', '\n', '-'])
+        .to_string()
 }
 
 fn strip_tags(text: &str) -> String {
