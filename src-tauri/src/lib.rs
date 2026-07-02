@@ -15,6 +15,7 @@ mod presence;
 mod reset;
 mod roster;
 mod secret;
+mod status;
 mod steam_client;
 mod steam_config;
 mod tray;
@@ -38,6 +39,7 @@ pub fn run() {
             bridge::login::sign_in,
             bridge::cooldown::set_cooldown,
             bridge::cooldown::clear_cooldown,
+            bridge::status::refresh_statuses,
             bridge::reset::clear_cache,
             bridge::preferences::get_preferences,
             bridge::preferences::save_preferences,

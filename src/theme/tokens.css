@@ -16,6 +16,10 @@
   --danger: #e5484d;
   --danger-soft: rgba(229, 72, 77, 0.12);
 
+  /* Presence: Steam's convention, blue online and green in-game. */
+  --presence-online: #0072f5;
+  --presence-ingame: #17c964;
+
   --radius-sm: 6px;
   --radius: 10px;
   --radius-lg: 14px;

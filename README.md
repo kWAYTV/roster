@@ -24,6 +24,7 @@ language-mandated roots).
 | `forget` | Remove an account everywhere Steam remembers it. |
 | `reset` | Clear all local Steam login data. |
 | `metadata` | Per-account last-used time and cooldowns, stored outside Steam's files. |
+| `status` | Online/in-game state fetched from Steam Community profile XML. |
 | `preferences` | The settings model and its JSON store. |
 | `presence` | Persona, notification, and download tweaks applied at login. |
 | `vdf` | Read and edit the Valve KeyValues text format. |
@@ -36,8 +37,9 @@ language-mandated roots).
 ### Frontend — `src`
 
 Feature folders mirror the backend domains (`roster`, `intake`, `login`,
-`forget`, `reset`, `cooldown`, `preferences`), with a typed `ipc` boundary,
-shared `feedback` primitives (toast, modal, confirm), and `theme` tokens.
+`forget`, `reset`, `cooldown`, `status`, `preferences`), with a typed `ipc`
+boundary, shared `feedback` primitives (toast, modal, confirm), and `theme`
+tokens.
 
 ## Development
 

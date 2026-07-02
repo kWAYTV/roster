@@ -22,6 +22,7 @@ base64 = "0.22"
 crc32fast = "1.4"
 arboard = "3"
 winreg = "0.52"
+ureq = "2"
 
 [dependencies.windows]
 version = "0.56"

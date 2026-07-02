@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { COOLDOWN_PRESETS, isCooldownActive } from "./cooldown";
+import { CooldownDialog } from "./cooldown-dialog";
 import { useCooldown } from "./use-cooldown";
 import styles from "./cooldown-menu.module.css";
 
@@ -13,6 +14,7 @@ interface CooldownMenuProps {
 /// A clock button that opens preset durations, plus clear when one is active.
 export function CooldownMenu({ steamid, until, disabled }: CooldownMenuProps) {
   const [open, setOpen] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
   const { start, clear } = useCooldown();
 
   const pick = (action: () => void) => {
@@ -45,6 +47,9 @@ export function CooldownMenu({ steamid, until, disabled }: CooldownMenuProps) {
                 {preset.label}
               </button>
             ))}
+            <button className={styles.item} onClick={() => pick(() => setCustomOpen(true))}>
+              Custom&hellip;
+            </button>
             {isCooldownActive(until) ? (
               <button
                 className={`${styles.item} ${styles.clear}`}
@@ -56,6 +61,11 @@ export function CooldownMenu({ steamid, until, disabled }: CooldownMenuProps) {
           </div>
         </>
       ) : null}
+      <CooldownDialog
+        open={customOpen}
+        onClose={() => setCustomOpen(false)}
+        onStart={(seconds) => start(steamid, seconds)}
+      />
     </div>
   );
 }

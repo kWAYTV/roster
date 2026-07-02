@@ -1,5 +1,18 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 
+import type { OnlineState } from "../status/status";
+
+interface StatusPayload {
+  steamid: string;
+  state: OnlineState;
+  game: string;
+}
+
+/// Streamed per-account results while a backend status sweep runs.
+export function onAccountStatus(handler: (status: StatusPayload) => void): Promise<UnlistenFn> {
+  return listen<StatusPayload>("account-status", (event) => handler(event.payload));
+}
+
 /// Fired by the backend after any change to the account list.
 export function onAccountsChanged(handler: () => void): Promise<UnlistenFn> {
   return listen("accounts-changed", () => handler());

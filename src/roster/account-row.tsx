@@ -1,5 +1,7 @@
 import { CooldownBadge } from "../cooldown/cooldown-badge";
 import { CooldownMenu } from "../cooldown/cooldown-menu";
+import { StatusDot } from "../status/status-dot";
+import type { AccountStatus } from "../status/status";
 import type { AccountView } from "./account";
 import { formatLastUsed } from "./last-used";
 import styles from "./account-row.module.css";
@@ -9,6 +11,7 @@ interface AccountRowProps {
   index: number;
   streamer: boolean;
   busy: boolean;
+  status?: AccountStatus;
   onSignIn: (steamid: string) => void;
   onRemove: (account: AccountView) => void;
 }
@@ -18,17 +21,22 @@ export function AccountRow({
   index,
   streamer,
   busy,
+  status,
   onSignIn,
   onRemove,
 }: AccountRowProps) {
   const name = streamer ? `Account ${index + 1}` : account.display_name;
   const login = streamer ? "\u2022\u2022\u2022\u2022\u2022" : account.account_name;
   const lastUsed = formatLastUsed(account.last_used);
+  const game = status?.state === "in-game" ? status.game : "";
 
   return (
     <div className={account.most_recent ? `${styles.row} ${styles.recent}` : styles.row}>
-      <div className={styles.avatar}>
-        {account.avatar ? <img src={account.avatar} alt="" /> : <span>{account.initials}</span>}
+      <div className={styles.avatarWrap}>
+        <div className={styles.avatar}>
+          {account.avatar ? <img src={account.avatar} alt="" /> : <span>{account.initials}</span>}
+        </div>
+        <StatusDot status={status} />
       </div>
       <div className={styles.info}>
         <div className={styles.name}>
@@ -38,6 +46,7 @@ export function AccountRow({
         </div>
         <div className={styles.login}>
           {login}
+          {game ? <span className={styles.game}> &middot; {game}</span> : null}
           {lastUsed ? <span className={styles.meta}> &middot; {lastUsed}</span> : null}
         </div>
       </div>

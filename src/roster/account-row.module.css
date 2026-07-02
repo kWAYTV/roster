@@ -19,10 +19,14 @@
   box-shadow: inset 2px 0 0 var(--accent);
 }
 
+.avatarWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .avatar {
   width: 40px;
   height: 40px;
-  flex-shrink: 0;
   border-radius: 10px;
   overflow: hidden;
   display: flex;
@@ -76,6 +80,10 @@
 
 .meta {
   opacity: 0.7;
+}
+
+.game {
+  color: var(--presence-ingame);
 }
 
 .actions {

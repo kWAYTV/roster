@@ -7,6 +7,7 @@ pub mod login;
 pub mod preferences;
 pub mod reset;
 pub mod roster;
+pub mod status;
 
 use tauri::{AppHandle, Emitter};
 

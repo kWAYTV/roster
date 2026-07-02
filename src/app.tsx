@@ -12,10 +12,12 @@ import { ResetControl } from "./reset/reset-control";
 import type { AccountView } from "./roster/account";
 import { RosterList } from "./roster/roster-list";
 import { useRoster } from "./roster/use-roster";
+import { useStatus } from "./status/use-status";
 import styles from "./app.module.css";
 
 export function App() {
   const { accounts, error } = useRoster();
+  const statuses = useStatus();
   const { preferences, setPreference } = usePreferences();
   const { signIn, pending } = useSignIn();
   const { remove } = useForget();
@@ -72,6 +74,7 @@ export function App() {
           accounts={filtered}
           streamer={preferences.streamer_mode}
           pending={pending}
+          statuses={statuses}
           onSignIn={signIn}
           onRemove={setRemoveTarget}
         />

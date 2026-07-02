@@ -13,6 +13,7 @@ export const commands = {
   setCooldown: (steamid: string, seconds: number) =>
     invoke<void>("set_cooldown", { steamid, seconds }),
   clearCooldown: (steamid: string) => invoke<void>("clear_cooldown", { steamid }),
+  refreshStatuses: () => invoke<void>("refresh_statuses"),
   clearCache: () => invoke<string>("clear_cache"),
   getPreferences: () => invoke<Preferences>("get_preferences"),
   savePreferences: (preferences: Preferences) =>

@@ -6,6 +6,7 @@ export interface CooldownPreset {
 }
 
 export const COOLDOWN_PRESETS: CooldownPreset[] = [
+  { label: "30 minutes", seconds: 30 * 60 },
   { label: "20 hours", seconds: 20 * 3600 },
   { label: "7 days", seconds: 7 * 86400 },
   { label: "31 days", seconds: 31 * 86400 },
