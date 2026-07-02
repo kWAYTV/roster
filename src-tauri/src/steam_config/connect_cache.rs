@@ -4,7 +4,7 @@ use std::fs;
 use std::path::Path;
 
 use crate::secret::{encrypt_token, store_key};
-use crate::vdf::quoted_fields;
+use crate::vdf::{indent_of, quoted_fields};
 
 /// Encrypt and store `token` for `username` inside `ConnectCache`.
 pub fn store_token(cache_dir: &Path, username: &str, token: &str) -> Result<(), String> {
@@ -14,9 +14,13 @@ pub fn store_token(cache_dir: &Path, username: &str, token: &str) -> Result<(), 
 
     fs::create_dir_all(cache_dir).map_err(|_| "Failed to create the Steam cache directory.")?;
 
+    // Never rebuild an existing file from scratch: that would silently drop
+    // every other account's cached token. If the layout is unrecognizable,
+    // fail and leave the file untouched.
     let content = match fs::read_to_string(&path) {
         Ok(existing) => upsert_entry(&existing, &key, &encrypted)
-            .unwrap_or_else(|| fresh_file(&key, &encrypted)),
+            .or_else(|| insert_cache_block(&existing, &key, &encrypted))
+            .ok_or_else(|| "local.vdf has an unexpected layout; not overwriting it.".to_string())?,
         Err(_) => fresh_file(&key, &encrypted),
     };
 
@@ -33,8 +37,11 @@ pub fn remove_token(cache_dir: &Path, username: &str) {
     let filtered: String = content
         .lines()
         .filter(|line| quoted_fields(line).first().map(String::as_str) != Some(key.as_str()))
-        .map(|line| format!("{line}\n"))
-        .collect();
+        .fold(String::new(), |mut out, line| {
+            out.push_str(line);
+            out.push('\n');
+            out
+        });
     let _ = fs::write(&path, filtered);
 }
 
@@ -84,6 +91,35 @@ fn entry_line(key: &str, encrypted: &str) -> String {
     format!("\t\t\t\t\t\"{key}\"\t\t\"{encrypted}\"\n")
 }
 
+/// Add a `ConnectCache` block (with one entry) inside an existing `Steam`
+/// block. Returns `None` when no `Steam` block is found either.
+fn insert_cache_block(content: &str, key: &str, encrypted: &str) -> Option<String> {
+    let mut out = String::new();
+    let mut after_steam_header = false;
+    let mut inserted = false;
+
+    for line in content.lines() {
+        out.push_str(line);
+        out.push('\n');
+
+        let trimmed = line.trim();
+        if after_steam_header {
+            after_steam_header = false;
+            if !inserted && trimmed.starts_with('{') {
+                let indent = format!("{}\t", indent_of(line));
+                out.push_str(&format!(
+                    "{indent}\"ConnectCache\"\n{indent}{{\n{indent}\t\"{key}\"\t\t\"{encrypted}\"\n{indent}}}\n"
+                ));
+                inserted = true;
+            }
+        } else if trimmed == "\"Steam\"" {
+            after_steam_header = true;
+        }
+    }
+
+    inserted.then_some(out)
+}
+
 fn fresh_file(key: &str, encrypted: &str) -> String {
     format!(
         "\"MachineUserConfigStore\"\n\
@@ -107,7 +143,23 @@ fn fresh_file(key: &str, encrypted: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{fresh_file, upsert_entry};
+    use super::{fresh_file, insert_cache_block, upsert_entry};
+
+    #[test]
+    fn inserts_block_when_missing() {
+        let without_cache = "\"MachineUserConfigStore\"\n{\n\t\"Software\"\n\t{\n\t\t\"Valve\"\n\t\t{\n\t\t\t\"Steam\"\n\t\t\t{\n\t\t\t\t\"SomeOtherKey\"\t\t\"kept\"\n\t\t\t}\n\t\t}\n\t}\n}\n";
+        let updated = insert_cache_block(without_cache, "abc1", "enc").unwrap();
+        assert!(updated.contains("\"ConnectCache\""));
+        assert!(updated.contains("\"abc1\"\t\t\"enc\""));
+        assert!(updated.contains("\"SomeOtherKey\"\t\t\"kept\""));
+        // The inserted block is inside the Steam block and parses back out.
+        assert!(upsert_entry(&updated, "abc1", "enc2").is_some());
+    }
+
+    #[test]
+    fn refuses_unrecognizable_layout() {
+        assert!(insert_cache_block("not a vdf file at all", "abc1", "enc").is_none());
+    }
 
     #[test]
     fn replaces_existing_key() {
