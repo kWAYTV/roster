@@ -27,8 +27,9 @@ npm run tauri dev      # run in development
 npm run tauri build    # build the installer -> src-tauri/target/release/bundle/nsis/
 ```
 
-Prefer not to build? Grab the latest installer from the
-[Releases](../../releases) page.
+Prefer not to build? Every push publishes a fresh installer to the
+[latest build](../../releases/tag/latest) release, so that link is always the
+newest `.exe`.
 
 ## Usage
 
