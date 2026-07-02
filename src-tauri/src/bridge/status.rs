@@ -5,8 +5,10 @@ use tauri::{AppHandle, Emitter};
 
 use crate::status::{sweep, OnlineState, ProfileStatus};
 
-/// Only one sweep runs at a time; extra requests are dropped silently.
+/// Only one sweep runs at a time; requests that arrive mid-sweep are
+/// coalesced into one follow-up sweep instead of being dropped.
 static SWEEPING: AtomicBool = AtomicBool::new(false);
+static QUEUED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Serialize, Clone)]
 pub struct StatusView {
@@ -19,13 +21,27 @@ pub struct StatusView {
 /// result is emitted as an `account-status` event as soon as it arrives.
 #[tauri::command]
 pub fn refresh_statuses(app: AppHandle) -> Result<(), String> {
-    let steamids: Vec<String> = crate::roster::list()?
+    start_sweep(app);
+    Ok(())
+}
+
+fn start_sweep(app: AppHandle) {
+    if SWEEPING.swap(true, Ordering::SeqCst) {
+        QUEUED.store(true, Ordering::SeqCst);
+        return;
+    }
+
+    // The roster is re-read per sweep so a queued follow-up (typically from
+    // an accounts-changed event) sees the latest account list.
+    let steamids: Vec<String> = crate::roster::list()
+        .unwrap_or_default()
         .into_iter()
         .map(|account| account.steamid)
         .collect();
 
-    if steamids.is_empty() || SWEEPING.swap(true, Ordering::SeqCst) {
-        return Ok(());
+    if steamids.is_empty() {
+        SWEEPING.store(false, Ordering::SeqCst);
+        return;
     }
 
     std::thread::spawn(move || {
@@ -35,9 +51,10 @@ pub fn refresh_statuses(app: AppHandle) -> Result<(), String> {
             }
         });
         SWEEPING.store(false, Ordering::SeqCst);
+        if QUEUED.swap(false, Ordering::SeqCst) {
+            start_sweep(app);
+        }
     });
-
-    Ok(())
 }
 
 fn view(steamid: &str, status: &ProfileStatus) -> StatusView {

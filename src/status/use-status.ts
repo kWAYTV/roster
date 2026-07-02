@@ -13,7 +13,9 @@ export function useStatus(): StatusMap {
 
   useEffect(() => {
     const refresh = () => {
-      commands.refreshStatuses().catch(() => {});
+      // Statuses are cosmetic and refresh periodically, so failures are
+      // logged rather than toasted to avoid spamming the user when offline.
+      commands.refreshStatuses().catch((cause) => console.error("Status refresh failed:", cause));
     };
 
     refresh();
