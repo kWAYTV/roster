@@ -62,7 +62,38 @@ fn summary(stored: usize, username: &str, failures: &[String]) -> String {
         format!("Imported {stored} accounts. Starting Steam.")
     };
     if !failures.is_empty() {
-        message.push_str(&format!(" {} failed.", failures.len()));
+        message.push_str(&format!(" {} failed: {}", failures.len(), detail(failures)));
     }
     message
+}
+
+/// The first couple of failure reasons, so the toast stays readable.
+fn detail(failures: &[String]) -> String {
+    const SHOWN: usize = 2;
+    let mut text = failures[..failures.len().min(SHOWN)].join(" ");
+    if failures.len() > SHOWN {
+        text.push_str(&format!(" (+{} more)", failures.len() - SHOWN));
+    }
+    text
+}
+
+#[cfg(test)]
+mod tests {
+    use super::summary;
+
+    #[test]
+    fn summary_includes_failure_reasons() {
+        let failures = vec!["#2: The username is empty.".to_string()];
+        let message = summary(1, "alice", &failures);
+        assert!(message.contains("1 failed: #2: The username is empty."));
+    }
+
+    #[test]
+    fn summary_caps_failure_details() {
+        let failures: Vec<String> = (1..=4).map(|i| format!("#{i}: Bad entry.")).collect();
+        let message = summary(2, "alice", &failures);
+        assert!(message.contains("4 failed:"));
+        assert!(message.contains("(+2 more)"));
+        assert!(!message.contains("#3"));
+    }
 }
