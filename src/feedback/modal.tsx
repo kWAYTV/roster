@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import styles from "./modal.module.css";
 
@@ -12,10 +12,13 @@ interface ModalProps {
 
 /// A centered overlay dialog that closes on backdrop click or Escape.
 export function Modal({ open, title, onClose, children, footer }: ModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!open) {
       return;
     }
+    dialogRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         onClose();
@@ -38,7 +41,14 @@ export function Modal({ open, title, onClose, children, footer }: ModalProps) {
         }
       }}
     >
-      <div className={styles.dialog} role="dialog" aria-label={title}>
+      <div
+        ref={dialogRef}
+        className={styles.dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        tabIndex={-1}
+      >
         <header className={styles.head}>
           <span>{title}</span>
           <button className="btn-icon" aria-label="Close" onClick={onClose}>

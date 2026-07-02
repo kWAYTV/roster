@@ -5,6 +5,7 @@ import styles from "./roster-list.module.css";
 
 interface RosterListProps {
   accounts: AccountView[];
+  loading: boolean;
   streamer: boolean;
   pending: string | null;
   statuses: StatusMap;
@@ -14,6 +15,7 @@ interface RosterListProps {
 
 export function RosterList({
   accounts,
+  loading,
   streamer,
   pending,
   statuses,
@@ -21,6 +23,11 @@ export function RosterList({
   onRemove,
 }: RosterListProps) {
   if (accounts.length === 0) {
+    // Render nothing during the first fetch so users never see a false
+    // "No accounts yet" flash before the roster arrives.
+    if (loading) {
+      return null;
+    }
     return <div className={styles.empty}>No accounts yet. Import a token to get started.</div>;
   }
 

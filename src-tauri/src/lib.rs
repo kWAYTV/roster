@@ -27,6 +27,7 @@ pub fn run() {
             tray::focus_window(app);
         }))
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(|app| {
             tray::setup(app.handle())?;
             Ok(())

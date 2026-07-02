@@ -5,7 +5,10 @@ use super::{after_account_change, find_account};
 
 #[tauri::command]
 pub fn list_accounts() -> Result<Vec<AccountView>, String> {
-    Ok(crate::roster::list()?.iter().map(AccountView::from).collect())
+    Ok(crate::roster::list()?
+        .iter()
+        .map(AccountView::from)
+        .collect())
 }
 
 #[tauri::command]

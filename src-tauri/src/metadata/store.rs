@@ -13,7 +13,12 @@ type Store = HashMap<String, AccountMetadata>;
 /// Every account's metadata, keyed by SteamID.
 pub fn all() -> Store {
     match fs::read_to_string(path()) {
-        Ok(raw) => serde_json::from_str(&raw).unwrap_or_default(),
+        Ok(raw) => serde_json::from_str(&raw).unwrap_or_else(|_| {
+            // Keep the corrupt file around instead of silently wiping
+            // cooldowns and last-used times on the next save.
+            let _ = fs::rename(path(), path().with_extension("json.corrupt"));
+            Store::new()
+        }),
         Err(_) => Store::new(),
     }
 }

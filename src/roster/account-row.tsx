@@ -34,7 +34,13 @@ export function AccountRow({
     <div className={account.most_recent ? `${styles.row} ${styles.recent}` : styles.row}>
       <div className={styles.avatarWrap}>
         <div className={styles.avatar}>
-          {account.avatar ? <img src={account.avatar} alt="" /> : <span>{account.initials}</span>}
+          {streamer ? (
+            <span>{index + 1}</span>
+          ) : account.avatar ? (
+            <img src={account.avatar} alt="" />
+          ) : (
+            <span>{account.initials}</span>
+          )}
         </div>
         <StatusDot status={status} />
       </div>

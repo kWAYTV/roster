@@ -50,7 +50,9 @@ pub fn is_jwt(token: &str) -> bool {
     let parts: Vec<&str> = token.split('.').collect();
     parts.len() == 3
         && parts[0].starts_with("ey")
-        && parts.iter().all(|p| !p.is_empty() && p.chars().all(is_token_char))
+        && parts
+            .iter()
+            .all(|p| !p.is_empty() && p.chars().all(is_token_char))
 }
 
 fn claims(jwt: &str) -> Result<serde_json::Value, String> {
@@ -75,8 +77,15 @@ fn slice_parts(s: &str) -> Option<String> {
     let rest = &s[second + 1..];
     // `----` is the account/metadata delimiter, never part of a signature.
     let bounded = &rest[..rest.find("----").unwrap_or(rest.len())];
-    let sig = bounded.find(|c: char| !is_token_char(c)).unwrap_or(bounded.len());
-    let token = format!("{}.{}.{}", &s[..first], &s[first + 1..second], &bounded[..sig]);
+    let sig = bounded
+        .find(|c: char| !is_token_char(c))
+        .unwrap_or(bounded.len());
+    let token = format!(
+        "{}.{}.{}",
+        &s[..first],
+        &s[first + 1..second],
+        &bounded[..sig]
+    );
     is_jwt(&token).then_some(token)
 }
 
@@ -102,7 +111,8 @@ mod tests {
     use super::*;
 
     // Header/payload/signature; payload decodes to {"sub":"76561199843081825",...}.
-    const TOKEN: &str = "eyJ0eXAiOiJKV1QifQ.eyJzdWIiOiI3NjU2MTE5OTg0MzA4MTgyNSIsIm5hbWUiOiJwbGF5ZXIifQ.AAAA";
+    const TOKEN: &str =
+        "eyJ0eXAiOiJKV1QifQ.eyJzdWIiOiI3NjU2MTE5OTg0MzA4MTgyNSIsIm5hbWUiOiJwbGF5ZXIifQ.AAAA";
 
     #[test]
     fn recognizes_jwt_shape() {

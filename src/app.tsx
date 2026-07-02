@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { formatRemaining, isCooldownActive } from "./cooldown/cooldown";
 import { ConfirmDialog } from "./feedback/confirm-dialog";
 import { useToast } from "./feedback/toast";
 import { useForget } from "./forget/use-forget";
 import { ImportDialog } from "./intake/import-dialog";
-import { onStatus, onStatusError } from "./ipc/events";
+import { onImportRequest, onStatus, onStatusError } from "./ipc/events";
 import { useSignIn } from "./login/use-login";
 import { SettingsDialog } from "./preferences/settings-dialog";
 import { usePreferences } from "./preferences/use-preferences";
@@ -16,7 +17,7 @@ import { useStatus } from "./status/use-status";
 import styles from "./app.module.css";
 
 export function App() {
-  const { accounts, error } = useRoster();
+  const { accounts, loading, error } = useRoster();
   const statuses = useStatus();
   const { preferences, setPreference } = usePreferences();
   const { signIn, pending } = useSignIn();
@@ -25,11 +26,32 @@ export function App() {
 
   const [query, setQuery] = useState("");
   const [importOpen, setImportOpen] = useState(false);
+  const [importPrefill, setImportPrefill] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<AccountView | null>(null);
+  const [cooldownTarget, setCooldownTarget] = useState<AccountView | null>(null);
+
+  const requestSignIn = useCallback(
+    (steamid: string) => {
+      const account = accounts.find((candidate) => candidate.steamid === steamid);
+      if (account && isCooldownActive(account.cooldown_until)) {
+        setCooldownTarget(account);
+        return;
+      }
+      signIn(steamid);
+    },
+    [accounts, signIn],
+  );
 
   useEffect(() => {
-    const subscriptions = [onStatus(notify), onStatusError((message) => notify(message, "error"))];
+    const subscriptions = [
+      onStatus(notify),
+      onStatusError((message) => notify(message, "error")),
+      onImportRequest((text) => {
+        setImportPrefill(text);
+        setImportOpen(true);
+      }),
+    ];
     return () => {
       subscriptions.forEach((subscription) => subscription.then((stop) => stop()));
     };
@@ -64,6 +86,7 @@ export function App() {
         <input
           className="field"
           placeholder="Search accounts"
+          aria-label="Search accounts"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
@@ -72,10 +95,11 @@ export function App() {
       <main className={styles.main}>
         <RosterList
           accounts={filtered}
+          loading={loading}
           streamer={preferences.streamer_mode}
           pending={pending}
           statuses={statuses}
-          onSignIn={signIn}
+          onSignIn={requestSignIn}
           onRemove={setRemoveTarget}
         />
       </main>
@@ -84,7 +108,14 @@ export function App() {
         <ResetControl />
       </footer>
 
-      <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+      <ImportDialog
+        open={importOpen}
+        prefill={importPrefill}
+        onClose={() => {
+          setImportOpen(false);
+          setImportPrefill("");
+        }}
+      />
       <SettingsDialog
         open={settingsOpen}
         preferences={preferences}
@@ -99,6 +130,15 @@ export function App() {
         danger
         onConfirm={() => removeTarget && remove(removeTarget.steamid)}
         onClose={() => setRemoveTarget(null)}
+      />
+      <ConfirmDialog
+        open={cooldownTarget !== null}
+        title="Account on cooldown"
+        message={cooldownMessage(cooldownTarget, preferences.streamer_mode)}
+        confirmLabel="Sign in anyway"
+        danger
+        onConfirm={() => cooldownTarget && signIn(cooldownTarget.steamid)}
+        onClose={() => setCooldownTarget(null)}
       />
     </div>
   );
@@ -120,6 +160,17 @@ function removeMessage(account: AccountView | null, streamer: boolean): string {
   }
   const name = streamer ? "this account" : account.display_name;
   return `Remove ${name}?`;
+}
+
+function cooldownMessage(account: AccountView | null, streamer: boolean): string {
+  if (!account) {
+    return "";
+  }
+  const name = streamer ? "This account" : account.display_name;
+  const remaining = formatRemaining(account.cooldown_until);
+  return remaining
+    ? `${name} is on cooldown for another ${remaining}. Sign in anyway?`
+    : `${name} is on cooldown. Sign in anyway?`;
 }
 
 function GearIcon() {

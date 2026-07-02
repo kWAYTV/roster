@@ -23,6 +23,7 @@ crc32fast = "1.4"
 arboard = "3"
 winreg = "0.52"
 ureq = "2"
+tauri-plugin-window-state = "2"
 
 [dependencies.windows]
 version = "0.56"

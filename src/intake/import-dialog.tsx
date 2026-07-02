@@ -1,16 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Modal } from "../feedback/modal";
 import { useImport } from "./use-intake";
 
 interface ImportDialogProps {
   open: boolean;
+  /** Text to preload when the dialog opens (e.g. clipboard from the tray). */
+  prefill?: string;
   onClose: () => void;
 }
 
-export function ImportDialog({ open, onClose }: ImportDialogProps) {
+export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
   const { importText, paste, busy } = useImport();
   const [text, setText] = useState("");
+
+  // Tokens are sensitive; never leave them sitting in a closed dialog.
+  useEffect(() => {
+    if (open) {
+      setText(prefill?.trim() ?? "");
+    } else {
+      setText("");
+    }
+  }, [open, prefill]);
 
   const submit = async () => {
     const payload = text.trim();

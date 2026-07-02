@@ -4,6 +4,7 @@ use crate::steam_client::{cache_dir, install_dir, stop};
 
 /// Remove the config files and cache directory that hold Steam logins.
 pub fn clear() -> Result<String, String> {
+    let _guard = crate::steam_client::mutation_guard();
     let install = install_dir()?;
     let config_dir = install.join("config");
     let cache = cache_dir()?;

@@ -5,6 +5,7 @@ use crate::steam_config::{config_vdf, connect_cache, loginusers};
 /// Forget an account: strip it from loginusers, config.vdf, the token cache,
 /// and clear autologin if it pointed here.
 pub fn remove(account: &Account) -> Result<String, String> {
+    let _guard = crate::steam_client::mutation_guard();
     let install = install_dir()?;
     let config_dir = install.join("config");
 

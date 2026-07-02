@@ -58,6 +58,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  user-select: text;
 }
 
 .badge {
@@ -76,6 +77,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  user-select: text;
 }
 
 .meta {

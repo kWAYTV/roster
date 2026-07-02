@@ -7,6 +7,7 @@ import type { AccountView } from "./account";
 /// Load the account roster and keep it in sync with backend change events.
 export function useRoster() {
   const [accounts, setAccounts] = useState<AccountView[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -16,6 +17,8 @@ export function useRoster() {
     } catch (cause) {
       setAccounts([]);
       setError(String(cause));
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -27,5 +30,5 @@ export function useRoster() {
     };
   }, [refresh]);
 
-  return { accounts, error };
+  return { accounts, loading, error };
 }

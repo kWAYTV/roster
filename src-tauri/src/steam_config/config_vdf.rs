@@ -127,12 +127,8 @@ mod tests {
 
     #[test]
     fn removes_only_matching_account() {
-        let with_two = insert_account(
-            &insert_account(CONFIG, "a", "111").unwrap(),
-            "b",
-            "222",
-        )
-        .unwrap();
+        let with_two =
+            insert_account(&insert_account(CONFIG, "a", "111").unwrap(), "b", "222").unwrap();
         let out = strip_account(&with_two, "111");
         assert!(!contains_steamid(&out, "111"));
         assert!(contains_steamid(&out, "222"));

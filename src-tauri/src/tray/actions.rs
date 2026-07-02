@@ -11,9 +11,7 @@ pub(super) fn on_menu(app: &AppHandle, event: MenuEvent) {
         SHOW => window::show(app),
         QUIT => app.exit(0),
         IMPORT => import(app),
-        id if id.starts_with(SIGN_IN_PREFIX) => {
-            sign_in(app, id.trim_start_matches(SIGN_IN_PREFIX))
-        }
+        id if id.starts_with(SIGN_IN_PREFIX) => sign_in(app, id.trim_start_matches(SIGN_IN_PREFIX)),
         _ => {}
     }
 }
@@ -30,14 +28,11 @@ pub(super) fn on_icon(tray: &TrayIcon, event: TrayIconEvent) {
     }
 }
 
+/// Open the import dialog prefilled with the clipboard, so tray imports get
+/// the same preview and confirm step as window imports.
 fn import(app: &AppHandle) {
     window::show(app);
-    match crate::intake::import_text(&clipboard_or_empty()) {
-        Ok(message) => announce(app, message),
-        Err(error) => {
-            let _ = app.emit("status-error", error);
-        }
-    }
+    let _ = app.emit("import-request", clipboard_or_empty());
 }
 
 fn sign_in(app: &AppHandle, steamid: &str) {

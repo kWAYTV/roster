@@ -92,7 +92,10 @@ mod tests {
 
     #[test]
     fn ignores_trailing_metadata() {
-        let (user, _) = parse(&format!("76561199843081825----{TOKEN}----rank:13----vac:clean")).unwrap();
+        let (user, _) = parse(&format!(
+            "76561199843081825----{TOKEN}----rank:13----vac:clean"
+        ))
+        .unwrap();
         assert_eq!(user, "76561199843081825");
     }
 

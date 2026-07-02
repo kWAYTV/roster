@@ -2,7 +2,9 @@ use super::tokens::quoted_fields;
 
 /// Leading whitespace (tabs/spaces) of a line, preserved for re-indentation.
 pub fn indent_of(line: &str) -> String {
-    line.chars().take_while(|c| *c == '\t' || *c == ' ').collect()
+    line.chars()
+        .take_while(|c| *c == '\t' || *c == ' ')
+        .collect()
 }
 
 /// Byte offset where `line_idx` begins, assuming `\n`-joined lines.
