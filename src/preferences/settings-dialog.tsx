@@ -30,7 +30,7 @@ const SETTINGS: Setting[] = [
   {
     key: "streamer_mode",
     label: "Streamer mode",
-    description: "Mask usernames in this app and the tray. Avatars stay visible.",
+    description: "Mask usernames and avatars in this app and the tray.",
   },
   {
     key: "launch_steam_minimized",
