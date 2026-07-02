@@ -1,9 +1,9 @@
 //! Split a paste containing several accounts into individual entries.
 
-use super::parse::is_steamid;
+use super::jwt;
 
-/// Break `content` into entries by blank-line paragraphs, then by
-/// `steamid----token` lines, falling back to the whole paste as one entry.
+/// Break `content` into entries by blank-line paragraphs, then by lines that
+/// carry their own token, falling back to the whole paste as one entry.
 pub fn split(content: &str) -> Vec<String> {
     let cleaned = sanitize(content);
     let trimmed = cleaned.trim();
@@ -29,12 +29,10 @@ pub fn split(content: &str) -> Vec<String> {
     vec![trimmed.to_string()]
 }
 
-/// A line counts as its own entry when a SteamID precedes the `----` delimiter.
+/// A line counts as its own entry when it carries a token, whether prefixed
+/// with `steamid----`, `username----`, or standing alone.
 fn is_entry_line(line: &str) -> bool {
-    match line.find("----") {
-        Some(pos) => is_steamid(line[..pos].trim()),
-        None => false,
-    }
+    jwt::find(line).is_some()
 }
 
 fn non_empty<'a>(parts: impl Iterator<Item = &'a str>) -> Vec<String> {
@@ -62,6 +60,18 @@ mod tests {
     #[test]
     fn splits_multiple_lines() {
         let input = format!("76561199843081825----{TOKEN}\n76561199194545602----{TOKEN}");
+        assert_eq!(split(&input).len(), 2);
+    }
+
+    #[test]
+    fn splits_username_delimited_lines() {
+        let input = format!("alice----{TOKEN}\nbob----{TOKEN}");
+        assert_eq!(split(&input).len(), 2);
+    }
+
+    #[test]
+    fn splits_bare_token_lines() {
+        let input = format!("{TOKEN}\n{TOKEN}");
         assert_eq!(split(&input).len(), 2);
     }
 
