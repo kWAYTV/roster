@@ -41,6 +41,7 @@ pub fn import_text(text: &str) -> Result<String, String> {
     let prefs = preferences::load();
     login::activate(&username, &steamid, &install, &prefs)?;
     login::relaunch(&install, &steamid, &prefs)?;
+    crate::metadata::mark_used(&steamid);
 
     Ok(summary(stored, &username, &failures))
 }

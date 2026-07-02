@@ -7,4 +7,9 @@ export interface AccountView {
   initials: string;
   most_recent: boolean;
   avatar: string | null;
+  /** Unix seconds; 0 when never used through this app. */
+  last_used: number;
+  /** Unix seconds; 0 when no cooldown is set. */
+  cooldown_until: number;
+  cooldown_duration: number;
 }

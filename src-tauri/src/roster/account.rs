@@ -1,5 +1,7 @@
 use std::path::PathBuf;
 
+use crate::metadata::AccountMetadata;
+
 /// A remembered Steam account and the metadata we show for it.
 #[derive(Clone, Default)]
 pub struct Account {
@@ -9,6 +11,7 @@ pub struct Account {
     pub avatar_hash: Option<String>,
     pub avatar_path: Option<PathBuf>,
     pub most_recent: bool,
+    pub metadata: AccountMetadata,
 }
 
 impl Account {

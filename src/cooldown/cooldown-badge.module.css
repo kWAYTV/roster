@@ -1,0 +1,10 @@
+.badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}

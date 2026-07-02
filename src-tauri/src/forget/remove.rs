@@ -22,6 +22,7 @@ pub fn remove(account: &Account) -> Result<String, String> {
     }
 
     clear_autologin_if_matches(&account.account_name);
+    crate::metadata::forget(&account.steamid);
 
     Ok(format!("Removed {}.", account.display_name()))
 }

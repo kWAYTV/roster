@@ -11,6 +11,7 @@ pub fn sign_in(account: &Account) -> Result<String, String> {
     stop()?;
     activate(&account.account_name, &account.steamid, &install, &prefs)?;
     relaunch(&install, &account.steamid, &prefs)?;
+    crate::metadata::mark_used(&account.steamid);
 
     Ok(format!("Signed in as {}. Starting Steam.", account.display_name()))
 }

@@ -1,6 +1,7 @@
 //! The Tauri command boundary: thin adapters from the UI into the domains.
 
 mod dto;
+pub mod cooldown;
 pub mod intake;
 pub mod login;
 pub mod preferences;

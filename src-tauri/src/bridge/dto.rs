@@ -16,6 +16,9 @@ pub struct AccountView {
     pub initials: String,
     pub most_recent: bool,
     pub avatar: Option<String>,
+    pub last_used: u64,
+    pub cooldown_until: u64,
+    pub cooldown_duration: u64,
 }
 
 impl From<&Account> for AccountView {
@@ -28,6 +31,9 @@ impl From<&Account> for AccountView {
             initials: account.initials(),
             most_recent: account.most_recent,
             avatar: account.avatar_path.as_deref().and_then(avatar_data_url),
+            last_used: account.metadata.last_used,
+            cooldown_until: account.metadata.cooldown_until,
+            cooldown_duration: account.metadata.cooldown_duration,
         }
     }
 }

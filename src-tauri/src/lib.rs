@@ -9,6 +9,7 @@ mod bridge;
 mod forget;
 mod intake;
 mod login;
+mod metadata;
 mod preferences;
 mod presence;
 mod reset;
@@ -21,6 +22,9 @@ mod vdf;
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            tray::focus_window(app);
+        }))
         .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             tray::setup(app.handle())?;
@@ -32,6 +36,8 @@ pub fn run() {
             bridge::intake::read_clipboard,
             bridge::intake::import_accounts,
             bridge::login::sign_in,
+            bridge::cooldown::set_cooldown,
+            bridge::cooldown::clear_cooldown,
             bridge::reset::clear_cache,
             bridge::preferences::get_preferences,
             bridge::preferences::save_preferences,

@@ -1,0 +1,55 @@
+.wrap {
+  position: relative;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 11;
+  min-width: 140px;
+  padding: var(--space-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--panel-raised);
+  box-shadow: var(--shadow);
+}
+
+.heading {
+  padding: 4px 8px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.item {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  text-align: left;
+}
+
+.item:hover {
+  background: var(--accent-soft);
+}
+
+.clear {
+  color: var(--danger);
+}
+
+.clear:hover {
+  background: var(--danger-soft);
+}

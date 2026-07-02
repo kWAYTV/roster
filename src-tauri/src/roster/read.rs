@@ -13,8 +13,10 @@ pub fn list() -> Result<Vec<Account>, String> {
         .map_err(|_| "Couldn't read loginusers.vdf. Open Steam once first.".to_string())?;
 
     let mut accounts = parse(&content);
+    let metadata = crate::metadata::all();
     for account in &mut accounts {
         account.avatar_path = avatar::resolve(&install, account);
+        account.metadata = metadata.get(&account.steamid).copied().unwrap_or_default();
     }
     accounts.sort_by(|a, b| {
         b.most_recent

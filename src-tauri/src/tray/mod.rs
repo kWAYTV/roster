@@ -29,6 +29,11 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+/// Reveal and focus the main window (used when a second instance launches).
+pub fn focus_window(app: &AppHandle) {
+    window::show(app);
+}
+
 /// Rebuild the tray menu after accounts or preferences change.
 pub fn rebuild(app: &AppHandle) -> tauri::Result<()> {
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
