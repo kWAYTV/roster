@@ -57,26 +57,26 @@ jobs:
         run: gh release delete latest --yes --cleanup-tag || true
 
       - name: Prepare signing key
+        id: signing
         shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          # Secret must be the single base64 line from `tauri signer generate`.
-          # Strip stray newlines GitHub adds when pasting the secret.
           key="$(printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" | tr -d '\n\r')"
           if ! printf '%s' "$key" | base64 -d >/dev/null 2>&1; then
             echo "::error::TAURI_SIGNING_PRIVATE_KEY is not valid base64."
             exit 1
           fi
-          echo "TAURI_SIGNING_PRIVATE_KEY<<EOF" >> "$GITHUB_ENV"
-          printf '%s' "$key" >> "$GITHUB_ENV"
-          echo "EOF" >> "$GITHUB_ENV"
+          keyfile="$RUNNER_TEMP/roster.key"
+          printf '%s' "$key" > "$keyfile"
+          echo "keyfile=$keyfile" >> "$GITHUB_OUTPUT"
 
       - name: Build and publish
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ steps.signing.outputs.keyfile }}
         with:
           tagName: ${{ steps.release.outputs.tag_name }}
           releaseName: ${{ steps.release.outputs.release_name }}
