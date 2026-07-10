@@ -56,11 +56,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release delete latest --yes --cleanup-tag || true
 
+      - name: Prepare signing key
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          printf '%s' "$TAURI_SIGNING_PRIVATE_KEY" > "$RUNNER_TEMP/roster.key"
+
       - name: Build and publish
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ runner.temp }}/roster.key
         with:
           tagName: ${{ steps.release.outputs.tag_name }}
           releaseName: ${{ steps.release.outputs.release_name }}
