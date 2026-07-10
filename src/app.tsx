@@ -23,6 +23,7 @@ import type { AccountView } from "./roster/account";
 import { RosterList } from "./roster/roster-list";
 import { useRoster } from "./roster/use-roster";
 import { useStatus } from "./status/use-status";
+import { useUpdater } from "./updater/use-updater";
 import styles from "./app.module.css";
 
 export function App() {
@@ -33,6 +34,8 @@ export function App() {
   const { remove, removeMany } = useForget();
   const { startMany, clearMany } = useCooldown();
   const { notify } = useToast();
+  const { available, busy, currentVersion, checkForUpdate, install, dismiss } =
+    useUpdater(notify);
 
   const [query, setQuery] = useState("");
   const [importOpen, setImportOpen] = useState(false);
@@ -266,9 +269,26 @@ export function App() {
       <SettingsDialog
         open={settingsOpen}
         preferences={preferences}
+        currentVersion={currentVersion}
+        updateBusy={busy}
         onChange={setPreference}
         onPatch={patchPreferences}
+        onCheckForUpdates={() => void checkForUpdate(true)}
         onClose={() => setSettingsOpen(false)}
+      />
+      <ConfirmDialog
+        open={available !== null}
+        title="Update available"
+        message={
+          available
+            ? `Roster ${available.version} is ready. Install now and restart?`
+            : ""
+        }
+        confirmLabel={busy ? "Installing…" : "Install and restart"}
+        confirmDisabled={busy}
+        closeOnConfirm={false}
+        onConfirm={() => void install()}
+        onClose={dismiss}
       />
       <ConfirmDialog
         open={removeTargets.length > 0}

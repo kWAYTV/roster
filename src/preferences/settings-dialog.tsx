@@ -6,8 +6,11 @@ import styles from "./settings-dialog.module.css";
 interface SettingsDialogProps {
   open: boolean;
   preferences: Preferences;
+  currentVersion: string | null;
+  updateBusy: boolean;
   onChange: (key: keyof Preferences, value: boolean) => void;
   onPatch: (patch: Partial<Preferences>) => void;
+  onCheckForUpdates: () => void;
   onClose: () => void;
 }
 
@@ -88,13 +91,28 @@ const SECTIONS: SettingSection[] = [
 export function SettingsDialog({
   open,
   preferences,
+  currentVersion,
+  updateBusy,
   onChange,
   onPatch,
+  onCheckForUpdates,
   onClose,
 }: SettingsDialogProps) {
   return (
     <Modal open={open} title="Settings" onClose={onClose}>
       <div className={styles.root}>
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Updates</h3>
+          <div className={styles.updateRow}>
+            <div>
+              <div className={styles.updateLabel}>Version</div>
+              <div className={styles.updateMeta}>{currentVersion ?? "Unknown"}</div>
+            </div>
+            <button className="btn btn-sm" disabled={updateBusy} onClick={onCheckForUpdates}>
+              {updateBusy ? "Updating…" : "Check for updates"}
+            </button>
+          </div>
+        </section>
         {SECTIONS.map((section) => (
           <section key={section.title} className={styles.section}>
             <h3 className={styles.sectionTitle}>{section.title}</h3>

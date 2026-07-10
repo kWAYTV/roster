@@ -24,6 +24,25 @@
   gap: var(--space-2);
 }
 
+.updateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.updateLabel {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.updateMeta {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  margin-top: 2px;
+}
+
 .field {
   display: flex;
   flex-direction: column;

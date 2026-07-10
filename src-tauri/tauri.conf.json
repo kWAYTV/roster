@@ -27,17 +27,29 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; img-src 'self' data:; style-src 'self' 'unsafe-inline'",
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost https://github.com https://release-assets.githubusercontent.com https://objects.githubusercontent.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'",
       "devCsp": null
     }
   },
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDkyRjg0RDdDRDVDNDkwOTIKUldTU2tNVFZmRTM0a3F5R1NScHZjYmUzamh5cTM3aWI1WGY2VDZacjNWMzZBLzQ2R3Vtc0RqckQK",
+      "endpoints": [
+        "https://github.com/kWAYTV/roster/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

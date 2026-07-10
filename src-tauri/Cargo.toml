@@ -24,6 +24,7 @@ arboard = "3"
 winreg = "0.56"
 ureq = "3"
 tauri-plugin-window-state = "2"
+tauri-plugin-process = "2"
 
 [dependencies.windows]
 version = "0.62"
@@ -36,3 +37,6 @@ features = [
 opt-level = "s"
 lto = true
 strip = true
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-updater = "2"
