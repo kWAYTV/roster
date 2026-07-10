@@ -58,6 +58,7 @@ pub fn run() {
             bridge::export::export_token_entries,
             bridge::util::write_clipboard,
             bridge::util::open_steam_profile,
+            bridge::util::open_external_url,
             bridge::logs::get_logs,
             bridge::logs::clear_logs,
         ])

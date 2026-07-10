@@ -30,6 +30,7 @@ export const commands = {
     invoke<string[]>("export_token_entries", { steamids }),
   openSteamProfile: (steamid: string) =>
     invoke<void>("open_steam_profile", { steamid }),
+  openExternalUrl: (url: string) => invoke<void>("open_external_url", { url }),
   getLogs: () => invoke<string[]>("get_logs"),
   clearLogs: () => invoke<void>("clear_logs"),
   refreshStatuses: () => invoke<void>("refresh_statuses"),
