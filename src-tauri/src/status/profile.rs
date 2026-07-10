@@ -3,6 +3,10 @@
 pub struct ProfileStatus {
     pub state: OnlineState,
     pub game: String,
+    /// Display name from the `<steamID>` tag (not the numeric id).
+    pub persona_name: String,
+    /// Remote avatar URL from the profile XML.
+    pub avatar_url: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -12,11 +16,19 @@ pub enum OnlineState {
     InGame,
 }
 
-/// Parse the community profile XML. Private profiles read as offline.
+/// Parse the community profile XML.
 pub fn parse(xml: &str) -> ProfileStatus {
+    let persona_name = tag_text(xml, "steamID").unwrap_or_default();
+    let avatar_url = tag_text(xml, "avatarFull")
+        .or_else(|| tag_text(xml, "avatarMedium"))
+        .or_else(|| tag_text(xml, "avatarIcon"))
+        .unwrap_or_default();
+
     let offline = ProfileStatus {
         state: OnlineState::Offline,
         game: String::new(),
+        persona_name: persona_name.clone(),
+        avatar_url: avatar_url.clone(),
     };
 
     if tag_text(xml, "privacyState").as_deref() != Some("public") {
@@ -27,10 +39,14 @@ pub fn parse(xml: &str) -> ProfileStatus {
         Some("in-game") => ProfileStatus {
             state: OnlineState::InGame,
             game: game_from_state_message(&tag_text(xml, "stateMessage").unwrap_or_default()),
+            persona_name,
+            avatar_url,
         },
         Some("online") => ProfileStatus {
             state: OnlineState::Online,
             game: String::new(),
+            persona_name,
+            avatar_url,
         },
         _ => offline,
     }
@@ -88,26 +104,42 @@ mod tests {
     #[test]
     fn private_profile_reads_offline() {
         let xml = "<profile><privacyState><![CDATA[private]]></privacyState>\
+                   <steamID>HiddenUser</steamID>\
                    <onlineState>online</onlineState></profile>";
-        assert_eq!(parse(xml).state, OnlineState::Offline);
+        let status = parse(xml);
+        assert_eq!(status.state, OnlineState::Offline);
+        assert_eq!(status.persona_name, "HiddenUser");
     }
 
     #[test]
     fn reads_online_state() {
         let xml = "<profile><privacyState>public</privacyState>\
+                   <steamID><![CDATA[Alpha]]></steamID>\
                    <onlineState><![CDATA[online]]></onlineState></profile>";
-        assert_eq!(parse(xml).state, OnlineState::Online);
+        let status = parse(xml);
+        assert_eq!(status.state, OnlineState::Online);
+        assert_eq!(status.persona_name, "Alpha");
     }
 
     #[test]
     fn extracts_game_name_when_in_game() {
         let xml = "<profile><privacyState>public</privacyState>\
+                   <steamID>Player</steamID>\
                    <onlineState>in-game</onlineState>\
                    <stateMessage><![CDATA[In-Game<br/>Counter-Strike 2]]></stateMessage>\
                    </profile>";
         let status = parse(xml);
         assert_eq!(status.state, OnlineState::InGame);
         assert_eq!(status.game, "Counter-Strike 2");
+    }
+
+    #[test]
+    fn reads_avatar_url() {
+        let xml = "<profile><steamID>Name</steamID>\
+                   <avatarFull><![CDATA[https://example.com/full.jpg]]></avatarFull>\
+                   </profile>";
+        let status = parse(xml);
+        assert_eq!(status.avatar_url, "https://example.com/full.jpg");
     }
 
     #[test]

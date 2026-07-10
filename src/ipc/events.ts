@@ -6,6 +6,8 @@ interface StatusPayload {
   steamid: string;
   state: OnlineState;
   game: string;
+  display_name?: string;
+  avatar?: string;
 }
 
 /// Streamed per-account results while a backend status sweep runs.

@@ -26,8 +26,8 @@ import { useStatus } from "./status/use-status";
 import styles from "./app.module.css";
 
 export function App() {
-  const { accounts, loading, error } = useRoster();
-  const statuses = useStatus(!loading);
+  const { accounts, loading, error, patchProfile } = useRoster();
+  const statuses = useStatus(!loading, patchProfile);
   const { preferences, setPreference, patchPreferences } = usePreferences();
   const { signIn, pending } = useSignIn();
   const { remove, removeMany } = useForget();

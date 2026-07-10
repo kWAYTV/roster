@@ -4,5 +4,5 @@
 mod fetch;
 mod profile;
 
-pub use fetch::sweep;
-pub use profile::{OnlineState, ProfileStatus};
+pub use fetch::{sweep, FetchedProfile};
+pub use profile::OnlineState;

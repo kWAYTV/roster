@@ -19,6 +19,7 @@ pub fn list_tray() -> Result<Vec<Account>, String> {
 }
 
 /// SteamIDs only — for background status sweeps.
+#[allow(dead_code)]
 pub fn steamids() -> Result<Vec<String>, String> {
     let install = install_dir()?;
     let path = install.join("config").join("loginusers.vdf");

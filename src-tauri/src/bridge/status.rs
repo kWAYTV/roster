@@ -3,7 +3,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter};
 
-use crate::status::{sweep, OnlineState, ProfileStatus};
+use crate::roster::Account;
+use crate::status::{sweep, FetchedProfile, OnlineState};
 
 /// Only one sweep runs at a time; requests that arrive mid-sweep are
 /// coalesced into one follow-up sweep instead of being dropped.
@@ -15,6 +16,10 @@ pub struct StatusView {
     pub steamid: String,
     pub state: &'static str,
     pub game: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<String>,
 }
 
 /// Start a background status sweep over the whole roster. Each account's
@@ -31,9 +36,11 @@ fn start_sweep(app: AppHandle) {
         return;
     }
 
-    // The roster is re-read per sweep so a queued follow-up (typically from
-    // an accounts-changed event) sees the latest account list.
-    let steamids: Vec<String> = crate::roster::steamids().unwrap_or_default();
+    let accounts: Vec<Account> = crate::roster::list_tray().unwrap_or_default();
+    let steamids: Vec<String> = accounts
+        .iter()
+        .map(|account| account.steamid.clone())
+        .collect();
 
     if steamids.is_empty() {
         SWEEPING.store(false, Ordering::SeqCst);
@@ -41,9 +48,10 @@ fn start_sweep(app: AppHandle) {
     }
 
     std::thread::spawn(move || {
-        sweep(&steamids, |steamid, status| {
-            if let Some(status) = status {
-                let _ = app.emit("account-status", view(steamid, &status));
+        sweep(&steamids, |steamid, fetched| {
+            if let Some(fetched) = fetched {
+                let account = accounts.iter().find(|item| item.steamid == steamid);
+                let _ = app.emit("account-status", view(steamid, account, &fetched));
             }
         });
         SWEEPING.store(false, Ordering::SeqCst);
@@ -53,7 +61,15 @@ fn start_sweep(app: AppHandle) {
     });
 }
 
-fn view(steamid: &str, status: &ProfileStatus) -> StatusView {
+fn view(steamid: &str, account: Option<&Account>, fetched: &FetchedProfile) -> StatusView {
+    let status = &fetched.status;
+    let persona = status.persona_name.trim();
+    let enrich_name = account.is_some_and(needs_profile_label)
+        && !persona.is_empty()
+        && !looks_like_steamid(persona);
+    let enrich_avatar =
+        account.is_some_and(|item| item.avatar_path.is_none()) && fetched.avatar.is_some();
+
     StatusView {
         steamid: steamid.to_string(),
         state: match status.state {
@@ -62,5 +78,19 @@ fn view(steamid: &str, status: &ProfileStatus) -> StatusView {
             OnlineState::InGame => "in-game",
         },
         game: status.game.clone(),
+        display_name: enrich_name.then(|| persona.to_string()),
+        avatar: if enrich_avatar {
+            fetched.avatar.clone()
+        } else {
+            None
+        },
     }
+}
+
+fn needs_profile_label(account: &Account) -> bool {
+    !account.has_real_persona()
+}
+
+fn looks_like_steamid(value: &str) -> bool {
+    value.len() >= 16 && value.chars().all(|c| c.is_ascii_digit())
 }

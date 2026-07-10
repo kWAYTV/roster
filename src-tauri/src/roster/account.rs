@@ -17,19 +17,29 @@ pub struct Account {
 }
 
 impl Account {
+    /// Persona from loginusers.vdf when it looks like a real display name.
+    pub fn has_real_persona(&self) -> bool {
+        !self.persona_name.is_empty() && !looks_like_steamid(&self.persona_name)
+    }
+
     /// The friendliest available name: persona if set, else the login name.
     pub fn display_name(&self) -> &str {
-        if self.persona_name.is_empty() {
-            &self.account_name
-        } else {
-            &self.persona_name
+        if self.has_real_persona() {
+            return &self.persona_name;
         }
+        if !self.account_name.is_empty() && !looks_like_steamid(&self.account_name) {
+            return &self.account_name;
+        }
+        &self.steamid
     }
 
     /// Up to two uppercase alphanumeric characters for the avatar fallback.
     pub fn initials(&self) -> String {
-        let initials: String = self
-            .display_name()
+        let name = self.display_name();
+        if looks_like_steamid(name) {
+            return "?".to_string();
+        }
+        let initials: String = name
             .chars()
             .filter(|c| c.is_alphanumeric())
             .take(2)
@@ -41,4 +51,8 @@ impl Account {
             initials
         }
     }
+}
+
+fn looks_like_steamid(value: &str) -> bool {
+    value.len() >= 16 && value.chars().all(|c| c.is_ascii_digit())
 }
