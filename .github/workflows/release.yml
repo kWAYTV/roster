@@ -2,7 +2,6 @@ name: Release
 
 on:
   push:
-    branches: [main, kway]
     tags:
       - "v*"
   workflow_dispatch:
@@ -35,26 +34,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Set release metadata
-        id: release
-        shell: bash
-        run: |
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "tag_name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-            echo "prerelease=false" >> "$GITHUB_OUTPUT"
-            echo "release_name=Roster ${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag_name=latest" >> "$GITHUB_OUTPUT"
-            echo "prerelease=true" >> "$GITHUB_OUTPUT"
-            echo "release_name=Latest build" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Remove rolling latest release
-        if: steps.release.outputs.tag_name == 'latest'
+      - name: Generate release notes
+        id: notes
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release delete latest --yes --cleanup-tag || true
+        run: |
+          set -euo pipefail
+          body="$(gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+            -f tag_name="${GITHUB_REF_NAME}" \
+            -f target_commitish="${GITHUB_SHA}" \
+            --jq .body)"
+          {
+            echo "body<<EOF"
+            echo "$body"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Prepare signing key
         id: signing
@@ -78,10 +73,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ steps.signing.outputs.keyfile }}
         with:
-          tagName: ${{ steps.release.outputs.tag_name }}
-          releaseName: ${{ steps.release.outputs.release_name }}
-          releaseBody: "Signed Windows installer and updater manifest."
-          prerelease: ${{ steps.release.outputs.prerelease }}
+          tagName: ${{ github.ref_name }}
+          releaseName: Roster ${{ github.ref_name }}
+          releaseBody: ${{ steps.notes.outputs.body }}
+          prerelease: false
           uploadUpdaterJson: true
           updaterJsonPreferNsis: true
           args: ""
