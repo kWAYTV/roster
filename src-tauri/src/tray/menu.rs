@@ -18,7 +18,7 @@ pub(super) fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     let separator_top = PredefinedMenuItem::separator(app)?;
     let separator_bottom = PredefinedMenuItem::separator(app)?;
 
-    let accounts = crate::roster::list().unwrap_or_default();
+    let accounts = crate::roster::list_tray().unwrap_or_default();
     let streamer = crate::preferences::load().streamer_mode;
     let account_items = account_items(app, &accounts, streamer)?;
 

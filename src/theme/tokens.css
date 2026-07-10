@@ -48,8 +48,8 @@
   --z-overlay: 100;
   --z-toast: 200;
 
-  --font: 13px/1.45 "Geist", "Segoe UI", system-ui, sans-serif;
-  --font-mono: 11px/1.4 "Geist Mono", "Cascadia Mono", Consolas, monospace;
+  --font: 13px/1.45 "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-mono: 11px/1.4 "Cascadia Mono", Consolas, "Courier New", monospace;
 
   --text-xs: 10px;
   --text-sm: 11px;

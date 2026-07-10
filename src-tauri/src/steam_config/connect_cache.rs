@@ -1,5 +1,6 @@
 //! `%LOCALAPPDATA%/Steam/local.vdf`: the DPAPI-encrypted refresh tokens.
 
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
@@ -45,23 +46,27 @@ pub fn remove_token(cache_dir: &Path, username: &str) {
     let _ = fs::write(&path, filtered);
 }
 
-/// Read and decrypt the cached refresh token for `username`, if present.
-pub fn read_token(cache_dir: &Path, username: &str) -> Option<String> {
-    let encrypted = read_encrypted(cache_dir, username)?;
-    decrypt_token(&encrypted, username).ok()
-}
-
-fn read_encrypted(cache_dir: &Path, username: &str) -> Option<String> {
+/// Read every encrypted ConnectCache value once, keyed by store key.
+pub fn read_encrypted_map(cache_dir: &Path) -> HashMap<String, String> {
     let path = cache_dir.join("local.vdf");
-    let content = fs::read_to_string(&path).ok()?;
-    let key = store_key(username);
+    let Ok(content) = fs::read_to_string(&path) else {
+        return HashMap::new();
+    };
+    let mut map = HashMap::new();
     for line in content.lines() {
         let fields = quoted_fields(line);
-        if fields.len() >= 2 && fields[0] == key {
-            return Some(fields[1].clone());
+        if fields.len() >= 2 {
+            map.insert(fields[0].clone(), fields[1].clone());
         }
     }
-    None
+    map
+}
+
+/// Decrypt a cached token when the encrypted map is already loaded.
+pub fn decrypt_cached(map: &HashMap<String, String>, username: &str) -> Option<String> {
+    let key = store_key(username);
+    let encrypted = map.get(&key)?;
+    decrypt_token(encrypted, username).ok()
 }
 
 /// Replace or append the key inside an existing `ConnectCache` block.

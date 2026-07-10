@@ -11,9 +11,7 @@ pub fn set_exclude_from_capture(hwnd: isize, exclude: bool) -> bool {
     } else {
         WDA_NONE
     };
-    unsafe {
-        SetWindowDisplayAffinity(hwnd as *mut c_void, affinity) != 0
-    }
+    unsafe { SetWindowDisplayAffinity(hwnd as *mut c_void, affinity) != 0 }
 }
 
 #[cfg(windows)]

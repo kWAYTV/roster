@@ -23,7 +23,9 @@ pub fn start(app: AppHandle) {
 
             for (steamid, record) in &store {
                 if record.cooldown_until > now {
-                    watching.entry(steamid.clone()).or_insert(record.cooldown_until);
+                    watching
+                        .entry(steamid.clone())
+                        .or_insert(record.cooldown_until);
                 }
             }
 
@@ -52,7 +54,7 @@ pub fn start(app: AppHandle) {
 }
 
 fn display_names(steamids: &[String]) -> Vec<String> {
-    let roster = roster::list().unwrap_or_default();
+    let roster = roster::list_tray().unwrap_or_default();
     let by_id: HashMap<_, _> = roster.iter().map(|a| (a.steamid.as_str(), a)).collect();
     steamids
         .iter()

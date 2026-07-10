@@ -1,14 +1,26 @@
 //! Export stored refresh tokens as `username----token` lines.
 
-use crate::intake::{is_jwt};
+use std::collections::HashMap;
+
+use crate::intake::is_jwt;
 use crate::roster::Account;
 use crate::steam_client::cache_dir;
 use crate::steam_config::connect_cache;
 
-/// Format one account's cached token for export, if decryptable.
-pub fn entry_for(account: &Account) -> Option<String> {
-    let cache = cache_dir().ok()?;
-    let token = read_token_for(account, &cache)?;
+/// Export lines for the given accounts using one ConnectCache read.
+pub fn entries_for(accounts: &[Account]) -> Vec<String> {
+    let Ok(cache) = cache_dir() else {
+        return Vec::new();
+    };
+    let map = connect_cache::read_encrypted_map(&cache);
+    accounts
+        .iter()
+        .filter_map(|account| entry_for_cached(account, &map))
+        .collect()
+}
+
+fn entry_for_cached(account: &Account, map: &HashMap<String, String>) -> Option<String> {
+    let token = read_token_for(account, map)?;
     if !is_jwt(&token) {
         return None;
     }
@@ -20,16 +32,12 @@ pub fn entry_for(account: &Account) -> Option<String> {
     Some(format!("{label}----{token}"))
 }
 
-pub fn entries_for(accounts: &[Account]) -> Vec<String> {
-    accounts.iter().filter_map(entry_for).collect()
-}
-
-fn read_token_for(account: &Account, cache: &std::path::Path) -> Option<String> {
+fn read_token_for(account: &Account, map: &HashMap<String, String>) -> Option<String> {
     for name in [&account.account_name, &account.steamid] {
         if name.is_empty() {
             continue;
         }
-        if let Some(token) = connect_cache::read_token(cache, name) {
+        if let Some(token) = connect_cache::decrypt_cached(map, name) {
             return Some(token);
         }
     }

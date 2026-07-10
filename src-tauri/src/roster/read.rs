@@ -1,14 +1,36 @@
+use std::collections::HashMap;
 use std::fs;
 
 use super::account::Account;
 use super::avatar;
-use crate::intake::{is_jwt, expires_in};
+use crate::intake::{expires_in, is_jwt};
 use crate::steam_client::{cache_dir, install_dir};
 use crate::steam_config::connect_cache;
 use crate::vdf::quoted_fields;
 
 /// All remembered accounts, most-recent first then alphabetical by display name.
 pub fn list() -> Result<Vec<Account>, String> {
+    load_accounts(true)
+}
+
+/// Account list for tray rebuilds — skips JWT decryption.
+pub fn list_tray() -> Result<Vec<Account>, String> {
+    load_accounts(false)
+}
+
+/// SteamIDs only — for background status sweeps.
+pub fn steamids() -> Result<Vec<String>, String> {
+    let install = install_dir()?;
+    let path = install.join("config").join("loginusers.vdf");
+    let content = fs::read_to_string(&path)
+        .map_err(|_| "Couldn't read loginusers.vdf. Open Steam once first.".to_string())?;
+    Ok(parse(&content)
+        .into_iter()
+        .map(|account| account.steamid)
+        .collect())
+}
+
+fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
     let install = install_dir()?;
     let path = install.join("config").join("loginusers.vdf");
     let content = fs::read_to_string(&path)
@@ -16,12 +38,22 @@ pub fn list() -> Result<Vec<Account>, String> {
 
     let mut accounts = parse(&content);
     let metadata = crate::metadata::all();
-    let cache = cache_dir().ok();
+    let token_cache = if enrich_jwt {
+        cache_dir()
+            .ok()
+            .map(|dir| connect_cache::read_encrypted_map(&dir))
+    } else {
+        None
+    };
+
     for account in &mut accounts {
         account.avatar_path = avatar::resolve(&install, account);
         account.metadata = metadata.get(&account.steamid).copied().unwrap_or_default();
-        account.jwt_expires_in = token_expires_in(cache.as_deref(), account);
+        if let Some(map) = token_cache.as_ref() {
+            account.jwt_expires_in = jwt_expires_in(map, account);
+        }
     }
+
     accounts.sort_by(|a, b| {
         b.most_recent
             .cmp(&a.most_recent)
@@ -30,15 +62,12 @@ pub fn list() -> Result<Vec<Account>, String> {
     Ok(accounts)
 }
 
-fn token_expires_in(cache: Option<&std::path::Path>, account: &Account) -> i64 {
-    let Some(cache_dir) = cache else {
-        return 0;
-    };
+fn jwt_expires_in(map: &HashMap<String, String>, account: &Account) -> i64 {
     for name in [&account.account_name, &account.steamid] {
         if name.is_empty() {
             continue;
         }
-        if let Some(token) = connect_cache::read_token(cache_dir, name) {
+        if let Some(token) = connect_cache::decrypt_cached(map, name) {
             if is_jwt(&token) {
                 return expires_in(&token);
             }

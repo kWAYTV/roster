@@ -15,7 +15,11 @@ pub fn clear_cooldown(app: AppHandle, steamid: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn set_cooldown_many(app: AppHandle, steamids: Vec<String>, seconds: u64) -> Result<(), String> {
+pub fn set_cooldown_many(
+    app: AppHandle,
+    steamids: Vec<String>,
+    seconds: u64,
+) -> Result<(), String> {
     for steamid in steamids {
         crate::metadata::set_cooldown(&steamid, seconds)?;
     }

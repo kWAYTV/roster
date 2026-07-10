@@ -20,7 +20,7 @@ pub(crate) fn after_account_change(
     result: Result<String, String>,
 ) -> Result<String, String> {
     match &result {
-        Ok(message) => crate::log::append(format!("{message}")),
+        Ok(message) => crate::log::append(message.to_string()),
         Err(error) => crate::log::append(format!("Error: {error}")),
     }
     if result.is_ok() {

@@ -69,16 +69,8 @@ pub fn decrypt_token(encrypted_hex: &str, account_name: &str) -> Result<String, 
     let mut data_out = CRYPT_INTEGER_BLOB::default();
 
     unsafe {
-        CryptUnprotectData(
-            &data_in,
-            None,
-            Some(&entropy),
-            None,
-            None,
-            0,
-            &mut data_out,
-        )
-        .map_err(|_| "Failed to decrypt the cached token.".to_string())?;
+        CryptUnprotectData(&data_in, None, Some(&entropy), None, None, 0, &mut data_out)
+            .map_err(|_| "Failed to decrypt the cached token.".to_string())?;
 
         let slice = std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize);
         let token = String::from_utf8_lossy(slice)
@@ -91,7 +83,7 @@ pub fn decrypt_token(encrypted_hex: &str, account_name: &str) -> Result<String, 
 }
 
 fn decode_hex(value: &str) -> Result<Vec<u8>, String> {
-    if value.len() % 2 != 0 {
+    if !value.len().is_multiple_of(2) {
         return Err("The cached token is not valid hex.".to_string());
     }
     let mut out = Vec::with_capacity(value.len() / 2);

@@ -33,11 +33,7 @@ fn start_sweep(app: AppHandle) {
 
     // The roster is re-read per sweep so a queued follow-up (typically from
     // an accounts-changed event) sees the latest account list.
-    let steamids: Vec<String> = crate::roster::list()
-        .unwrap_or_default()
-        .into_iter()
-        .map(|account| account.steamid)
-        .collect();
+    let steamids: Vec<String> = crate::roster::steamids().unwrap_or_default();
 
     if steamids.is_empty() {
         SWEEPING.store(false, Ordering::SeqCst);

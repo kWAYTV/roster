@@ -5,4 +5,4 @@ mod avatar;
 mod read;
 
 pub use account::Account;
-pub use read::list;
+pub use read::{list, list_tray, steamids};
