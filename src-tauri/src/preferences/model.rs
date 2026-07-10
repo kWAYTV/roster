@@ -13,6 +13,8 @@ pub struct Preferences {
     pub launch_steam_minimized: bool,
     #[serde(default)]
     pub mute_notifications_on_login: bool,
+    #[serde(default = "enabled")]
+    pub minimize_to_tray_on_close: bool,
 }
 
 impl Default for Preferences {
@@ -23,6 +25,7 @@ impl Default for Preferences {
             streamer_mode: false,
             launch_steam_minimized: false,
             mute_notifications_on_login: false,
+            minimize_to_tray_on_close: true,
         }
     }
 }

@@ -12,7 +12,7 @@ pub(super) fn show(app: &AppHandle) {
     }
 }
 
-/// Hide the window instead of closing it, keeping the app alive in the tray.
+/// On close, either hide to the tray or quit — per user preference.
 pub(super) fn enable_close_to_tray(app: &AppHandle) {
     let Some(window) = app.get_webview_window(MAIN) else {
         return;
@@ -21,14 +21,16 @@ pub(super) fn enable_close_to_tray(app: &AppHandle) {
     let hidden = window.clone();
     window.on_window_event(move |event| {
         if let WindowEvent::CloseRequested { api, .. } = event {
-            api.prevent_close();
-            let _ = hidden.hide();
-            let _ = handle
-                .notification()
-                .builder()
-                .title("Roster")
-                .body("Still running in the tray. Click the icon to reopen.")
-                .show();
+            if crate::preferences::load().minimize_to_tray_on_close {
+                api.prevent_close();
+                let _ = hidden.hide();
+                let _ = handle
+                    .notification()
+                    .builder()
+                    .title("Roster")
+                    .body("Still running in the tray. Click the icon to reopen.")
+                    .show();
+            }
         }
     });
 }

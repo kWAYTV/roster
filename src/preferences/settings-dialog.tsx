@@ -42,6 +42,11 @@ const SETTINGS: Setting[] = [
     label: "Mute notifications on login",
     description: "Turn off friend online and message notifications.",
   },
+  {
+    key: "minimize_to_tray_on_close",
+    label: "Minimize to tray on close",
+    description: "Keep Roster running in the system tray when you close the window.",
+  },
 ];
 
 export function SettingsDialog({ open, preferences, onChange, onClose }: SettingsDialogProps) {
