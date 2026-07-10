@@ -17,3 +17,23 @@ static MUTATION: Mutex<()> = Mutex::new(());
 pub fn mutation_guard() -> MutexGuard<'static, ()> {
     MUTATION.lock().unwrap_or_else(PoisonError::into_inner)
 }
+
+/// Kill Steam only when `account_names` includes the account Steam is running as.
+/// Removing or editing other accounts should not disturb an in-game session.
+pub fn stop_if_affects_active_login(account_names: &[&str]) -> Result<(), String> {
+    if !process::is_running() {
+        return Ok(());
+    }
+    let Some(active) = autologin::autologin_user() else {
+        return Ok(());
+    };
+    if account_names.iter().any(|name| *name == active) {
+        process::stop()?;
+    }
+    Ok(())
+}
+
+/// Whether switching to `username` should stop and relaunch the running client.
+pub fn should_switch_active_login(username: &str) -> bool {
+    !process::is_running() || autologin::autologin_user().as_deref() == Some(username)
+}

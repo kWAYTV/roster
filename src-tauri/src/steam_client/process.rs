@@ -21,6 +21,11 @@ pub fn stop() -> Result<(), String> {
     Ok(())
 }
 
+/// Whether Steam currently has a live client process.
+pub fn is_running() -> bool {
+    tracked_pid().is_some()
+}
+
 /// Launch `steam.exe` detached, optionally minimized to the tray.
 pub fn launch(install: &Path, minimized: bool) -> Result<(), String> {
     spawn_steam(install, minimized, &[])
@@ -57,18 +62,24 @@ fn spawn_steam(install: &Path, minimized: bool, extra: &[&str]) -> Result<(), St
 
 /// Kill the pid Steam records under `ActiveProcess`, if any.
 fn kill_tracked_pid() {
-    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
-    let Ok(key) = hkcu.open_subkey("SOFTWARE\\Valve\\Steam\\ActiveProcess") else {
+    let Some(pid) = tracked_pid() else {
         return;
     };
-    let Ok(pid) = key.get_value::<u32, _>("pid") else {
-        return;
-    };
-    if pid == 0 {
-        return;
-    }
     if taskkill(&["/F", "/PID", &pid.to_string(), "/T"]) {
         std::thread::sleep(Duration::from_millis(800));
+    }
+}
+
+fn tracked_pid() -> Option<u32> {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let key = hkcu
+        .open_subkey("SOFTWARE\\Valve\\Steam\\ActiveProcess")
+        .ok()?;
+    let pid = key.get_value::<u32, _>("pid").ok()?;
+    if pid == 0 {
+        None
+    } else {
+        Some(pid)
     }
 }
 

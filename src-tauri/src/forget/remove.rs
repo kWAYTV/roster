@@ -1,5 +1,7 @@
 use crate::roster::Account;
-use crate::steam_client::{cache_dir, clear_autologin_if_matches, install_dir, stop};
+use crate::steam_client::{
+    cache_dir, clear_autologin_if_matches, install_dir, stop_if_affects_active_login,
+};
 use crate::steam_config::{config_vdf, connect_cache, loginusers};
 
 /// Forget an account: strip it from loginusers, config.vdf, the token cache,
@@ -9,7 +11,7 @@ pub fn remove(account: &Account) -> Result<String, String> {
     let install = install_dir()?;
     let config_dir = install.join("config");
 
-    stop()?;
+    stop_if_affects_active_login(&[&account.account_name])?;
 
     loginusers::remove(&config_dir.join("loginusers.vdf"), &account.steamid)?;
 
@@ -28,7 +30,7 @@ pub fn remove(account: &Account) -> Result<String, String> {
     Ok(format!("Removed {}.", account.display_name()))
 }
 
-/// Remove several accounts with a single Steam stop.
+/// Remove several accounts without stopping Steam unless the active login is included.
 pub fn remove_many(accounts: &[Account]) -> Result<String, String> {
     if accounts.is_empty() {
         return Err("No accounts selected.".to_string());
@@ -38,7 +40,8 @@ pub fn remove_many(accounts: &[Account]) -> Result<String, String> {
     let install = install_dir()?;
     let config_dir = install.join("config");
 
-    stop()?;
+    let account_names: Vec<&str> = accounts.iter().map(|a| a.account_name.as_str()).collect();
+    stop_if_affects_active_login(&account_names)?;
 
     let mut names: Vec<String> = Vec::with_capacity(accounts.len());
     for account in accounts {

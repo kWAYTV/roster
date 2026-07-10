@@ -3,6 +3,19 @@ use winreg::RegKey;
 
 const STEAM_KEY: &str = "SOFTWARE\\Valve\\Steam";
 
+/// The account Steam will auto-login as, if set.
+pub fn autologin_user() -> Option<String> {
+    let key = RegKey::predef(HKEY_CURRENT_USER)
+        .open_subkey_with_flags(STEAM_KEY, KEY_QUERY_VALUE)
+        .ok()?;
+    let current: String = key.get_value("AutoLoginUser").unwrap_or_default();
+    if current.is_empty() {
+        None
+    } else {
+        Some(current)
+    }
+}
+
 /// Point Steam's autologin at `account_name` and enable password recall.
 pub fn set_autologin_user(account_name: &str) -> Result<(), String> {
     let key = RegKey::predef(HKEY_CURRENT_USER)
