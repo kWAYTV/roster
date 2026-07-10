@@ -15,6 +15,14 @@ pub struct Preferences {
     pub mute_notifications_on_login: bool,
     #[serde(default = "enabled")]
     pub minimize_to_tray_on_close: bool,
+    #[serde(default = "enabled")]
+    pub hide_from_capture: bool,
+    #[serde(default)]
+    pub show_log_panel: bool,
+    #[serde(default)]
+    pub launch_cs2_on_login: bool,
+    #[serde(default)]
+    pub cs2_launch_options: String,
 }
 
 impl Default for Preferences {
@@ -26,6 +34,10 @@ impl Default for Preferences {
             launch_steam_minimized: false,
             mute_notifications_on_login: false,
             minimize_to_tray_on_close: true,
+            hide_from_capture: true,
+            show_log_panel: false,
+            launch_cs2_on_login: false,
+            cs2_launch_options: String::new(),
         }
     }
 }

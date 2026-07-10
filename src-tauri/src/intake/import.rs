@@ -50,6 +50,9 @@ pub fn import_text(text: &str) -> Result<String, String> {
 /// Parse one entry and write its config + encrypted token to disk.
 fn store_entry(entry: &str, install: &Path, cache: &Path) -> Result<(String, String), String> {
     let (username, token) = parse::parse(entry)?;
+    if !jwt::is_importable(&token) {
+        return Err("Token expired or invalid — paste a fresh refresh token.".to_string());
+    }
     let steamid = jwt::steamid(&token)?;
     config_vdf::add_account(
         &install.join("config").join("config.vdf"),

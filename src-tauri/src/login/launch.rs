@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use crate::preferences::Preferences;
 use crate::presence::downloads;
-use crate::steam_client::{launch, localconfig_path, steamid3_from_steamid64};
+use crate::steam_client::{launch, launch_cs2, localconfig_path, steamid3_from_steamid64};
 
 /// Start Steam for the active account. Assumes callers already stopped Steam
 /// so the freshly written config is not clobbered.
@@ -16,6 +16,11 @@ pub fn relaunch(install: &Path, steamid: &str, prefs: &Preferences) -> Result<()
         if let Ok(steamid3) = steamid3_from_steamid64(steamid) {
             reassert_download_pause(localconfig_path(install, &steamid3));
         }
+    }
+
+    if prefs.launch_cs2_on_login {
+        std::thread::sleep(Duration::from_secs(2));
+        let _ = launch_cs2(install, &prefs.cs2_launch_options);
     }
     Ok(())
 }

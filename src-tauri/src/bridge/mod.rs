@@ -2,12 +2,15 @@
 
 pub mod cooldown;
 mod dto;
+pub mod export;
 pub mod intake;
 pub mod login;
+pub mod logs;
 pub mod preferences;
 pub mod reset;
 pub mod roster;
 pub mod status;
+pub mod util;
 
 use tauri::{AppHandle, Emitter};
 
@@ -16,6 +19,10 @@ pub(crate) fn after_account_change(
     app: &AppHandle,
     result: Result<String, String>,
 ) -> Result<String, String> {
+    match &result {
+        Ok(message) => crate::log::append(format!("{message}")),
+        Err(error) => crate::log::append(format!("Error: {error}")),
+    }
     if result.is_ok() {
         let _ = crate::tray::rebuild(app);
         let _ = app.emit("accounts-changed", ());

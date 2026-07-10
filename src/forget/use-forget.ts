@@ -18,5 +18,19 @@ export function useForget() {
     [notify],
   );
 
-  return { remove };
+  const removeMany = useCallback(
+    async (steamids: string[]) => {
+      if (steamids.length === 0) {
+        return;
+      }
+      try {
+        notify(await commands.removeAccounts(steamids));
+      } catch (cause) {
+        notify(String(cause), "error");
+      }
+    },
+    [notify],
+  );
+
+  return { remove, removeMany };
 }

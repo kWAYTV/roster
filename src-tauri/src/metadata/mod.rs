@@ -5,6 +5,8 @@
 
 mod record;
 mod store;
+mod watch;
 
 pub use record::AccountMetadata;
 pub use store::{all, clear_cooldown, forget, mark_used, set_cooldown};
+pub use watch::start as start_cooldown_watch;

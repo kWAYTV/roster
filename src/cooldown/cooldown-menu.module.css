@@ -5,41 +5,42 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: 10;
+  z-index: var(--z-menu);
 }
 
 .menu {
   position: absolute;
   top: calc(100% + 4px);
   right: 0;
-  z-index: 11;
-  min-width: 140px;
-  padding: var(--space-1);
+  z-index: calc(var(--z-menu) + 1);
+  min-width: 148px;
+  padding: 4px 0;
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--panel-raised);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-menu);
 }
 
 .heading {
-  padding: 4px 8px;
+  padding: 6px 10px 3px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .item {
   display: block;
   width: 100%;
-  padding: 6px 8px;
+  padding: 6px 10px;
   border: none;
-  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text);
-  font-size: 12px;
+  font-size: var(--text-sm);
   text-align: left;
+  cursor: pointer;
+  transition: background 0.12s var(--ease-out);
 }
 
 .item:hover {

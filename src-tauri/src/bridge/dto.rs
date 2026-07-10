@@ -19,6 +19,8 @@ pub struct AccountView {
     pub last_used: u64,
     pub cooldown_until: u64,
     pub cooldown_duration: u64,
+    /// Seconds until JWT expiry; `-1` expired, `0` unknown.
+    pub jwt_expires_in: i64,
 }
 
 impl From<&Account> for AccountView {
@@ -34,6 +36,7 @@ impl From<&Account> for AccountView {
             last_used: account.metadata.last_used,
             cooldown_until: account.metadata.cooldown_until,
             cooldown_duration: account.metadata.cooldown_duration,
+            jwt_expires_in: account.jwt_expires_in,
         }
     }
 }

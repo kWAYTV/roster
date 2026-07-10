@@ -38,3 +38,8 @@ export function onStatus(handler: (message: string) => void): Promise<UnlistenFn
 export function onStatusError(handler: (message: string) => void): Promise<UnlistenFn> {
   return listen<string>("status-error", (event) => handler(event.payload));
 }
+
+/// Account display names whose cooldown just ended (tray notification already sent).
+export function onCooldownFinished(handler: (names: string[]) => void): Promise<UnlistenFn> {
+  return listen<string[]>("cooldown-finished", (event) => handler(event.payload));
+}

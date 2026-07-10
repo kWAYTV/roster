@@ -1,0 +1,21 @@
+.panel {
+  flex-shrink: 0;
+  margin: 0 var(--space-4) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--control-bg);
+  overflow: hidden;
+}
+
+.body {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  max-height: 88px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  font: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

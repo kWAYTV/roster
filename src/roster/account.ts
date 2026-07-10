@@ -12,4 +12,6 @@ export interface AccountView {
   /** Unix seconds; 0 when no cooldown is set. */
   cooldown_until: number;
   cooldown_duration: number;
+  /** Seconds until JWT expiry; 0 = unknown/none; -1 = expired. */
+  jwt_expires_in: number;
 }

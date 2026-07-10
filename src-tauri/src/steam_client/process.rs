@@ -23,6 +23,21 @@ pub fn stop() -> Result<(), String> {
 
 /// Launch `steam.exe` detached, optionally minimized to the tray.
 pub fn launch(install: &Path, minimized: bool) -> Result<(), String> {
+    spawn_steam(install, minimized, &[])
+}
+
+/// Launch CS2 (appid 730) after Steam is running.
+pub fn launch_cs2(install: &Path, options: &str) -> Result<(), String> {
+    let mut args = vec!["-applaunch", "730"];
+    if !options.trim().is_empty() {
+        for part in options.split_whitespace() {
+            args.push(part);
+        }
+    }
+    spawn_steam(install, false, &args)
+}
+
+fn spawn_steam(install: &Path, minimized: bool, extra: &[&str]) -> Result<(), String> {
     let exe = install.join("steam.exe");
     if !exe.exists() {
         return Err("steam.exe was not found in the install directory.".to_string());
@@ -30,6 +45,9 @@ pub fn launch(install: &Path, minimized: bool) -> Result<(), String> {
     let mut cmd = Command::new(&exe);
     if minimized {
         cmd.arg("-silent");
+    }
+    for arg in extra {
+        cmd.arg(arg);
     }
     cmd.creation_flags(DETACHED_PROCESS)
         .spawn()

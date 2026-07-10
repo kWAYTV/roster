@@ -26,9 +26,8 @@ export function usePreferences() {
     };
   }, [load]);
 
-  const setPreference = useCallback(
-    async (key: keyof Preferences, value: boolean) => {
-      const next = { ...preferences, [key]: value };
+  const save = useCallback(
+    async (next: Preferences) => {
       setPreferences(next);
       try {
         await commands.savePreferences(next);
@@ -37,8 +36,22 @@ export function usePreferences() {
         load();
       }
     },
-    [preferences, notify, load],
+    [notify, load],
   );
 
-  return { preferences, setPreference };
+  const setPreference = useCallback(
+    async (key: keyof Preferences, value: boolean) => {
+      await save({ ...preferences, [key]: value });
+    },
+    [preferences, save],
+  );
+
+  const patchPreferences = useCallback(
+    async (patch: Partial<Preferences>) => {
+      await save({ ...preferences, ...patch });
+    },
+    [preferences, save],
+  );
+
+  return { preferences, setPreference, patchPreferences };
 }

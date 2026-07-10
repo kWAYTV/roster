@@ -16,6 +16,7 @@ body {
   background: var(--bg);
   user-select: none;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 button {
@@ -25,23 +26,47 @@ button {
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
 }
 
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 6px 12px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   background: var(--panel-raised);
   color: var(--text);
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 500;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  white-space: nowrap;
+  transition: background 0.14s var(--ease-out), border-color 0.14s var(--ease-out),
+    transform 0.1s var(--ease-out);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .btn:hover:not(:disabled) {
-  background: #23232e;
+  background: var(--panel-hover);
+  border-color: var(--border-strong);
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: var(--text-xs);
 }
 
 .btn-accent {
@@ -59,12 +84,19 @@ button:disabled {
 .btn-ghost {
   background: transparent;
   border-color: transparent;
-  color: var(--muted);
+  color: var(--text-secondary);
 }
 
 .btn-ghost:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--panel-hover);
+}
+
+.btn-ghost-danger:hover:not(:disabled),
+.btn-icon.btn-ghost-danger:hover:not(:disabled) {
   color: var(--danger);
   background: var(--danger-soft);
+  border-color: transparent;
 }
 
 .btn-danger {
@@ -74,31 +106,39 @@ button:disabled {
 }
 
 .btn-danger:hover:not(:disabled) {
-  filter: brightness(1.08);
+  filter: brightness(1.06);
 }
 
 .btn-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--muted);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: background 0.14s var(--ease-out), color 0.14s var(--ease-out),
+    transform 0.1s var(--ease-out);
 }
 
-.btn-icon:hover {
+.btn-icon:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.btn-icon:hover:not(:disabled) {
   color: var(--text);
-  background: var(--panel-raised);
+  background: var(--panel-hover);
+  border-color: var(--border);
 }
 
 .btn-link {
   border: none;
   background: none;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-sm);
 }
 
 .btn-link:hover {
@@ -107,32 +147,56 @@ button:disabled {
 
 .field {
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
+  padding: 7px 10px;
+  border: 1px solid var(--control-border);
   border-radius: var(--radius-sm);
-  background: var(--bg);
+  background: var(--control-bg);
   color: var(--text);
   font: inherit;
+  transition: border-color 0.14s var(--ease-out);
+}
+
+.field::placeholder {
+  color: var(--muted);
 }
 
 .field:focus {
   outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+select.field {
+  appearance: none;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a8f' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
 }
 
 textarea.field {
-  min-height: 92px;
+  min-height: 88px;
   resize: vertical;
   font: var(--font-mono);
   user-select: text;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 8px;
+  height: 0;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--border-strong);
   border-radius: 8px;
   border: 2px solid var(--bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -45,6 +45,47 @@ pub fn find(text: &str) -> Option<String> {
     None
 }
 
+/// Seconds until `exp`, or `-1` when missing, invalid, or already expired.
+pub fn expires_in(jwt: &str) -> i64 {
+    let Some(exp) = expires_at(jwt) else {
+        return -1;
+    };
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0);
+    let remaining = exp as i64 - now;
+    if remaining > 0 {
+        remaining
+    } else {
+        -1
+    }
+}
+
+/// Whether the token looks like a valid, unexpired Steam refresh JWT.
+pub fn is_importable(jwt: &str) -> bool {
+    is_steam_refresh(jwt) && expires_in(jwt) >= 0
+}
+
+/// Unix seconds from the `exp` claim, if present.
+pub fn expires_at(jwt: &str) -> Option<u64> {
+    let claims = claims(jwt).ok()?;
+    claims.get("exp").and_then(|v| v.as_u64())
+}
+
+fn is_steam_refresh(jwt: &str) -> bool {
+    let Ok(claims) = claims(jwt) else {
+        return false;
+    };
+    if claims.get("iss").and_then(|v| v.as_str()) != Some("steam") {
+        return false;
+    }
+    claims
+        .get("aud")
+        .and_then(|v| v.as_str())
+        .is_some_and(|aud| aud.contains("client"))
+}
+
 /// Whether `token` has the three dot-separated JWT segments.
 pub fn is_jwt(token: &str) -> bool {
     let parts: Vec<&str> = token.split('.').collect();
@@ -140,5 +181,10 @@ mod tests {
     fn finds_token_with_internal_whitespace() {
         let spaced = TOKEN.replace("ey", "ey ");
         assert_eq!(find(&spaced).unwrap(), TOKEN);
+    }
+
+    #[test]
+    fn expires_in_negative_for_garbage() {
+        assert_eq!(expires_in("not.a.jwt"), -1);
     }
 }

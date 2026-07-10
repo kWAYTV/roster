@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use crate::preferences::Preferences;
-use crate::presence::{downloads, notifications, persona};
+use crate::presence::{downloads, launch_options, notifications, persona};
 use crate::steam_client::{localconfig_path, set_autologin_user, steamid3_from_steamid64};
 use crate::steam_config::{localconfig, loginusers};
 use crate::vdf::replace_key_line;
@@ -32,6 +32,9 @@ fn apply_localconfig(steamid: &str, install: &Path, prefs: &Preferences) -> Resu
     }
     if prefs.cancel_downloads_on_login {
         content = downloads::pause(&content);
+    }
+    if prefs.launch_cs2_on_login || !prefs.cs2_launch_options.is_empty() {
+        content = launch_options::apply(&content, &prefs.cs2_launch_options);
     }
 
     localconfig::save(&path, &content)

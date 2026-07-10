@@ -5,9 +5,27 @@
 }
 
 .empty {
-  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-4);
   text-align: center;
+  color: var(--text-secondary);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+}
+
+.emptyTitle {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.emptyHint {
+  font-size: var(--text-sm);
   color: var(--muted);
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius);
+  text-wrap: pretty;
 }

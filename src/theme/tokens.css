@@ -2,12 +2,13 @@
   --bg: #000000;
   --panel: #0a0a0a;
   --panel-raised: #161616;
+  --panel-hover: #1c1c1c;
   --border: #1f1f1f;
   --border-strong: #2e2e2e;
   --text: #ededed;
+  --text-secondary: #b3b3b3;
   --muted: #a1a1a1;
 
-  /* Primary action: white on black, Vercel-style. */
   --accent: #ffffff;
   --accent-fg: #000000;
   --accent-hover: #e5e5e5;
@@ -15,14 +16,23 @@
 
   --danger: #e5484d;
   --danger-soft: rgba(229, 72, 77, 0.12);
+  --warn: #c9a227;
+  --warn-soft: rgba(201, 162, 39, 0.12);
+  --success: #17c964;
 
-  /* Presence: Steam's convention, blue online and green in-game. */
   --presence-online: #0072f5;
   --presence-ingame: #17c964;
+  --presence-away: #c9a227;
+  --presence-offline: #6b6b6b;
 
+  --control-bg: #0a0a0a;
+  --control-border: #2e2e2e;
+  --focus-ring: rgba(255, 255, 255, 0.35);
+
+  --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 14px;
+  --radius: 8px;
+  --radius-lg: 12px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -30,8 +40,20 @@
   --space-4: 16px;
   --space-5: 24px;
 
-  --shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-  --font: 13px/1.5 "Geist", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    system-ui, sans-serif;
-  --font-mono: 12px/1.5 "Geist Mono", "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --shadow-menu: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.55);
+  --shadow-modal: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
+
+  --z-base: 0;
+  --z-menu: 40;
+  --z-overlay: 100;
+  --z-toast: 200;
+
+  --font: 13px/1.45 "Geist", "Segoe UI", system-ui, sans-serif;
+  --font-mono: 11px/1.4 "Geist Mono", "Cascadia Mono", Consolas, monospace;
+
+  --text-xs: 10px;
+  --text-sm: 11px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }

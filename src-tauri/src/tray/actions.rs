@@ -42,12 +42,14 @@ fn sign_in(app: &AppHandle, steamid: &str) {
     match crate::login::sign_in(&account) {
         Ok(message) => announce(app, message),
         Err(error) => {
+            crate::log::append(format!("Error: {error}"));
             let _ = app.emit("status-error", error);
         }
     }
 }
 
 fn announce(app: &AppHandle, message: String) {
+    crate::log::append(&message);
     let _ = rebuild(app);
     let _ = app.emit("accounts-changed", ());
     let _ = app.emit("status", message);

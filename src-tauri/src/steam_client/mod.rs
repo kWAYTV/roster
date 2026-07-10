@@ -8,7 +8,7 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 
 pub use autologin::{clear_autologin_if_matches, set_autologin_user};
 pub use location::{cache_dir, install_dir, localconfig_path, steamid3_from_steamid64};
-pub use process::{launch, stop};
+pub use process::{launch, launch_cs2, stop};
 
 static MUTATION: Mutex<()> = Mutex::new(());
 

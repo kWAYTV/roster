@@ -4,4 +4,4 @@ mod crc;
 mod dpapi;
 
 pub use crc::store_key;
-pub use dpapi::encrypt_token;
+pub use dpapi::{decrypt_token, encrypt_token};

@@ -2,7 +2,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
   cursor: pointer;
 }
 
@@ -13,29 +14,32 @@
 
 .label {
   display: block;
+  font-size: var(--text-sm);
   font-weight: 500;
+  line-height: 1.35;
 }
 
 .description {
   display: block;
   margin-top: 2px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.4;
+  text-wrap: pretty;
 }
 
 .toggle {
   appearance: none;
   position: relative;
-  width: 36px;
+  width: 34px;
   height: 20px;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1px;
   border: 1px solid var(--border-strong);
   border-radius: 999px;
-  background: var(--panel-raised);
+  background: var(--control-bg);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.14s var(--ease-out), border-color 0.14s var(--ease-out);
 }
 
 .toggle::after {
@@ -47,7 +51,7 @@
   height: 14px;
   border-radius: 50%;
   background: var(--muted);
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: transform 0.14s var(--ease-out), background 0.14s var(--ease-out);
 }
 
 .toggle:checked {
@@ -56,6 +60,6 @@
 }
 
 .toggle:checked::after {
-  transform: translateX(16px);
+  transform: translateX(14px);
   background: var(--accent-fg);
 }

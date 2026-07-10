@@ -12,6 +12,8 @@ pub struct Account {
     pub avatar_path: Option<PathBuf>,
     pub most_recent: bool,
     pub metadata: AccountMetadata,
+    /// Seconds until JWT expiry; `-1` expired/missing, `0` unknown.
+    pub jwt_expires_in: i64,
 }
 
 impl Account {

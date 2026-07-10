@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  z-index: 200;
+  z-index: var(--z-toast);
   pointer-events: none;
 }
 
@@ -16,9 +16,9 @@
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
   background: var(--panel-raised);
-  box-shadow: var(--shadow);
-  font-size: 12px;
-  animation: rise 0.14s ease;
+  box-shadow: var(--shadow-menu);
+  font-size: var(--text-sm);
+  animation: rise 0.14s var(--ease-out);
 }
 
 .error {

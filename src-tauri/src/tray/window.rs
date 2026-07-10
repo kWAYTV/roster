@@ -9,6 +9,7 @@ pub(super) fn show(app: &AppHandle) {
         let _ = window.show();
         let _ = window.unminimize();
         let _ = window.set_focus();
+        crate::window::apply_capture_preferences(app);
     }
 }
 

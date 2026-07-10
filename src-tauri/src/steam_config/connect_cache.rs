@@ -3,7 +3,7 @@
 use std::fs;
 use std::path::Path;
 
-use crate::secret::{encrypt_token, store_key};
+use crate::secret::{decrypt_token, encrypt_token, store_key};
 use crate::vdf::{indent_of, quoted_fields};
 
 /// Encrypt and store `token` for `username` inside `ConnectCache`.
@@ -43,6 +43,25 @@ pub fn remove_token(cache_dir: &Path, username: &str) {
             out
         });
     let _ = fs::write(&path, filtered);
+}
+
+/// Read and decrypt the cached refresh token for `username`, if present.
+pub fn read_token(cache_dir: &Path, username: &str) -> Option<String> {
+    let encrypted = read_encrypted(cache_dir, username)?;
+    decrypt_token(&encrypted, username).ok()
+}
+
+fn read_encrypted(cache_dir: &Path, username: &str) -> Option<String> {
+    let path = cache_dir.join("local.vdf");
+    let content = fs::read_to_string(&path).ok()?;
+    let key = store_key(username);
+    for line in content.lines() {
+        let fields = quoted_fields(line);
+        if fields.len() >= 2 && fields[0] == key {
+            return Some(fields[1].clone());
+        }
+    }
+    None
 }
 
 /// Replace or append the key inside an existing `ConnectCache` block.

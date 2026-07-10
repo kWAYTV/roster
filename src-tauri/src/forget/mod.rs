@@ -2,4 +2,4 @@
 
 mod remove;
 
-pub use remove::remove;
+pub use remove::{remove, remove_many};

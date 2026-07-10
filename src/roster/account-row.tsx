@@ -1,9 +1,13 @@
+import { useMemo, useState } from "react";
+
 import { CooldownBadge } from "../cooldown/cooldown-badge";
 import { CooldownMenu } from "../cooldown/cooldown-menu";
 import { StatusDot } from "../status/status-dot";
 import type { AccountStatus } from "../status/status";
 import type { AccountView } from "./account";
+import { AccountContextMenu } from "./account-context-menu";
 import { formatLastUsed } from "./last-used";
+import { formatJwtExpiry } from "./jwt-label";
 import styles from "./account-row.module.css";
 
 interface AccountRowProps {
@@ -11,9 +15,20 @@ interface AccountRowProps {
   index: number;
   streamer: boolean;
   busy: boolean;
+  selected: boolean;
   status?: AccountStatus;
+  menuTargets: AccountView[];
+  exportCount: number;
+  onSelect: (account: AccountView, additive: boolean) => void;
   onSignIn: (steamid: string) => void;
-  onRemove: (account: AccountView) => void;
+  onRemove: (accounts: AccountView[]) => void;
+  onCopyUsername: (account: AccountView) => void;
+  onOpenProfile: (steamid: string) => void;
+  onCopyExport: (steamids: string[]) => void;
+  onExportFile: (steamids: string[]) => void;
+  onCooldown: (steamids: string[], seconds: number) => void;
+  onClearCooldown: (steamids: string[]) => void;
+  onCustomCooldown: (steamids: string[]) => void;
 }
 
 export function AccountRow({
@@ -21,54 +36,141 @@ export function AccountRow({
   index,
   streamer,
   busy,
+  selected,
   status,
+  menuTargets,
+  exportCount,
+  onSelect,
   onSignIn,
   onRemove,
+  onCopyUsername,
+  onOpenProfile,
+  onCopyExport,
+  onExportFile,
+  onCooldown,
+  onClearCooldown,
+  onCustomCooldown,
 }: AccountRowProps) {
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const name = streamer ? `Account ${index + 1}` : account.display_name;
   const login = streamer ? "\u2022\u2022\u2022\u2022\u2022" : account.account_name;
   const lastUsed = formatLastUsed(account.last_used);
   const game = status?.state === "in-game" ? status.game : "";
+  const jwtLabel = formatJwtExpiry(account.jwt_expires_in);
+  const rowClass = useMemo(() => {
+    const parts = [styles.row];
+    if (account.most_recent) {
+      parts.push(styles.recent);
+    }
+    if (selected) {
+      parts.push(styles.selected);
+    }
+    return parts.join(" ");
+  }, [account.most_recent, selected]);
 
   return (
-    <div className={account.most_recent ? `${styles.row} ${styles.recent}` : styles.row}>
-      <div className={styles.avatarWrap}>
-        <div className={styles.avatar}>
-          {streamer ? (
-            <span>{index + 1}</span>
-          ) : account.avatar ? (
-            <img src={account.avatar} alt="" />
-          ) : (
-            <span>{account.initials}</span>
-          )}
+    <>
+      <div
+        className={rowClass}
+        onClick={(event) => onSelect(account, event.ctrlKey || event.metaKey)}
+        onDoubleClick={() => onSignIn(account.steamid)}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          onSelect(account, event.ctrlKey || event.metaKey);
+          setMenu({ x: event.clientX, y: event.clientY });
+        }}
+      >
+        <div className={styles.avatarWrap}>
+          <div className={styles.avatar}>
+            {streamer ? (
+              <span>{index + 1}</span>
+            ) : account.avatar ? (
+              <img src={account.avatar} alt="" />
+            ) : (
+              <span>{account.initials}</span>
+            )}
+          </div>
+          <StatusDot status={status} />
         </div>
-        <StatusDot status={status} />
-      </div>
-      <div className={styles.info}>
-        <div className={styles.name}>
-          {name}
-          {account.most_recent ? <span className={styles.badge}>last used</span> : null}
-          <CooldownBadge until={account.cooldown_until} duration={account.cooldown_duration} />
+        <div className={styles.info}>
+          <div className={styles.name}>
+            {name}
+            {account.most_recent ? <span className={styles.badge}>last used</span> : null}
+            {jwtLabel ? (
+              <span
+                className={
+                  account.jwt_expires_in < 0 ? `${styles.badge} ${styles.jwtExpired}` : styles.badge
+                }
+              >
+                {jwtLabel}
+              </span>
+            ) : null}
+            <CooldownBadge until={account.cooldown_until} duration={account.cooldown_duration} />
+          </div>
+          <div className={styles.login}>
+            {login}
+            {game ? <span className={styles.game}> &middot; {game}</span> : null}
+            {lastUsed ? <span className={styles.meta}> &middot; {lastUsed}</span> : null}
+          </div>
         </div>
-        <div className={styles.login}>
-          {login}
-          {game ? <span className={styles.game}> &middot; {game}</span> : null}
-          {lastUsed ? <span className={styles.meta}> &middot; {lastUsed}</span> : null}
+        <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
+          <button
+            className="btn btn-accent btn-sm"
+            disabled={busy}
+            onClick={() => onSignIn(account.steamid)}
+          >
+            {busy ? "\u2026" : "Sign in"}
+          </button>
+          <CooldownMenu steamid={account.steamid} until={account.cooldown_until} disabled={busy} />
+          <button
+            className="btn-icon btn-ghost-danger"
+            aria-label="Remove account"
+            title="Remove"
+            disabled={busy}
+            onClick={() => onRemove([account])}
+          >
+            <TrashIcon />
+          </button>
         </div>
       </div>
-      <div className={styles.actions}>
-        <button
-          className="btn btn-accent"
-          disabled={busy}
-          onClick={() => onSignIn(account.steamid)}
-        >
-          {busy ? "\u2026" : "Sign in"}
-        </button>
-        <CooldownMenu steamid={account.steamid} until={account.cooldown_until} disabled={busy} />
-        <button className="btn btn-ghost" disabled={busy} onClick={() => onRemove(account)}>
-          Remove
-        </button>
-      </div>
-    </div>
+      {menu ? (
+        <AccountContextMenu
+          account={account}
+          targets={menuTargets}
+          exportCount={exportCount}
+          streamer={streamer}
+          anchor={menu}
+          onClose={() => setMenu(null)}
+          onSignIn={onSignIn}
+          onCopyUsername={onCopyUsername}
+          onOpenProfile={onOpenProfile}
+          onCopyExport={onCopyExport}
+          onExportFile={onExportFile}
+          onRemove={onRemove}
+          onCooldown={onCooldown}
+          onClearCooldown={onClearCooldown}
+          onCustomCooldown={onCustomCooldown}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    </svg>
   );
 }

@@ -2,7 +2,9 @@ use std::fs;
 
 use super::account::Account;
 use super::avatar;
-use crate::steam_client::install_dir;
+use crate::intake::{is_jwt, expires_in};
+use crate::steam_client::{cache_dir, install_dir};
+use crate::steam_config::connect_cache;
 use crate::vdf::quoted_fields;
 
 /// All remembered accounts, most-recent first then alphabetical by display name.
@@ -14,9 +16,11 @@ pub fn list() -> Result<Vec<Account>, String> {
 
     let mut accounts = parse(&content);
     let metadata = crate::metadata::all();
+    let cache = cache_dir().ok();
     for account in &mut accounts {
         account.avatar_path = avatar::resolve(&install, account);
         account.metadata = metadata.get(&account.steamid).copied().unwrap_or_default();
+        account.jwt_expires_in = token_expires_in(cache.as_deref(), account);
     }
     accounts.sort_by(|a, b| {
         b.most_recent
@@ -24,6 +28,23 @@ pub fn list() -> Result<Vec<Account>, String> {
             .then_with(|| a.display_name().cmp(b.display_name()))
     });
     Ok(accounts)
+}
+
+fn token_expires_in(cache: Option<&std::path::Path>, account: &Account) -> i64 {
+    let Some(cache_dir) = cache else {
+        return 0;
+    };
+    for name in [&account.account_name, &account.steamid] {
+        if name.is_empty() {
+            continue;
+        }
+        if let Some(token) = connect_cache::read_token(cache_dir, name) {
+            if is_jwt(&token) {
+                return expires_in(&token);
+            }
+        }
+    }
+    0
 }
 
 /// Parse the `steamid { field ... }` blocks into accounts.

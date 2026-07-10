@@ -29,5 +29,27 @@ export function useCooldown() {
     [notify],
   );
 
-  return { start, clear };
+  const startMany = useCallback(
+    async (steamids: string[], seconds: number) => {
+      try {
+        await commands.setCooldownMany(steamids, seconds);
+      } catch (cause) {
+        notify(String(cause), "error");
+      }
+    },
+    [notify],
+  );
+
+  const clearMany = useCallback(
+    async (steamids: string[]) => {
+      try {
+        await commands.clearCooldownMany(steamids);
+      } catch (cause) {
+        notify(String(cause), "error");
+      }
+    },
+    [notify],
+  );
+
+  return { start, clear, startMany, clearMany };
 }
