@@ -21,12 +21,15 @@ pub fn sweep(steamids: &[String], mut on_result: impl FnMut(&str, Option<Profile
 fn fetch_one(steamid: &str) -> Option<ProfileStatus> {
     let url = format!("https://steamcommunity.com/profiles/{steamid}/?xml=1");
     let body = ureq::get(&url)
-        .timeout(TIMEOUT)
-        .set("User-Agent", "Mozilla/5.0")
-        .set("Cache-Control", "no-cache")
+        .config()
+        .timeout_global(Some(TIMEOUT))
+        .build()
+        .header("User-Agent", "Mozilla/5.0")
+        .header("Cache-Control", "no-cache")
         .call()
         .ok()?
-        .into_string()
+        .body_mut()
+        .read_to_string()
         .ok()?;
     Some(profile::parse(&body))
 }
