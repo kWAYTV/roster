@@ -26,6 +26,8 @@ import { useStatus } from "./status/use-status";
 import { useUpdater } from "./updater/use-updater";
 import styles from "./app.module.css";
 
+const GITHUB_REPO = "https://github.com/kWAYTV/roster";
+
 export function App() {
   const { accounts, loading, error, patchProfile } = useRoster();
   const statuses = useStatus(!loading, patchProfile);
@@ -255,6 +257,16 @@ export function App() {
       <LogPanel visible={preferences.show_log_panel} />
 
       <footer className={styles.foot}>
+        <div className={styles.footMeta}>
+          <span className={styles.version}>v{currentVersion ?? "…"}</span>
+          <button
+            type="button"
+            className={`btn-link ${styles.footLink}`}
+            onClick={() => void commands.openExternalUrl(GITHUB_REPO)}
+          >
+            GitHub
+          </button>
+        </div>
         <ResetControl />
       </footer>
 
