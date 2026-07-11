@@ -102,7 +102,7 @@ fn parse_exp(claims: &serde_json::Value) -> Option<u64> {
         return Some(value);
     }
     if let Some(value) = exp.as_i64() {
-        return (value >= 0).then(|| value as u64);
+        return (value >= 0).then_some(value as u64);
     }
     exp.as_str().and_then(|value| value.parse().ok())
 }
