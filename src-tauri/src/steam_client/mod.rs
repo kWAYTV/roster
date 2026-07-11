@@ -32,8 +32,3 @@ pub fn stop_if_affects_active_login(account_names: &[&str]) -> Result<(), String
     }
     Ok(())
 }
-
-/// Whether switching to `username` should stop and relaunch the running client.
-pub fn should_switch_active_login(username: &str) -> bool {
-    !process::is_running() || autologin::autologin_user().as_deref() == Some(username)
-}

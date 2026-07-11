@@ -5,7 +5,7 @@ use std::path::Path;
 use super::{batch, jwt, parse};
 use crate::login;
 use crate::preferences;
-use crate::steam_client::{cache_dir, install_dir, should_switch_active_login, stop};
+use crate::steam_client::{cache_dir, install_dir, stop};
 use crate::steam_config::{config_vdf, connect_cache, loginusers};
 
 /// Import one or more accounts from pasted `text` and start Steam on the last.
@@ -39,15 +39,11 @@ pub fn import_text(text: &str) -> Result<String, String> {
     };
 
     let prefs = preferences::load();
-    if should_switch_active_login(&username) {
-        stop()?;
-        login::activate(&username, &steamid, &install, &prefs)?;
-        login::relaunch(&install, &steamid, &prefs)?;
-        crate::metadata::mark_used(&steamid);
-        Ok(summary(stored, &username, &failures, true))
-    } else {
-        Ok(summary(stored, &username, &failures, false))
-    }
+    stop()?;
+    login::activate(&username, &steamid, &install, &prefs)?;
+    login::relaunch(&install, &steamid, &prefs)?;
+    crate::metadata::mark_used(&steamid);
+    Ok(summary(stored, &username, &failures))
 }
 
 /// Parse one entry and write its config + encrypted token to disk.
@@ -66,17 +62,11 @@ fn store_entry(entry: &str, install: &Path, cache: &Path) -> Result<(String, Str
     Ok((username, steamid))
 }
 
-fn summary(stored: usize, username: &str, failures: &[String], starting_steam: bool) -> String {
+fn summary(stored: usize, username: &str, failures: &[String]) -> String {
     let mut message = if stored == 1 {
-        if starting_steam {
-            format!("Imported {username}. Starting Steam.")
-        } else {
-            format!("Imported {username}. Steam left running.")
-        }
-    } else if starting_steam {
-        format!("Imported {stored} accounts. Starting Steam.")
+        format!("Imported {username}. Starting Steam.")
     } else {
-        format!("Imported {stored} accounts. Steam left running.")
+        format!("Imported {stored} accounts. Starting Steam.")
     };
     if !failures.is_empty() {
         message.push_str(&format!(" {} failed: {}", failures.len(), detail(failures)));
@@ -101,14 +91,14 @@ mod tests {
     #[test]
     fn summary_includes_failure_reasons() {
         let failures = vec!["#2: The username is empty.".to_string()];
-        let message = summary(1, "alice", &failures, true);
+        let message = summary(1, "alice", &failures);
         assert!(message.contains("1 failed: #2: The username is empty."));
     }
 
     #[test]
     fn summary_caps_failure_details() {
         let failures: Vec<String> = (1..=4).map(|i| format!("#{i}: Bad entry.")).collect();
-        let message = summary(2, "alice", &failures, true);
+        let message = summary(2, "alice", &failures);
         assert!(message.contains("4 failed:"));
         assert!(message.contains("(+2 more)"));
         assert!(!message.contains("#3"));
