@@ -89,9 +89,9 @@ fn is_steam_refresh(jwt: &str) -> bool {
 fn has_audience(claims: &serde_json::Value, audience: &str) -> bool {
     match claims.get("aud") {
         Some(serde_json::Value::String(value)) => value == audience,
-        Some(serde_json::Value::Array(values)) => values
-            .iter()
-            .any(|value| value.as_str() == Some(audience)),
+        Some(serde_json::Value::Array(values)) => {
+            values.iter().any(|value| value.as_str() == Some(audience))
+        }
         _ => false,
     }
 }
@@ -218,14 +218,12 @@ mod tests {
 
     #[test]
     fn accepts_refresh_token_with_array_audience() {
-        let token = steam_refresh_token(
-            serde_json::json!({
-                "iss": "steam",
-                "sub": "76561199843081825",
-                "aud": ["web", "renew", "derive", "client"],
-                "exp": unix_now() + 86_400,
-            }),
-        );
+        let token = steam_refresh_token(serde_json::json!({
+            "iss": "steam",
+            "sub": "76561199843081825",
+            "aud": ["web", "renew", "derive", "client"],
+            "exp": unix_now() + 86_400,
+        }));
         assert!(is_importable(&token));
         assert!(expires_in(&token) > 0);
     }
