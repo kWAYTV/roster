@@ -26,25 +26,32 @@ mod tray;
 mod vdf;
 mod window;
 
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init());
 
-    #[cfg(desktop)]
+    #[cfg(windows)]
     let builder = builder
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             tray::focus_window(app);
         }))
-        .plugin(tauri_plugin_window_state::Builder::default().build());
+        // Position only — size/maximize are fixed in tauri.conf.json.
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_state_flags(
+                    tauri_plugin_window_state::StateFlags::POSITION
+                        | tauri_plugin_window_state::StateFlags::VISIBLE,
+                )
+                .build(),
+        );
 
     builder
         .setup(|app| {
             app_data::init(app.handle()).map_err(std::io::Error::other)?;
-            #[cfg(desktop)]
+            #[cfg(windows)]
             tray::setup(app.handle())?;
             metadata::start_cooldown_watch(app.handle().clone());
             window::apply_capture_preferences(app.handle());
