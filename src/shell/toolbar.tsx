@@ -9,18 +9,26 @@ import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
 import { Hint } from "@/ui/widgets/hint";
 
+import type { RosterFilter, RosterSort } from "./filter-accounts";
 import styles from "./shell.module.css";
+import { ViewMenu } from "./view-menu";
 
 interface ToolbarProps {
   accountCount: number;
   countLabel: string;
+  filter: RosterFilter;
   onCloseSearch: () => void;
+  onFilter: (filter: RosterFilter) => void;
+  onInvertSelection: () => void;
   onOpenImport: () => void;
   onOpenSearch: () => void;
   onOpenSettings: () => void;
   onQueryChange: (query: string) => void;
+  onSelectAll: () => void;
+  onSort: (sort: RosterSort) => void;
   query: string;
   searchOpen: boolean;
+  sort: RosterSort;
 }
 
 export function Toolbar({
@@ -28,17 +36,35 @@ export function Toolbar({
   query,
   countLabel,
   accountCount,
+  filter,
+  sort,
   onQueryChange,
   onOpenSearch,
   onCloseSearch,
   onOpenImport,
   onOpenSettings,
+  onFilter,
+  onSort,
+  onSelectAll,
+  onInvertSelection,
 }: ToolbarProps) {
   const handleQueryChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       onQueryChange(event.target.value);
     },
     [onQueryChange]
+  );
+
+  const viewMenu = (
+    <ViewMenu
+      filter={filter}
+      onFilter={onFilter}
+      onInvertSelection={onInvertSelection}
+      onSelectAll={onSelectAll}
+      onSort={onSort}
+      sort={sort}
+      visible={accountCount > 0}
+    />
   );
 
   return (
@@ -63,6 +89,7 @@ export function Toolbar({
               {countLabel}
             </Badge>
           ) : null}
+          {viewMenu}
           <Hint label="Close search">
             <Button
               aria-label="Close search"
@@ -81,7 +108,7 @@ export function Toolbar({
             <span className={styles.title}>Roster</span>
             {accountCount > 0 ? (
               <Badge className={styles.count} variant="secondary">
-                {accountCount}
+                {countLabel}
               </Badge>
             ) : null}
           </div>
@@ -108,6 +135,7 @@ export function Toolbar({
                 <SearchIcon size={16} />
               </Button>
             </Hint>
+            {viewMenu}
             <Hint label="Settings">
               <Button
                 aria-label="Settings"

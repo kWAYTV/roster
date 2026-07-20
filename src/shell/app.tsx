@@ -22,7 +22,6 @@ import { useUpdater } from "../updater/use-updater";
 import { ShellDialogs } from "./dialogs";
 import { ErrorToastGate } from "./error-toast-gate";
 import { filterAccounts, sortAccounts } from "./filter-accounts";
-import { FilterBar } from "./filter-bar";
 import { Footer } from "./footer";
 import { JwtWarningGate } from "./jwt-warning-gate";
 import styles from "./shell.module.css";
@@ -209,23 +208,19 @@ export function App() {
       <Toolbar
         accountCount={accounts.length}
         countLabel={countLabel}
+        filter={filter}
         onCloseSearch={closeSearch}
+        onFilter={setFilter}
+        onInvertSelection={handleInvertSelection}
         onOpenImport={openImport}
         onOpenSearch={openSearch}
         onOpenSettings={openSettings}
         onQueryChange={setQuery}
-        query={ui.query}
-        searchOpen={ui.searchOpen}
-      />
-
-      <FilterBar
-        filter={filter}
-        onFilter={setFilter}
-        onInvertSelection={handleInvertSelection}
         onSelectAll={handleSelectAll}
         onSort={setSort}
+        query={ui.query}
+        searchOpen={ui.searchOpen}
         sort={sort}
-        visible={accounts.length > 0}
       />
 
       <main className={styles.main}>
