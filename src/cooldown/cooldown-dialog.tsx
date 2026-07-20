@@ -1,14 +1,14 @@
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/primitives/button";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+} from "@/ui/primitives/dialog";
+import { Input } from "@/ui/primitives/input";
 
 const UNITS = [
   { label: "minutes", seconds: 60 },

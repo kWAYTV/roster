@@ -1,12 +1,12 @@
-import { ChevronDownIcon } from "@/components/icons/chevron-down";
-import { Hint } from "@/components/shared/hint";
-import { Button } from "@/components/ui/button";
+import { ChevronDownIcon } from "@/ui/icons/chevron-down";
+import { Hint } from "@/ui/widgets/hint";
+import { Button } from "@/ui/primitives/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/ui/primitives/dropdown-menu";
 import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
 import styles from "./bulk-bar.module.css";
 

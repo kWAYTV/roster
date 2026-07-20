@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { ClockIcon } from "@/components/icons/clock";
-import { Hint } from "@/components/shared/hint";
-import { Button } from "@/components/ui/button";
+import { ClockIcon } from "@/ui/icons/clock";
+import { Hint } from "@/ui/widgets/hint";
+import { Button } from "@/ui/primitives/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/ui/primitives/dropdown-menu";
 import { COOLDOWN_PRESETS, isCooldownActive } from "./cooldown";
 import { CooldownDialog } from "./cooldown-dialog";
 import { useCooldown } from "./use-cooldown";

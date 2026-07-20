@@ -1,0 +1,51 @@
+---
+description: Screaming Architecture — domain-first structure for Roster
+alwaysApply: true
+---
+
+# Screaming Architecture
+
+Organize by **what the app does**, not by frameworks. Opening `src/` or `src-tauri/src/` should scream: roster, intake, login, forget, cooldown, status, preferences, export, reset, updater.
+
+## Layout
+
+**Domains** (business intent): `roster`, `intake`, `login`, `forget`, `export`, `cooldown`, `status`, `preferences`, `reset`, `updater`, `feedback`, `shell`
+
+**Edges** (technical boundaries only):
+- Frontend: `platform/` (Tauri IPC), `ui/` (design system), `theme/`
+- Backend: `bridge/` (commands), `tray/`, `window/`, plus Steam/Windows capabilities (`steam_client`, `steam_config`, `secret`, `vdf`)
+
+Never invent `utils/`, `common/`, `helpers/`, `misc/`, or a catch-all `components/` for feature code.
+
+## Rules
+
+- Domain first, technical concern second
+- One responsibility per file; split before navigation hurts
+- Flat domain folders — no directory that mixes loose files with nested subdirs
+- Co-locate code that changes together (component + `.module.css` + hook)
+- Prefer composition and explicit code over clever abstractions
+- No god components/services; `shell/` composes domains, it does not own their logic
+- Framework primitives live under `ui/` (`primitives/`, `icons/`, `widgets/`) — never inside domains
+- New IPC: domain logic → `bridge/<domain>.rs` → `platform/invoke.ts` → domain hook
+
+## Frontend target
+
+```
+src/
+  shell/          # window chrome; composes domains
+  roster/ intake/ login/ forget/ export/ cooldown/
+  status/ preferences/ reset/ updater/ feedback/
+  platform/       # invoke + events
+  ui/             # icons/ + primitives/ (incl. cn) + widgets/ — no loose files
+  theme/
+```
+
+## Backend target
+
+Keep domain modules at the crate root. Capability modules stay infrastructure. Do not reintroduce layer folders (`handlers/`, `services/`, `models/`).
+
+## When changing code
+
+- Prefer extracting a domain module over growing `shell/app.tsx` or `bridge/util.rs`
+- If a folder exceeds ~12 files, split by subdomain (sibling domain folders, not deep nests)
+- Name files after intent (`sign-in.ts`, `connect-cache.rs`), not role (`helpers.ts`, `manager.rs`)

@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 
 import { useToast } from "../feedback/toast";
-import { commands } from "../ipc/invoke";
+import { commands } from "../platform/invoke";
 
 /// Import accounts from pasted text and read the clipboard on demand.
 export function useImport() {

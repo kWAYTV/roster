@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { onAccountsChanged, onAccountStatus } from "../ipc/events";
-import { commands } from "../ipc/invoke";
+import { onAccountsChanged, onAccountStatus } from "../platform/events";
+import { commands } from "../platform/invoke";
 import type { ProfilePatch } from "../roster/use-roster";
 import type { StatusMap } from "./status";
 

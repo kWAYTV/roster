@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/ui/primitives/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
-import { commands } from "../ipc/invoke";
+} from "@/ui/primitives/dialog";
+import { Input } from "@/ui/primitives/input";
+import { Separator } from "@/ui/primitives/separator";
+import { Textarea } from "@/ui/primitives/textarea";
+import { commands } from "../platform/invoke";
 import { useImport } from "./use-intake";
 
 interface ImportDialogProps {

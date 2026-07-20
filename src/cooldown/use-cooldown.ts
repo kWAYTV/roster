@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { useToast } from "../feedback/toast";
-import { commands } from "../ipc/invoke";
+import { commands } from "../platform/invoke";
 
 /// Start or clear an account cooldown; the roster refreshes via backend events.
 export function useCooldown() {

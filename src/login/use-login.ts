@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 
 import { useToast } from "../feedback/toast";
-import { commands } from "../ipc/invoke";
+import { commands } from "../platform/invoke";
 
 /// Sign in to an account, tracking which SteamID is mid-flight.
 export function useSignIn() {

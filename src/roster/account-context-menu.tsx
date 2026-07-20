@@ -1,23 +1,9 @@
-import {
-  type ComponentProps,
-  type FocusEventHandler,
-  type MouseEventHandler,
-  type ReactElement,
-  type ReactNode,
-} from "react";
-
-import { ArrowRightIcon } from "@/components/icons/arrow-right";
-import { ChevronRightIcon } from "@/components/icons/chevron-right";
-import { ClockIcon } from "@/components/icons/clock";
-import { CopyIcon } from "@/components/icons/copy";
-import { DeleteIcon } from "@/components/icons/delete";
-import { DownloadIcon } from "@/components/icons/download";
-import { UserIcon } from "@/components/icons/user";
-import {
-  RowAnimateIcon,
-  useRowIconAnimation,
-  type AnimateHandle,
-} from "@/components/shared/row-animate-icon";
+import { ArrowRightIcon } from "@/ui/icons/arrow-right";
+import { ClockIcon } from "@/ui/icons/clock";
+import { CopyIcon } from "@/ui/icons/copy";
+import { DeleteIcon } from "@/ui/icons/delete";
+import { DownloadIcon } from "@/ui/icons/download";
+import { UserIcon } from "@/ui/icons/user";
 import {
   ContextMenuContent,
   ContextMenuGroup,
@@ -25,10 +11,11 @@ import {
   ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
-  ContextMenuSubTrigger,
-} from "@/components/ui/context-menu";
+} from "@/ui/primitives/context-menu";
+
 import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
 import type { AccountView } from "./account";
+import { IconItem, IconSubTrigger } from "./menu-icon-item";
 
 interface AccountContextMenuProps {
   account: AccountView;
@@ -46,8 +33,6 @@ interface AccountContextMenuProps {
   onClearCooldown: (steamids: string[]) => void;
   onCustomCooldown: (steamids: string[]) => void;
 }
-
-type IconNode = ReactElement<{ size?: number; className?: string; ref?: (handle: AnimateHandle | null) => void }>;
 
 export function AccountContextMenu({
   account,
@@ -177,93 +162,6 @@ export function AccountContextMenu({
       </IconItem>
     </ContextMenuContent>
   );
-}
-
-function IconItem({
-  icon,
-  children,
-  onMouseEnter,
-  onMouseLeave,
-  onFocus,
-  onBlur,
-  ...props
-}: ComponentProps<typeof ContextMenuItem> & {
-  icon: IconNode;
-  children: ReactNode;
-}) {
-  const anim = useRowIconAnimation(1);
-  const hover = mergeHoverHandlers(anim, {
-    onMouseEnter,
-    onMouseLeave,
-    onFocus,
-    onBlur,
-  });
-
-  return (
-    <ContextMenuItem {...props} {...hover}>
-      <RowAnimateIcon iconRef={anim.setRef(0)}>{icon}</RowAnimateIcon>
-      {children}
-    </ContextMenuItem>
-  );
-}
-
-function IconSubTrigger({
-  icon,
-  children,
-  onMouseEnter,
-  onMouseLeave,
-  onFocus,
-  onBlur,
-  ...props
-}: ComponentProps<typeof ContextMenuSubTrigger> & {
-  icon: IconNode;
-}) {
-  const anim = useRowIconAnimation(2);
-  const hover = mergeHoverHandlers(anim, {
-    onMouseEnter,
-    onMouseLeave,
-    onFocus,
-    onBlur,
-  });
-
-  return (
-    <ContextMenuSubTrigger {...props} showChevron={false} {...hover}>
-      <RowAnimateIcon iconRef={anim.setRef(0)}>{icon}</RowAnimateIcon>
-      {children}
-      <RowAnimateIcon iconRef={anim.setRef(1)}>
-        <ChevronRightIcon className="ml-auto" />
-      </RowAnimateIcon>
-    </ContextMenuSubTrigger>
-  );
-}
-
-function mergeHoverHandlers(
-  anim: ReturnType<typeof useRowIconAnimation>,
-  handlers: {
-    onMouseEnter?: MouseEventHandler;
-    onMouseLeave?: MouseEventHandler;
-    onFocus?: FocusEventHandler;
-    onBlur?: FocusEventHandler;
-  },
-) {
-  return {
-    onMouseEnter: ((event) => {
-      anim.start();
-      handlers.onMouseEnter?.(event);
-    }) satisfies MouseEventHandler,
-    onMouseLeave: ((event) => {
-      anim.stop();
-      handlers.onMouseLeave?.(event);
-    }) satisfies MouseEventHandler,
-    onFocus: ((event) => {
-      anim.start();
-      handlers.onFocus?.(event);
-    }) satisfies FocusEventHandler,
-    onBlur: ((event) => {
-      anim.stop();
-      handlers.onBlur?.(event);
-    }) satisfies FocusEventHandler,
-  };
 }
 
 function copyTokensLabel(

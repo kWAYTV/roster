@@ -1,4 +1,4 @@
-import { Hint } from "@/components/shared/hint";
+import { Hint } from "@/ui/widgets/hint";
 import type { AccountStatus } from "./status";
 import styles from "./status-dot.module.css";
 

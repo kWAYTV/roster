@@ -1,4 +1,4 @@
-import { Hint } from "@/components/shared/hint";
+import { Hint } from "@/ui/widgets/hint";
 import { cooldownProgress, formatRemaining, isCooldownActive, nowSeconds } from "./cooldown";
 import { useNow } from "./use-now";
 import styles from "./cooldown-badge.module.css";

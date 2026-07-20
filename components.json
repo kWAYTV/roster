@@ -13,12 +13,12 @@
   "iconLibrary": "lucide",
   "rtl": false,
   "aliases": {
-    "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
-    "lib": "@/lib",
+    "components": "@/ui",
+    "utils": "@/ui/primitives/cn",
+    "ui": "@/ui/primitives",
+    "lib": "@/ui/primitives",
     "hooks": "@/hooks",
-    "icons": "@/components/icons"
+    "icons": "@/ui/icons"
   },
   "menuColor": "default",
   "menuAccent": "subtle",

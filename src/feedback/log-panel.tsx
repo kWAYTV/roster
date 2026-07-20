@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { commands } from "../ipc/invoke";
+import { commands } from "../platform/invoke";
 import styles from "./log-panel.module.css";
 
 interface LogPanelProps {

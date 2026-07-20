@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { onAccountsChanged } from "../ipc/events";
-import { commands } from "../ipc/invoke";
+import { onAccountsChanged } from "../platform/events";
+import { commands } from "../platform/invoke";
 import type { AccountView } from "./account";
 import { initialsFor } from "./initials";
 

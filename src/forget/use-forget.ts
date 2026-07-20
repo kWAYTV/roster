@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { useToast } from "../feedback/toast";
-import { commands } from "../ipc/invoke";
+import { commands } from "../platform/invoke";
 
 /// Remove a stored account.
 export function useForget() {

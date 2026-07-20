@@ -1,11 +1,11 @@
 import { useMemo } from "react";
 
-import { ArrowRightIcon } from "@/components/icons/arrow-right";
-import { DeleteIcon } from "@/components/icons/delete";
-import { Hint } from "@/components/shared/hint";
-import { SpinningLoader } from "@/components/shared/spinning-loader";
-import { Button } from "@/components/ui/button";
-import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { ArrowRightIcon } from "@/ui/icons/arrow-right";
+import { DeleteIcon } from "@/ui/icons/delete";
+import { Hint } from "@/ui/widgets/hint";
+import { SpinningLoader } from "@/ui/widgets/spinning-loader";
+import { Button } from "@/ui/primitives/button";
+import { ContextMenu, ContextMenuTrigger } from "@/ui/primitives/context-menu";
 import { CooldownBadge } from "../cooldown/cooldown-badge";
 import { CooldownMenu } from "../cooldown/cooldown-menu";
 import { StatusDot } from "../status/status-dot";

@@ -1,9 +1,10 @@
 //! Roster: a Windows Steam login switcher.
 //!
-//! Modules are organized by what the app does (`roster`, `intake`, `login`,
-//! `forget`, `reset`, `preferences`, `presence`) with Steam and Windows
-//! integration isolated behind capability boundaries (`vdf`, `steam_config`,
-//! `steam_client`, `secret`). `bridge` and `tray` are the app's edges.
+//! Screaming architecture: modules are named for what the app *does*
+//! (`roster`, `intake`, `login`, `forget`, `export`, `reset`, `preferences`,
+//! `presence`, `status`, `cooldown` via `metadata`). Steam/Windows integration
+//! stays behind capability edges (`vdf`, `steam_config`, `steam_client`,
+//! `secret`). `bridge`, `tray`, and `window` are delivery edges — not domain.
 
 mod bridge;
 mod export;

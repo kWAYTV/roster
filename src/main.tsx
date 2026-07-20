@@ -1,9 +1,9 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { App } from "./app";
+import { Toaster } from "@/ui/primitives/sonner";
+import { TooltipProvider } from "@/ui/primitives/tooltip";
+import { App } from "./shell/app";
 import "./index.css";
 import "./theme/tokens.css";
 import "./theme/globals.css";

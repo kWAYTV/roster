@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { useToast } from "../feedback/toast";
-import { onPreferencesChanged } from "../ipc/events";
-import { commands } from "../ipc/invoke";
+import { onPreferencesChanged } from "../platform/events";
+import { commands } from "../platform/invoke";
 import { DEFAULT_PREFERENCES, type Preferences } from "./preferences";
 
 /// Load preferences and persist single-toggle changes optimistically.
