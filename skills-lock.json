@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "no-use-effect": {
+      "source": "alejandrobailo/no-use-effect",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "958a58f113dc70862f12c800e24fc34a6adf5742c05e613417afc8c8127ff57e"
+    },
+    "tauri-v2": {
+      "source": "nodnarbnitram/claude-code-extensions",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/tauri-v2/SKILL.md",
+      "computedHash": "7108944eec3bef17686df9ebae9c9bdbee7809744930c8734c979e3c4573eaab"
+    }
+  }
+}
