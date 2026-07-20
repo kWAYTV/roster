@@ -1,25 +1,22 @@
-import { useEffect, useRef } from "react";
-
 import type { AccountView } from "../roster/account";
+import { useMountEffect } from "../ui/use-mount-effect";
 
 const DAY_SECONDS = 86_400;
 
-interface JwtWarningsOptions {
+interface JwtWarningGateProps {
   accounts: AccountView[];
   notify: (message: string, kind?: "ok" | "error") => void;
   warnDays: number;
 }
 
-/// Toast once per session when tokens expire within the configured window.
-export function useJwtWarnings({
+/// Mounts once the roster is ready; toasts JWT expiry once then unmounts stay silent.
+export function JwtWarningGate({
   accounts,
   warnDays,
   notify,
-}: JwtWarningsOptions) {
-  const warned = useRef(false);
-
-  useEffect(() => {
-    if (warned.current || warnDays <= 0 || accounts.length === 0) {
+}: JwtWarningGateProps) {
+  useMountEffect(() => {
+    if (warnDays <= 0 || accounts.length === 0) {
       return;
     }
     const windowSeconds = warnDays * DAY_SECONDS;
@@ -31,7 +28,6 @@ export function useJwtWarnings({
     if (soon.length === 0 && expired.length === 0) {
       return;
     }
-    warned.current = true;
     if (soon.length && expired.length) {
       notify(
         `${soon.length} token(s) expire soon · ${expired.length} expired`,
@@ -54,5 +50,7 @@ export function useJwtWarnings({
         : `${expired.length} tokens expired`,
       "error"
     );
-  }, [accounts, notify, warnDays]);
+  });
+
+  return null;
 }

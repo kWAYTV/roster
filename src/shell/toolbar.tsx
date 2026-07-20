@@ -1,4 +1,4 @@
-import { type RefObject, useCallback } from "react";
+import { useCallback } from "react";
 
 import { PlusIcon } from "@/ui/icons/plus";
 import { SearchIcon } from "@/ui/icons/search";
@@ -21,7 +21,6 @@ interface ToolbarProps {
   onQueryChange: (query: string) => void;
   query: string;
   searchOpen: boolean;
-  searchRef: RefObject<HTMLInputElement | null>;
 }
 
 export function Toolbar({
@@ -29,7 +28,6 @@ export function Toolbar({
   query,
   countLabel,
   accountCount,
-  searchRef,
   onQueryChange,
   onOpenSearch,
   onCloseSearch,
@@ -54,10 +52,10 @@ export function Toolbar({
           />
           <Input
             aria-label="Filter accounts"
+            autoFocus
             className={styles.searchInput}
             onChange={handleQueryChange}
             placeholder="Filter accounts"
-            ref={searchRef}
             value={query}
           />
           {accountCount > 0 ? (

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@/ui/primitives/button";
 import {
@@ -11,7 +11,7 @@ import {
 import { Input } from "@/ui/primitives/input";
 import { Separator } from "@/ui/primitives/separator";
 import { Textarea } from "@/ui/primitives/textarea";
-import { commands } from "../platform/invoke";
+import { useClassifyImport } from "./use-classify-import";
 import { useImport } from "./use-intake";
 
 const LINE_SPLIT = /\r?\n/;
@@ -24,58 +24,15 @@ interface ImportDialogProps {
   prefill?: string;
 }
 
+/// Remounted by the shell when opened; state is initialized from `prefill`.
 export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
   const { importText, paste, busy } = useImport();
-  const [single, setSingle] = useState("");
-  const [bulk, setBulk] = useState("");
-  const [singleHint, setSingleHint] = useState("");
-  const [bulkHint, setBulkHint] = useState("");
-  const [singleCount, setSingleCount] = useState(0);
-  const [bulkCount, setBulkCount] = useState(0);
+  const seeded = seedFields(prefill);
+  const [single, setSingle] = useState(seeded.single);
+  const [bulk, setBulk] = useState(seeded.bulk);
   const [dragging, setDragging] = useState(false);
-
-  useEffect(() => {
-    if (!open) {
-      setSingle("");
-      setBulk("");
-      setSingleHint("");
-      setBulkHint("");
-      setSingleCount(0);
-      setBulkCount(0);
-      return;
-    }
-    const next = prefill?.trim() ?? "";
-    if (!next) {
-      return;
-    }
-    if (looksLikeBulk(next)) {
-      setBulk(next);
-      setSingle("");
-    } else {
-      setSingle(next);
-      setBulk("");
-    }
-  }, [open, prefill]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    return classifyField(single, (count, hint) => {
-      setSingleCount(count);
-      setSingleHint(hint);
-    });
-  }, [open, single]);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    return classifyField(bulk, (count, hint) => {
-      setBulkCount(count);
-      setBulkHint(hint);
-    });
-  }, [open, bulk]);
+  const singleClassified = useClassifyImport(single, open);
+  const bulkClassified = useClassifyImport(bulk, open);
 
   const submit = useCallback(
     async (payload: string) => {
@@ -128,12 +85,12 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        if (singleCount > 0) {
+        if (singleClassified.count > 0) {
           submit(single).catch(() => undefined);
         }
       }
     },
-    [singleCount, submit, single]
+    [singleClassified.count, submit, single]
   );
 
   const handleBulkChange = useCallback(
@@ -232,8 +189,10 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
             spellCheck={false}
             value={single}
           />
-          {singleHint ? (
-            <p className="text-muted-foreground text-xs">{singleHint}</p>
+          {singleClassified.hint ? (
+            <p className="text-muted-foreground text-xs">
+              {singleClassified.hint}
+            </p>
           ) : null}
           <div className="flex justify-end gap-2">
             <Button
@@ -245,11 +204,11 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
               Paste
             </Button>
             <Button
-              disabled={busy || singleCount === 0}
+              disabled={busy || singleClassified.count === 0}
               onClick={submitSingle}
               size="sm"
             >
-              {importLabel(busy, singleCount)}
+              {importLabel(busy, singleClassified.count)}
             </Button>
           </div>
         </section>
@@ -266,8 +225,10 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
             spellCheck={false}
             value={bulk}
           />
-          {bulkHint ? (
-            <p className="text-muted-foreground text-xs">{bulkHint}</p>
+          {bulkClassified.hint ? (
+            <p className="text-muted-foreground text-xs">
+              {bulkClassified.hint}
+            </p>
           ) : null}
           <div className="flex justify-end gap-2">
             <Button
@@ -279,17 +240,31 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
               Paste
             </Button>
             <Button
-              disabled={busy || bulkCount === 0}
+              disabled={busy || bulkClassified.count === 0}
               onClick={submitBulk}
               size="sm"
             >
-              {importLabel(busy, bulkCount)}
+              {importLabel(busy, bulkClassified.count)}
             </Button>
           </div>
         </section>
       </DialogContent>
     </Dialog>
   );
+}
+
+function seedFields(prefill: string | undefined): {
+  bulk: string;
+  single: string;
+} {
+  const next = prefill?.trim() ?? "";
+  if (!next) {
+    return { bulk: "", single: "" };
+  }
+  if (looksLikeBulk(next)) {
+    return { bulk: next, single: "" };
+  }
+  return { bulk: "", single: next };
 }
 
 function importLabel(busy: boolean, count: number): string {
@@ -304,57 +279,4 @@ function importLabel(busy: boolean, count: number): string {
 
 function looksLikeBulk(text: string): boolean {
   return text.split(LINE_SPLIT).filter((line) => line.trim()).length > 1;
-}
-
-function noopCleanup(): void {
-  // Empty cleanup when there is nothing to cancel.
-}
-
-function classifyField(
-  value: string,
-  apply: (count: number, hint: string) => void
-): () => void {
-  const payload = value.trim();
-  if (!payload) {
-    apply(0, "");
-    return noopCleanup;
-  }
-
-  let active = true;
-  const timer = window.setTimeout(() => {
-    commands
-      .classifyImport(payload)
-      .then((result) => {
-        if (!active) {
-          return;
-        }
-        apply(
-          result.importable.length,
-          hintFor(result.importable.length, result.expired.length)
-        );
-      })
-      .catch(() => {
-        if (active) {
-          apply(0, "");
-        }
-      });
-  }, 250);
-
-  return () => {
-    active = false;
-    window.clearTimeout(timer);
-  };
-}
-
-function hintFor(importable: number, expired: number): string {
-  if (importable && expired) {
-    return `${importable} ready · ${expired} expired`;
-  }
-  if (expired) {
-    return `${expired} expired`;
-  }
-  if (!importable) {
-    return "No valid tokens";
-  }
-  return "";
 }

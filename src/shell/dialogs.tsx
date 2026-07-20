@@ -81,6 +81,7 @@ export function ShellDialogs({
       <Suspense fallback={null}>
         {importOpen ? (
           <ImportDialog
+            key={importPrefill || "import"}
             onClose={onCloseImport}
             open={importOpen}
             prefill={importPrefill}

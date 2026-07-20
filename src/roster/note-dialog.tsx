@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@/ui/primitives/button";
 import {
@@ -18,6 +18,7 @@ interface NoteDialogProps {
   open: boolean;
 }
 
+/// Parent should remount with `key` when the target account changes.
 export function NoteDialog({
   open,
   name,
@@ -26,12 +27,6 @@ export function NoteDialog({
   onClose,
 }: NoteDialogProps) {
   const [note, setNote] = useState(initial);
-
-  useEffect(() => {
-    if (open) {
-      setNote(initial);
-    }
-  }, [open, initial]);
 
   const handleOpenChange = useCallback(
     (next: boolean) => {

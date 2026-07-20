@@ -1,15 +1,20 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import { nowSeconds } from "./cooldown";
 
 /// The current Unix time, re-rendered every `intervalMs` for live countdowns.
 export function useNow(intervalMs: number): number {
-  const [now, setNow] = useState(nowSeconds);
+  return useSyncExternalStore(
+    (onStoreChange) => subscribeClock(intervalMs, onStoreChange),
+    nowSeconds,
+    nowSeconds
+  );
+}
 
-  useEffect(() => {
-    const timer = setInterval(() => setNow(nowSeconds()), intervalMs);
-    return () => clearInterval(timer);
-  }, [intervalMs]);
-
-  return now;
+function subscribeClock(
+  intervalMs: number,
+  onStoreChange: () => void
+): () => void {
+  const timer = window.setInterval(onStoreChange, intervalMs);
+  return () => window.clearInterval(timer);
 }

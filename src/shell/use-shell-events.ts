@@ -8,16 +8,12 @@ import {
 } from "../platform/events";
 
 interface ShellEventsOptions {
-  error: string | null;
   notify: (message: string, kind?: "ok" | "error") => void;
   openImport: (prefill?: string) => void;
 }
 
-export function useShellEvents({
-  notify,
-  openImport,
-  error,
-}: ShellEventsOptions) {
+/// Subscribe to tray/backend events for the shell lifetime.
+export function useShellEvents({ notify, openImport }: ShellEventsOptions) {
   useEffect(() => {
     const subscriptions = [
       onStatus(notify),
@@ -41,10 +37,4 @@ export function useShellEvents({
       }
     };
   }, [notify, openImport]);
-
-  useEffect(() => {
-    if (error) {
-      notify(error, "error");
-    }
-  }, [error, notify]);
 }

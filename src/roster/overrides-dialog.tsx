@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@/ui/primitives/button";
 import {
@@ -16,34 +16,30 @@ import type { AccountView } from "./account";
 type Tri = "inherit" | "on" | "off";
 
 interface OverridesDialogProps {
-  account: AccountView | null;
+  account: AccountView;
   onClose: () => void;
   onSave: (steamid: string, patch: OverridePatch) => void;
   open: boolean;
 }
 
+/// Parent should remount with `key={account.steamid}` when the target changes.
 export function OverridesDialog({
   open,
   account,
   onSave,
   onClose,
 }: OverridesDialogProps) {
-  const [invisible, setInvisible] = useState<Tri>("inherit");
-  const [mute, setMute] = useState<Tri>("inherit");
-  const [cs2, setCs2] = useState<Tri>("inherit");
-  const [cs2Options, setCs2Options] = useState("");
-  const [cs2OptionsInherit, setCs2OptionsInherit] = useState(true);
-
-  useEffect(() => {
-    if (!(open && account)) {
-      return;
-    }
-    setInvisible(toTri(account.always_invisible));
-    setMute(toTri(account.mute_notifications));
-    setCs2(toTri(account.launch_cs2));
-    setCs2OptionsInherit(account.cs2_launch_options === null);
-    setCs2Options(account.cs2_launch_options ?? "");
-  }, [open, account]);
+  const [invisible, setInvisible] = useState(() =>
+    toTri(account.always_invisible)
+  );
+  const [mute, setMute] = useState(() => toTri(account.mute_notifications));
+  const [cs2, setCs2] = useState(() => toTri(account.launch_cs2));
+  const [cs2Options, setCs2Options] = useState(
+    () => account.cs2_launch_options ?? ""
+  );
+  const [cs2OptionsInherit, setCs2OptionsInherit] = useState(
+    () => account.cs2_launch_options === null
+  );
 
   const handleOpenChange = useCallback(
     (next: boolean) => {
@@ -70,9 +66,6 @@ export function OverridesDialog({
   );
 
   const handleSave = useCallback(() => {
-    if (!account) {
-      return;
-    }
     onSave(account.steamid, {
       always_invisible: fromTri(invisible),
       cs2_launch_options: cs2OptionsInherit ? null : cs2Options,
@@ -81,7 +74,7 @@ export function OverridesDialog({
     });
     onClose();
   }, [
-    account,
+    account.steamid,
     cs2,
     cs2Options,
     cs2OptionsInherit,
@@ -90,10 +83,6 @@ export function OverridesDialog({
     onClose,
     onSave,
   ]);
-
-  if (!account) {
-    return null;
-  }
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>

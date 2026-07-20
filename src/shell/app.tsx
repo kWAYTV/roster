@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { isCooldownActive, nowSeconds } from "../cooldown/cooldown";
 import { useCooldown } from "../cooldown/use-cooldown";
@@ -20,12 +20,13 @@ import { useRoster } from "../roster/use-roster";
 import { useStatus } from "../status/use-status";
 import { useUpdater } from "../updater/use-updater";
 import { ShellDialogs } from "./dialogs";
+import { ErrorToastGate } from "./error-toast-gate";
 import { filterAccounts, sortAccounts } from "./filter-accounts";
 import { FilterBar } from "./filter-bar";
 import { Footer } from "./footer";
+import { JwtWarningGate } from "./jwt-warning-gate";
 import styles from "./shell.module.css";
 import { Toolbar } from "./toolbar";
-import { useJwtWarnings } from "./use-jwt-warnings";
 import { useRosterView } from "./use-roster-view";
 import { useSelection } from "./use-selection";
 import { useShellEvents } from "./use-shell-events";
@@ -70,7 +71,6 @@ export function App() {
     askBulkCooldown,
     closeBulkCooldown,
   } = useShellUi();
-  const searchRef = useRef<HTMLInputElement>(null);
   const [noteTarget, setNoteTarget] = useState<AccountView | null>(null);
   const [overridesTarget, setOverridesTarget] = useState<AccountView | null>(
     null
@@ -140,12 +140,7 @@ export function App() {
     invertSelection(filtered);
   }, [filtered, invertSelection]);
 
-  useShellEvents({ error, notify, openImport });
-  useJwtWarnings({
-    accounts,
-    notify,
-    warnDays: preferences.warn_jwt_expiry_days,
-  });
+  useShellEvents({ notify, openImport });
   useShellShortcuts({
     clearSelection,
     closeSearch,
@@ -156,12 +151,6 @@ export function App() {
     searchOpen: ui.searchOpen,
     selectedIds,
   });
-
-  useEffect(() => {
-    if (ui.searchOpen) {
-      searchRef.current?.focus();
-    }
-  }, [ui.searchOpen]);
 
   const countLabel =
     filtered.length === accounts.length
@@ -225,7 +214,6 @@ export function App() {
         onQueryChange={setQuery}
         query={ui.query}
         searchOpen={ui.searchOpen}
-        searchRef={searchRef}
       />
 
       <FilterBar
@@ -273,6 +261,19 @@ export function App() {
       <LogPanel visible={preferences.show_log_panel} />
       <Footer currentVersion={currentVersion} />
 
+      {error ? (
+        <ErrorToastGate key={error} message={error} notify={notify} />
+      ) : null}
+      {!loading &&
+      accounts.length > 0 &&
+      preferences.warn_jwt_expiry_days > 0 ? (
+        <JwtWarningGate
+          accounts={accounts}
+          notify={notify}
+          warnDays={preferences.warn_jwt_expiry_days}
+        />
+      ) : null}
+
       <ShellDialogs
         available={available}
         bulkCooldownIds={ui.bulkCooldownIds}
@@ -301,19 +302,25 @@ export function App() {
         updateBusy={busy}
       />
 
-      <NoteDialog
-        initial={noteTarget?.note ?? ""}
-        name={noteTarget?.display_name ?? ""}
-        onClose={closeNote}
-        onSave={handleSaveNote}
-        open={noteTarget !== null}
-      />
-      <OverridesDialog
-        account={overridesTarget}
-        onClose={closeOverrides}
-        onSave={setOverrides}
-        open={overridesTarget !== null}
-      />
+      {noteTarget ? (
+        <NoteDialog
+          initial={noteTarget.note}
+          key={noteTarget.steamid}
+          name={noteTarget.display_name}
+          onClose={closeNote}
+          onSave={handleSaveNote}
+          open
+        />
+      ) : null}
+      {overridesTarget ? (
+        <OverridesDialog
+          account={overridesTarget}
+          key={overridesTarget.steamid}
+          onClose={closeOverrides}
+          onSave={setOverrides}
+          open
+        />
+      ) : null}
     </div>
   );
 }

@@ -50,10 +50,16 @@ export function useRoster() {
   }, []);
 
   useEffect(() => {
-    refresh();
-    const unlisten = onAccountsChanged(refresh);
+    refresh().catch(() => undefined);
+    const unlisten = onAccountsChanged(() => {
+      refresh().catch(() => undefined);
+    });
     return () => {
-      unlisten.then((stop) => stop());
+      unlisten
+        .then((stop) => {
+          stop();
+        })
+        .catch(() => undefined);
     };
   }, [refresh]);
 

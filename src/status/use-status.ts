@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useToast } from "../feedback/toast";
 import { onAccountStatus, onAccountsChanged } from "../platform/events";
@@ -9,6 +9,8 @@ import type { StatusMap } from "./status";
 const REFRESH_INTERVAL_MS = 5 * 60_000;
 const STARTUP_DELAY_MS = 400;
 
+let statusFailureNotified = false;
+
 /// Statuses per SteamID, streamed in as the backend sweep progresses.
 /// Sweeps start after the roster loads, then every five minutes.
 export function useStatus(
@@ -17,7 +19,6 @@ export function useStatus(
 ): StatusMap {
   const { notify } = useToast();
   const [statuses, setStatuses] = useState<StatusMap>({});
-  const failureNotified = useRef(false);
 
   useEffect(() => {
     if (!rosterReady) {
@@ -26,10 +27,10 @@ export function useStatus(
 
     const refresh = () => {
       commands.refreshStatuses().catch((cause) => {
-        if (failureNotified.current) {
+        if (statusFailureNotified) {
           return;
         }
-        failureNotified.current = true;
+        statusFailureNotified = true;
         notify(`Status refresh failed: ${cause}`, "error");
       });
     };
