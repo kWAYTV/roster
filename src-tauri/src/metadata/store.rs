@@ -5,7 +5,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use super::record::AccountMetadata;
 
-const APP_DIR: &str = "dev.roster.app";
 const FILE: &str = "metadata.json";
 
 type Store = HashMap<String, AccountMetadata>;
@@ -123,8 +122,7 @@ fn save(store: &Store) -> Result<(), String> {
 }
 
 fn path() -> PathBuf {
-    let base = std::env::var("APPDATA").unwrap_or_else(|_| ".".to_string());
-    PathBuf::from(base).join(APP_DIR).join(FILE)
+    crate::app_data::dir().join(FILE)
 }
 
 fn now() -> u64 {

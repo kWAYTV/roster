@@ -28,7 +28,8 @@
     ],
     "security": {
       "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost https://github.com https://release-assets.githubusercontent.com https://objects.githubusercontent.com; img-src 'self' data:; style-src 'self' 'unsafe-inline'",
-      "devCsp": null
+      "devCsp": null,
+      "capabilities": ["default"]
     }
   },
   "bundle": {

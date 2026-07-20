@@ -3,7 +3,6 @@ use std::path::PathBuf;
 
 use super::model::Preferences;
 
-const APP_DIR: &str = "dev.roster.app";
 const FILE: &str = "preferences.json";
 
 /// Load preferences, falling back to defaults on any read or parse failure.
@@ -31,6 +30,5 @@ pub fn save(preferences: &Preferences) -> Result<(), String> {
 }
 
 fn path() -> PathBuf {
-    let base = std::env::var("APPDATA").unwrap_or_else(|_| ".".to_string());
-    PathBuf::from(base).join(APP_DIR).join(FILE)
+    crate::app_data::dir().join(FILE)
 }
