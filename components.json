@@ -17,7 +17,7 @@
     "utils": "@/ui/primitives/cn",
     "ui": "@/ui/primitives",
     "lib": "@/ui/primitives",
-    "hooks": "@/hooks",
+    "hooks": "@/shell",
     "icons": "@/ui/icons"
   },
   "menuColor": "default",
