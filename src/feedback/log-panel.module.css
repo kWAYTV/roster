@@ -13,7 +13,7 @@
   max-height: 88px;
   overflow-y: auto;
   overflow-x: hidden;
-  font: var(--font-mono);
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
   color: var(--text-muted);
   white-space: pre-wrap;

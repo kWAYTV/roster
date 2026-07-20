@@ -5,50 +5,9 @@ body,
 }
 
 body {
-  font: var(--font);
-  color: var(--text);
-  background: var(--bg);
   user-select: none;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
-}
-
-/* Legacy helpers still used by a few CSS-module surfaces */
-.field {
-  width: 100%;
-  padding: 7px 10px;
-  border: 1px solid var(--control-border);
-  border-radius: var(--r-sm);
-  background: var(--control-bg);
-  color: var(--text);
-  font: inherit;
-  transition: border-color 0.14s var(--ease-out);
-}
-
-.field::placeholder {
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-
-.field:focus {
-  outline: none;
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-soft);
-}
-
-select.field {
-  appearance: none;
-  padding-right: 28px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7a8f' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-}
-
-textarea.field {
-  min-height: 88px;
-  resize: vertical;
-  font: var(--font-mono);
-  user-select: text;
 }
 
 ::-webkit-scrollbar {
@@ -57,9 +16,9 @@ textarea.field {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 8px;
-  border: 2px solid var(--bg);
+  background: var(--border);
+  border-radius: var(--radius);
+  border: 2px solid var(--background);
 }
 
 @media (prefers-reduced-motion: reduce) {

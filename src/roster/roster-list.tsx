@@ -81,7 +81,7 @@ export function RosterList({
     return (
       <div className={styles.empty}>
         <p className={styles.emptyTitle}>No accounts yet</p>
-        <p className={styles.emptyHint}>Use Import → Add account to get started.</p>
+        <p className={styles.emptyHint}>Use + to import an account and get started.</p>
       </div>
     );
   }
