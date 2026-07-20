@@ -25,14 +25,19 @@ Signed local build (needs `signing/roster.key`):
 
 ## Release
 
-Releases are driven by [conventional commits](https://www.conventionalcommits.org/) via [release-please](https://github.com/googleapis/release-please):
+Same idea as the [portfolio changelog workflow](https://github.com/kWAYTV/portfolio/blob/master/.github/workflows/changelog.yml): bump locally, tag triggers CI + release notes + installer.
 
-1. Land commits on `main` via PR or direct push (`feat:`, `fix:`, `feat!:`, …).
-2. On every `main` push the Release workflow runs **CI first** (`backend` + `frontend`). If either fails, release-please does not run.
-3. When CI is green, release-please opens/updates a **Release PR** with version bumps + `CHANGELOG.md`.
-4. Merge that Release PR when ready → tag + GitHub Release → signed NSIS + updater (only if CI was green on that merge push too).
+```bash
+npm run release      # bumpp — pick conventional / version, commits + tags v* + pushes
+```
 
-CI also runs on pull requests. Prefer branch protection on `main` with required checks.
+On `v*` tags the Release workflow:
+
+1. Runs CI (`backend` + `frontend`) — red CI stops the release
+2. Generates GitHub release notes with [changelogithub](https://github.com/antfu/changelogithub) (from conventional commits)
+3. Builds/uploads the signed NSIS installer + updater manifest
+
+CI also runs on pull requests.
 
 Artifacts land on [Releases](https://github.com/kWAYTV/roster/releases/latest).
 

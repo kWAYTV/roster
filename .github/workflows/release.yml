@@ -2,11 +2,11 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    tags:
+      - "v*"
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -60,26 +60,14 @@ jobs:
       - name: Type-check and build
         run: npm run build
 
-  release-please:
-    needs: [backend, frontend]
-    runs-on: ubuntu-latest
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-    steps:
-      - uses: googleapis/release-please-action@v4
-        id: release
-        with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
-
   publish:
-    needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    needs: [backend, frontend]
     runs-on: windows-latest
     environment: roster
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -95,10 +83,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # release-please bumps Cargo.toml but not Cargo.lock; cargo self-heals on build.
-      - name: Sync Cargo.lock
-        working-directory: src-tauri
-        run: cargo update -p roster
+      - name: Generate changelog
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx changelogithub
 
       - name: Prepare signing key
         id: signing
@@ -122,8 +111,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ steps.signing.outputs.keyfile }}
         with:
-          tagName: ${{ needs.release-please.outputs.tag_name }}
-          releaseName: Roster ${{ needs.release-please.outputs.tag_name }}
+          tagName: ${{ github.ref_name }}
+          releaseName: Roster ${{ github.ref_name }}
           prerelease: false
           uploadUpdaterJson: true
           updaterJsonPreferNsis: true
