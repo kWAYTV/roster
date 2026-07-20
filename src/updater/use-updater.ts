@@ -1,16 +1,13 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-const STARTUP_DELAY_MS = 3_000;
+import { useCallback, useEffect, useState } from "react";
 
 /// Check GitHub Releases for a signed update and install it on demand.
 export function useUpdater(notify: (message: string) => void) {
   const [available, setAvailable] = useState<Update | null>(null);
   const [busy, setBusy] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
-  const checked = useRef(false);
 
   useEffect(() => {
     getVersion()
@@ -38,16 +35,25 @@ export function useUpdater(notify: (message: string) => void) {
     [notify],
   );
 
+  // Run as soon as the window mounts so an update dialog can open immediately.
   useEffect(() => {
-    if (checked.current) {
-      return;
-    }
-    checked.current = true;
-    const timer = window.setTimeout(() => {
-      void checkForUpdate();
-    }, STARTUP_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [checkForUpdate]);
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const update = await check();
+        if (!cancelled && update) {
+          setAvailable(update);
+        }
+      } catch {
+        // Startup checks stay silent; Settings still surfaces manual failures.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const install = useCallback(async () => {
     if (!available) {
