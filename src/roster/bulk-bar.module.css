@@ -1,17 +1,17 @@
 .bar {
   position: fixed;
-  left: 50%;
   bottom: 44px;
+  left: 50%;
   z-index: var(--z-menu);
   display: flex;
-  align-items: center;
   gap: var(--space-2);
+  align-items: center;
   width: max-content;
   max-width: calc(100vw - 24px);
   padding: 6px 8px;
+  background: var(--panel);
   border: 1px solid var(--border-strong);
   border-radius: var(--r);
-  background: var(--panel);
   box-shadow: var(--shadow-menu);
   transform: translateX(-50%);
 }
@@ -27,8 +27,8 @@
 
 .actions {
   display: flex;
-  align-items: center;
   gap: 2px;
+  align-items: center;
   overflow-x: auto;
   scrollbar-width: none;
 }

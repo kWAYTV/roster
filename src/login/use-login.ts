@@ -19,8 +19,8 @@ export function useSignIn() {
         setPending(null);
       }
     },
-    [notify],
+    [notify]
   );
 
-  return { signIn, pending };
+  return { pending, signIn };
 }

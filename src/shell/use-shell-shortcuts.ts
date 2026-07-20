@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 
 interface ShellShortcutsOptions {
-  searchOpen: boolean;
-  selectedIds: Set<string>;
-  closeSearch: () => void;
   clearSelection: () => void;
+  closeSearch: () => void;
   openSearch: () => void;
   requestSignIn: (steamid: string) => void;
+  searchOpen: boolean;
+  selectedIds: Set<string>;
 }
 
 export function useShellShortcuts({
@@ -27,7 +27,7 @@ export function useShellShortcuts({
         clearSelection();
       }
       if (event.altKey && event.key === "Enter" && selectedIds.size === 1) {
-        const steamid = [...selectedIds][0];
+        const [steamid] = [...selectedIds];
         if (steamid) {
           requestSignIn(steamid);
         }

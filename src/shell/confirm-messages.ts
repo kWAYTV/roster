@@ -1,7 +1,10 @@
 import { formatRemaining } from "../cooldown/cooldown";
 import type { AccountView } from "../roster/account";
 
-export function removeMessage(accounts: AccountView[], streamer: boolean): string {
+export function removeMessage(
+  accounts: AccountView[],
+  streamer: boolean
+): string {
   if (!accounts.length) {
     return "";
   }
@@ -12,7 +15,10 @@ export function removeMessage(accounts: AccountView[], streamer: boolean): strin
   return `Remove ${name}?`;
 }
 
-export function cooldownMessage(account: AccountView | null, streamer: boolean): string {
+export function cooldownMessage(
+  account: AccountView | null,
+  streamer: boolean
+): string {
   if (!account) {
     return "";
   }

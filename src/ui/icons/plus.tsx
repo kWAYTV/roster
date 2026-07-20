@@ -64,13 +64,13 @@ const PlusIcon = forwardRef<PlusIconHandle, PlusIconProps>(
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"
-          transition={{ type: "spring", stiffness: 100, damping: 15 }}
+          transition={{ damping: 15, stiffness: 100, type: "spring" }}
           variants={{
-            normal: {
-              rotate: 0,
-            },
             animate: {
               rotate: 180,
+            },
+            normal: {
+              rotate: 0,
             },
           }}
           viewBox="0 0 24 24"

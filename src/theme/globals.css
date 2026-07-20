@@ -5,9 +5,9 @@ body,
 }
 
 body {
-  user-select: none;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  user-select: none;
 }
 
 ::-webkit-scrollbar {
@@ -17,15 +17,15 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: var(--radius);
   border: 2px solid var(--background);
+  border-radius: var(--radius);
 }
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }

@@ -32,14 +32,14 @@ export function useUpdater(notify: (message: string) => void) {
         }
       }
     },
-    [notify],
+    [notify]
   );
 
   // Run as soon as the window mounts so an update dialog can open immediately.
   useEffect(() => {
     let cancelled = false;
 
-    void (async () => {
+    const runStartupCheck = async () => {
       try {
         const update = await check();
         if (!cancelled && update) {
@@ -48,7 +48,9 @@ export function useUpdater(notify: (message: string) => void) {
       } catch {
         // Startup checks stay silent; Settings still surfaces manual failures.
       }
-    })();
+    };
+
+    runStartupCheck().catch(() => undefined);
 
     return () => {
       cancelled = true;
@@ -76,9 +78,9 @@ export function useUpdater(notify: (message: string) => void) {
   return {
     available,
     busy,
-    currentVersion,
     checkForUpdate,
-    install,
+    currentVersion,
     dismiss,
+    install,
   };
 }

@@ -15,24 +15,24 @@ interface UserIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const PATH_VARIANT: Variants = {
-  normal: { pathLength: 1, opacity: 1, pathOffset: 0 },
   animate: {
-    pathLength: [0, 1],
     opacity: [0, 1],
+    pathLength: [0, 1],
     pathOffset: [1, 0],
   },
+  normal: { opacity: 1, pathLength: 1, pathOffset: 0 },
 };
 
 const CIRCLE_VARIANT: Variants = {
-  normal: {
-    pathLength: 1,
-    pathOffset: 0,
-    scale: 1,
-  },
   animate: {
     pathLength: [0, 1],
     pathOffset: [1, 0],
     scale: [0.5, 1],
+  },
+  normal: {
+    pathLength: 1,
+    pathOffset: 0,
+    scale: 1,
   },
 };
 

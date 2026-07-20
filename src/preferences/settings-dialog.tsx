@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import {
   Dialog,
@@ -14,14 +14,14 @@ import type { Preferences } from "./preferences";
 import { SettingsTabs } from "./settings-tabs";
 
 interface SettingsDialogProps {
-  open: boolean;
-  preferences: Preferences;
   currentVersion: string | null;
-  updateBusy: boolean;
   onChange: (key: keyof Preferences, value: boolean) => void;
-  onPatch: (patch: Partial<Preferences>) => void;
   onCheckForUpdates: () => void;
   onClose: () => void;
+  onPatch: (patch: Partial<Preferences>) => void;
+  open: boolean;
+  preferences: Preferences;
+  updateBusy: boolean;
 }
 
 export function SettingsDialog({
@@ -38,60 +38,89 @@ export function SettingsDialog({
   const [resetOpen, setResetOpen] = useState(false);
   const { reset } = useReset();
 
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  const requestReset = useCallback(() => {
+    setResetOpen(true);
+  }, []);
+
+  const closeReset = useCallback(() => {
+    setResetOpen(false);
+  }, []);
+
   return (
     <>
-      <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <Dialog onOpenChange={handleOpenChange} open={open}>
         <DialogContent className="gap-4 p-5 sm:max-w-md">
           <DialogHeader className="pr-8">
             <DialogTitle>Settings</DialogTitle>
           </DialogHeader>
 
-          <Tabs value={tab} onValueChange={setTab} className="gap-4">
+          <Tabs className="gap-4" onValueChange={setTab} value={tab}>
             <TabsList
+              className="h-auto w-full justify-stretch gap-0 border-border border-b pb-0"
               variant="line"
-              className="h-auto w-full justify-stretch gap-0 border-b border-border pb-0"
             >
-              <TabsTrigger value="sign-in" className="flex-1 rounded-none px-2 text-xs">
+              <TabsTrigger
+                className="flex-1 rounded-none px-2 text-xs"
+                value="sign-in"
+              >
                 Sign-in
               </TabsTrigger>
-              <TabsTrigger value="privacy" className="flex-1 rounded-none px-2 text-xs">
+              <TabsTrigger
+                className="flex-1 rounded-none px-2 text-xs"
+                value="privacy"
+              >
                 Privacy
               </TabsTrigger>
-              <TabsTrigger value="app" className="flex-1 rounded-none px-2 text-xs">
+              <TabsTrigger
+                className="flex-1 rounded-none px-2 text-xs"
+                value="app"
+              >
                 App
               </TabsTrigger>
-              <TabsTrigger value="updates" className="flex-1 rounded-none px-2 text-xs">
+              <TabsTrigger
+                className="flex-1 rounded-none px-2 text-xs"
+                value="updates"
+              >
                 Updates
               </TabsTrigger>
               <TabsTrigger
+                className="flex-1 rounded-none px-2 text-destructive text-xs after:bg-destructive hover:text-destructive data-active:text-destructive dark:text-destructive dark:data-active:text-destructive dark:hover:text-destructive"
                 value="danger"
-                className="flex-1 rounded-none px-2 text-xs text-destructive hover:text-destructive data-active:text-destructive after:bg-destructive dark:text-destructive dark:hover:text-destructive dark:data-active:text-destructive"
               >
                 Danger
               </TabsTrigger>
             </TabsList>
 
             <SettingsTabs
-              preferences={preferences}
               currentVersion={currentVersion}
-              updateBusy={updateBusy}
               onChange={onChange}
-              onPatch={onPatch}
               onCheckForUpdates={onCheckForUpdates}
-              onRequestReset={() => setResetOpen(true)}
+              onPatch={onPatch}
+              onRequestReset={requestReset}
+              preferences={preferences}
+              updateBusy={updateBusy}
             />
           </Tabs>
         </DialogContent>
       </Dialog>
 
       <ConfirmDialog
-        open={resetOpen}
-        title="Reset login data"
-        message="This clears every saved Steam login on this PC. Continue?"
         confirmLabel="Reset"
         danger
+        message="This clears every saved Steam login on this PC. Continue?"
+        onClose={closeReset}
         onConfirm={reset}
-        onClose={() => setResetOpen(false)}
+        open={resetOpen}
+        title="Reset login data"
       />
     </>
   );

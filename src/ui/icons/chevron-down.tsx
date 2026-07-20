@@ -15,8 +15,8 @@ interface ChevronDownIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const DEFAULT_TRANSITION: Transition = {
-  times: [0, 0.4, 1],
   duration: 0.5,
+  times: [0, 0.4, 1],
 };
 
 const ChevronDownIcon = forwardRef<ChevronDownIconHandle, ChevronDownIconProps>(
@@ -77,8 +77,8 @@ const ChevronDownIcon = forwardRef<ChevronDownIconHandle, ChevronDownIconProps>(
             d="m6 9 6 6 6-6"
             transition={DEFAULT_TRANSITION}
             variants={{
-              normal: { y: 0 },
               animate: { y: [0, 2, 0] },
+              normal: { y: 0 },
             }}
           />
         </svg>

@@ -1,4 +1,4 @@
-import { type RefObject } from "react";
+import { type RefObject, useCallback } from "react";
 
 import { PlusIcon } from "@/ui/icons/plus";
 import { SearchIcon } from "@/ui/icons/search";
@@ -12,16 +12,16 @@ import { Hint } from "@/ui/widgets/hint";
 import styles from "./shell.module.css";
 
 interface ToolbarProps {
-  searchOpen: boolean;
-  query: string;
-  countLabel: string;
   accountCount: number;
-  searchRef: RefObject<HTMLInputElement | null>;
-  onQueryChange: (query: string) => void;
-  onOpenSearch: () => void;
+  countLabel: string;
   onCloseSearch: () => void;
   onOpenImport: () => void;
+  onOpenSearch: () => void;
   onOpenSettings: () => void;
+  onQueryChange: (query: string) => void;
+  query: string;
+  searchOpen: boolean;
+  searchRef: RefObject<HTMLInputElement | null>;
 }
 
 export function Toolbar({
@@ -36,31 +36,42 @@ export function Toolbar({
   onOpenImport,
   onOpenSettings,
 }: ToolbarProps) {
+  const handleQueryChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      onQueryChange(event.target.value);
+    },
+    [onQueryChange]
+  );
+
   return (
     <header className={styles.toolbar}>
       {searchOpen ? (
         <>
-          <SearchIcon size={15} className={styles.searchGlyph} aria-hidden="true" />
+          <SearchIcon
+            aria-hidden="true"
+            className={styles.searchGlyph}
+            size={15}
+          />
           <Input
-            ref={searchRef}
-            className={styles.searchInput}
-            placeholder="Filter accounts"
             aria-label="Filter accounts"
+            className={styles.searchInput}
+            onChange={handleQueryChange}
+            placeholder="Filter accounts"
+            ref={searchRef}
             value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
           />
           {accountCount > 0 ? (
-            <Badge variant="secondary" className={styles.count}>
+            <Badge className={styles.count} variant="secondary">
               {countLabel}
             </Badge>
           ) : null}
           <Hint label="Close search">
             <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
               aria-label="Close search"
               onClick={onCloseSearch}
+              size="icon-sm"
+              type="button"
+              variant="ghost"
             >
               <XIcon size={16} />
             </Button>
@@ -71,7 +82,7 @@ export function Toolbar({
           <div className={styles.brand}>
             <span className={styles.title}>Roster</span>
             {accountCount > 0 ? (
-              <Badge variant="secondary" className={styles.count}>
+              <Badge className={styles.count} variant="secondary">
                 {accountCount}
               </Badge>
             ) : null}
@@ -79,33 +90,33 @@ export function Toolbar({
           <div className={styles.actions}>
             <Hint label="Import">
               <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
                 aria-label="Import"
                 onClick={onOpenImport}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
               >
                 <PlusIcon size={16} />
               </Button>
             </Hint>
             <Hint label="Search accounts">
               <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
                 aria-label="Search accounts"
                 onClick={onOpenSearch}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
               >
                 <SearchIcon size={16} />
               </Button>
             </Hint>
             <Hint label="Settings">
               <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
                 aria-label="Settings"
                 onClick={onOpenSettings}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
               >
                 <SettingsIcon size={16} />
               </Button>

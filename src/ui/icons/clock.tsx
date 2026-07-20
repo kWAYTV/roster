@@ -20,15 +20,15 @@ const HAND_TRANSITION: Transition = {
 };
 
 const HAND_VARIANTS: Variants = {
-  normal: {
-    rotate: 0,
-    originX: "0%",
-    originY: "100%",
-  },
   animate: {
-    rotate: 360,
     originX: "0%",
     originY: "100%",
+    rotate: 360,
+  },
+  normal: {
+    originX: "0%",
+    originY: "100%",
+    rotate: 0,
   },
 };
 
@@ -38,15 +38,15 @@ const MINUTE_HAND_TRANSITION: Transition = {
 };
 
 const MINUTE_HAND_VARIANTS: Variants = {
-  normal: {
-    rotate: 0,
-    originX: "0%",
-    originY: "100%",
-  },
   animate: {
-    rotate: 45,
     originX: "0%",
     originY: "100%",
+    rotate: 45,
+  },
+  normal: {
+    originX: "0%",
+    originY: "100%",
+    rotate: 0,
   },
 };
 

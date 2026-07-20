@@ -1,31 +1,30 @@
 import { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
-
+import type { StatusMap } from "../status/status";
+import type { AccountView } from "./account";
 import { AccountRow } from "./account-row";
 import { BulkBar } from "./bulk-bar";
-import type { AccountView } from "./account";
-import type { StatusMap } from "../status/status";
 import styles from "./roster-list.module.css";
 
 interface RosterListProps {
   accounts: AccountView[];
-  loading: boolean;
-  streamer: boolean;
-  pending: string | null;
-  statuses: StatusMap;
-  selectedIds: Set<string>;
-  onSelect: (account: AccountView, additive: boolean) => void;
-  onClearSelection: () => void;
-  onSignIn: (steamid: string) => void;
-  onRemove: (accounts: AccountView[]) => void;
-  onCopyUsername: (account: AccountView) => void;
-  onOpenProfile: (steamid: string) => void;
-  onCopyExport: (steamids: string[]) => void;
-  onExportFile: (steamids: string[]) => void;
-  onCooldown: (steamids: string[], seconds: number) => void;
-  onClearCooldown: (steamids: string[]) => void;
-  onCustomCooldown: (steamids: string[]) => void;
   exportCountFor: (steamids: string[]) => number;
+  loading: boolean;
+  onClearCooldown: (steamids: string[]) => void;
+  onClearSelection: () => void;
+  onCooldown: (steamids: string[], seconds: number) => void;
+  onCopyExport: (steamids: string[]) => void;
+  onCopyUsername: (account: AccountView) => void;
+  onCustomCooldown: (steamids: string[]) => void;
+  onExportFile: (steamids: string[]) => void;
+  onOpenProfile: (steamid: string) => void;
+  onRemove: (accounts: AccountView[]) => void;
+  onSelect: (account: AccountView, additive: boolean) => void;
+  onSignIn: (steamid: string) => void;
+  pending: string | null;
+  selectedIds: Set<string>;
+  statuses: StatusMap;
+  streamer: boolean;
 }
 
 export function RosterList({
@@ -50,7 +49,7 @@ export function RosterList({
 }: RosterListProps) {
   const byId = useMemo(
     () => new Map(accounts.map((account) => [account.steamid, account])),
-    [accounts],
+    [accounts]
   );
 
   const selectedAccounts = useMemo(() => {
@@ -71,8 +70,32 @@ export function RosterList({
       }
       return [account];
     },
-    [selectedAccounts, selectedIds],
+    [selectedAccounts, selectedIds]
   );
+
+  const selectedSteamids = useMemo(
+    () => selectedAccounts.map((account) => account.steamid),
+    [selectedAccounts]
+  );
+
+  const handleClearCooldown = useCallback(() => {
+    onClearCooldown(selectedSteamids);
+  }, [onClearCooldown, selectedSteamids]);
+
+  const handleCooldown = useCallback(
+    (seconds: number) => {
+      onCooldown(selectedSteamids, seconds);
+    },
+    [onCooldown, selectedSteamids]
+  );
+
+  const handleCopyExport = useCallback(() => {
+    onCopyExport(selectedSteamids);
+  }, [onCopyExport, selectedSteamids]);
+
+  const handleRemove = useCallback(() => {
+    onRemove(selectedAccounts);
+  }, [onRemove, selectedAccounts]);
 
   if (accounts.length === 0) {
     if (loading) {
@@ -81,12 +104,12 @@ export function RosterList({
     return (
       <div className={styles.empty}>
         <p className={styles.emptyTitle}>No accounts yet</p>
-        <p className={styles.emptyHint}>Use + to import an account and get started.</p>
+        <p className={styles.emptyHint}>
+          Use + to import an account and get started.
+        </p>
       </div>
     );
   }
-
-  const selectedSteamids = selectedAccounts.map((account) => account.steamid);
 
   return (
     <>
@@ -95,25 +118,25 @@ export function RosterList({
           const targets = menuTargetsFor(account);
           return (
             <AccountRow
-              key={account.steamid}
               account={account}
-              index={index}
-              streamer={streamer}
               busy={pending === account.steamid}
-              selected={selectedIds.has(account.steamid)}
-              status={statuses[account.steamid]}
-              menuTargets={targets}
               exportCount={exportCountFor(targets.map((item) => item.steamid))}
+              index={index}
+              key={account.steamid}
+              menuTargets={targets}
+              onClearCooldown={onClearCooldown}
+              onCooldown={onCooldown}
+              onCopyExport={onCopyExport}
+              onCopyUsername={onCopyUsername}
+              onCustomCooldown={onCustomCooldown}
+              onExportFile={onExportFile}
+              onOpenProfile={onOpenProfile}
+              onRemove={onRemove}
               onSelect={onSelect}
               onSignIn={onSignIn}
-              onRemove={onRemove}
-              onCopyUsername={onCopyUsername}
-              onOpenProfile={onOpenProfile}
-              onCopyExport={onCopyExport}
-              onExportFile={onExportFile}
-              onCooldown={onCooldown}
-              onClearCooldown={onClearCooldown}
-              onCustomCooldown={onCustomCooldown}
+              selected={selectedIds.has(account.steamid)}
+              status={statuses[account.steamid]}
+              streamer={streamer}
             />
           );
         })}
@@ -123,12 +146,12 @@ export function RosterList({
           count={selectedAccounts.length}
           exportCount={exportCountFor(selectedSteamids)}
           onClear={onClearSelection}
-          onCooldown={(seconds) => onCooldown(selectedSteamids, seconds)}
-          onClearCooldown={() => onClearCooldown(selectedSteamids)}
-          onCopyExport={() => onCopyExport(selectedSteamids)}
-          onRemove={() => onRemove(selectedAccounts)}
+          onClearCooldown={handleClearCooldown}
+          onCooldown={handleCooldown}
+          onCopyExport={handleCopyExport}
+          onRemove={handleRemove}
         />,
-        document.body,
+        document.body
       )}
     </>
   );

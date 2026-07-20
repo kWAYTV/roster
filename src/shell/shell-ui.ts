@@ -1,14 +1,14 @@
 import type { AccountView } from "../roster/account";
 
 export interface ShellUiState {
-  query: string;
-  searchOpen: boolean;
+  bulkCooldownIds: string[];
+  cooldownTarget: AccountView | null;
   importOpen: boolean;
   importPrefill: string;
-  settingsOpen: boolean;
+  query: string;
   removeTargets: AccountView[];
-  cooldownTarget: AccountView | null;
-  bulkCooldownIds: string[];
+  searchOpen: boolean;
+  settingsOpen: boolean;
 }
 
 export type ShellUiAction =
@@ -27,22 +27,25 @@ export type ShellUiAction =
   | { type: "close-bulk-cooldown" };
 
 export const initialShellUi: ShellUiState = {
-  query: "",
-  searchOpen: false,
+  bulkCooldownIds: [],
+  cooldownTarget: null,
   importOpen: false,
   importPrefill: "",
-  settingsOpen: false,
+  query: "",
   removeTargets: [],
-  cooldownTarget: null,
-  bulkCooldownIds: [],
+  searchOpen: false,
+  settingsOpen: false,
 };
 
-export function shellUiReducer(state: ShellUiState, action: ShellUiAction): ShellUiState {
+export function shellUiReducer(
+  state: ShellUiState,
+  action: ShellUiAction
+): ShellUiState {
   switch (action.type) {
     case "open-search":
       return { ...state, searchOpen: true };
     case "close-search":
-      return { ...state, searchOpen: false, query: "" };
+      return { ...state, query: "", searchOpen: false };
     case "set-query":
       return { ...state, query: action.query };
     case "open-import":
@@ -69,5 +72,7 @@ export function shellUiReducer(state: ShellUiState, action: ShellUiAction): Shel
       return { ...state, bulkCooldownIds: action.steamids };
     case "close-bulk-cooldown":
       return { ...state, bulkCooldownIds: [] };
+    default:
+      return state;
   }
 }

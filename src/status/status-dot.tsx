@@ -13,7 +13,11 @@ export function StatusDot({ status }: { status?: AccountStatus }) {
   return (
     <Hint label={label}>
       <span
-        className={inGame ? `${styles.dot} ${styles.ingame}` : `${styles.dot} ${styles.online}`}
+        className={
+          inGame
+            ? `${styles.dot} ${styles.ingame}`
+            : `${styles.dot} ${styles.online}`
+        }
       />
     </Hint>
   );

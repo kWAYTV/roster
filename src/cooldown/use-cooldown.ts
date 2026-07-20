@@ -15,7 +15,7 @@ export function useCooldown() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
   const clear = useCallback(
@@ -26,7 +26,7 @@ export function useCooldown() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
   const startMany = useCallback(
@@ -37,7 +37,7 @@ export function useCooldown() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
   const clearMany = useCallback(
@@ -48,8 +48,8 @@ export function useCooldown() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
-  return { start, clear, startMany, clearMany };
+  return { clear, clearMany, start, startMany };
 }

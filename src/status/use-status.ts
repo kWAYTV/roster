@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { onAccountsChanged, onAccountStatus } from "../platform/events";
+import { onAccountStatus, onAccountsChanged } from "../platform/events";
 import { commands } from "../platform/invoke";
 import type { ProfilePatch } from "../roster/use-roster";
 import type { StatusMap } from "./status";
@@ -10,7 +10,10 @@ const STARTUP_DELAY_MS = 400;
 
 /// Statuses per SteamID, streamed in as the backend sweep progresses.
 /// Sweeps start after the roster loads, then every five minutes.
-export function useStatus(rosterReady: boolean, onProfile?: (patch: ProfilePatch) => void): StatusMap {
+export function useStatus(
+  rosterReady: boolean,
+  onProfile?: (patch: ProfilePatch) => void
+): StatusMap {
   const [statuses, setStatuses] = useState<StatusMap>({});
 
   useEffect(() => {
@@ -19,7 +22,9 @@ export function useStatus(rosterReady: boolean, onProfile?: (patch: ProfilePatch
     }
 
     const refresh = () => {
-      commands.refreshStatuses().catch((cause) => console.error("Status refresh failed:", cause));
+      commands
+        .refreshStatuses()
+        .catch((cause) => console.error("Status refresh failed:", cause));
     };
 
     const startup = window.setTimeout(refresh, STARTUP_DELAY_MS);
@@ -27,13 +32,13 @@ export function useStatus(rosterReady: boolean, onProfile?: (patch: ProfilePatch
       onAccountStatus((payload) => {
         setStatuses((current) => ({
           ...current,
-          [payload.steamid]: { state: payload.state, game: payload.game },
+          [payload.steamid]: { game: payload.game, state: payload.state },
         }));
         if (onProfile && (payload.display_name || payload.avatar)) {
           onProfile({
-            steamid: payload.steamid,
-            display_name: payload.display_name,
             avatar: payload.avatar,
+            display_name: payload.display_name,
+            steamid: payload.steamid,
           });
         }
       }),
@@ -43,7 +48,13 @@ export function useStatus(rosterReady: boolean, onProfile?: (patch: ProfilePatch
 
     return () => {
       window.clearTimeout(startup);
-      subscriptions.forEach((subscription) => subscription.then((stop) => stop()));
+      for (const subscription of subscriptions) {
+        subscription
+          .then((stop) => {
+            stop();
+          })
+          .catch(() => undefined);
+      }
       clearInterval(timer);
     };
   }, [onProfile, rosterReady]);

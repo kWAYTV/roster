@@ -21,7 +21,7 @@ export function useImport() {
         setBusy(false);
       }
     },
-    [notify],
+    [notify]
   );
 
   const paste = useCallback(async (): Promise<string> => {
@@ -33,5 +33,5 @@ export function useImport() {
     }
   }, [notify]);
 
-  return { importText, paste, busy };
+  return { busy, importText, paste };
 }

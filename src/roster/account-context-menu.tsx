@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from "react";
+
 import { ArrowRightIcon } from "@/ui/icons/arrow-right";
 import { ClockIcon } from "@/ui/icons/clock";
 import { CopyIcon } from "@/ui/icons/copy";
@@ -17,21 +19,23 @@ import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
 import type { AccountView } from "./account";
 import { IconItem, IconSubTrigger } from "./menu-icon-item";
 
+const AVATAR_SIZE = 28;
+
 interface AccountContextMenuProps {
   account: AccountView;
-  targets: AccountView[];
   exportCount: number;
-  streamer: boolean;
   index: number;
-  onSignIn: (steamid: string) => void;
-  onCopyUsername: (account: AccountView) => void;
-  onOpenProfile: (steamid: string) => void;
-  onCopyExport: (steamids: string[]) => void;
-  onExportFile: (steamids: string[]) => void;
-  onRemove: (accounts: AccountView[]) => void;
-  onCooldown: (steamids: string[], seconds: number) => void;
   onClearCooldown: (steamids: string[]) => void;
+  onCooldown: (steamids: string[], seconds: number) => void;
+  onCopyExport: (steamids: string[]) => void;
+  onCopyUsername: (account: AccountView) => void;
   onCustomCooldown: (steamids: string[]) => void;
+  onExportFile: (steamids: string[]) => void;
+  onOpenProfile: (steamid: string) => void;
+  onRemove: (accounts: AccountView[]) => void;
+  onSignIn: (steamid: string) => void;
+  streamer: boolean;
+  targets: AccountView[];
 }
 
 export function AccountContextMenu({
@@ -52,72 +56,113 @@ export function AccountContextMenu({
 }: AccountContextMenuProps) {
   const multi = targets.length > 1;
   const hasCooldown = targets.some((item) => item.cooldown_until > 0);
-  const steamids = targets.map((item) => item.steamid);
+  const steamids = useMemo(
+    () => targets.map((item) => item.steamid),
+    [targets]
+  );
   const title = streamer ? `Account ${index + 1}` : account.display_name;
   const copyTokenLabel = copyTokensLabel(exportCount, targets.length, multi);
+
+  const handleSignIn = useCallback(() => {
+    onSignIn(account.steamid);
+  }, [onSignIn, account.steamid]);
+
+  const handleCopyUsername = useCallback(() => {
+    onCopyUsername(account);
+  }, [onCopyUsername, account]);
+
+  const handleOpenProfile = useCallback(() => {
+    onOpenProfile(account.steamid);
+  }, [onOpenProfile, account.steamid]);
+
+  const handleCopyExport = useCallback(() => {
+    onCopyExport(steamids);
+  }, [onCopyExport, steamids]);
+
+  const handleExportFile = useCallback(() => {
+    onExportFile(steamids);
+  }, [onExportFile, steamids]);
+
+  const handleCustomCooldown = useCallback(() => {
+    onCustomCooldown(steamids);
+  }, [onCustomCooldown, steamids]);
+
+  const handleClearCooldown = useCallback(() => {
+    onClearCooldown(steamids);
+  }, [onClearCooldown, steamids]);
+
+  const handleRemove = useCallback(() => {
+    onRemove(targets);
+  }, [onRemove, targets]);
+
+  const handlePresetClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      const seconds = Number(event.currentTarget.dataset.seconds);
+      if (Number.isFinite(seconds)) {
+        onCooldown(steamids, seconds);
+      }
+    },
+    [onCooldown, steamids]
+  );
 
   return (
     <ContextMenuContent className="w-56">
       {multi ? (
-        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+        <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
           {targets.length} selected
         </div>
       ) : (
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted text-[10px] font-medium text-muted-foreground">
-            {streamer ? (
-              <span>{index + 1}</span>
-            ) : account.avatar ? (
-              <img src={account.avatar} alt="" className="size-full object-cover" />
-            ) : (
-              <span>{account.initials}</span>
-            )}
+          <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted font-medium text-[10px] text-muted-foreground">
+            {avatarContent(streamer, index, account)}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium leading-tight">{title}</div>
-            {!streamer ? (
-              <div className="truncate text-xs leading-tight text-muted-foreground">
+            <div className="truncate font-medium text-sm leading-tight">
+              {title}
+            </div>
+            {streamer ? null : (
+              <div className="truncate text-muted-foreground text-xs leading-tight">
                 {account.account_name}
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       )}
 
       <ContextMenuSeparator />
 
-      {!multi ? (
+      {multi ? null : (
         <ContextMenuGroup>
-          <IconItem icon={<ArrowRightIcon />} onClick={() => onSignIn(account.steamid)}>
+          <IconItem icon={<ArrowRightIcon />} onClick={handleSignIn}>
             Sign in
           </IconItem>
           <IconItem
-            icon={<CopyIcon />}
             disabled={streamer}
-            onClick={() => onCopyUsername(account)}
+            icon={<CopyIcon />}
+            onClick={handleCopyUsername}
           >
             Copy username
           </IconItem>
-          <IconItem icon={<UserIcon />} onClick={() => onOpenProfile(account.steamid)}>
+          <IconItem icon={<UserIcon />} onClick={handleOpenProfile}>
             Open profile
           </IconItem>
         </ContextMenuGroup>
-      ) : null}
+      )}
 
-      {!multi ? <ContextMenuSeparator /> : null}
+      {multi ? null : <ContextMenuSeparator />}
 
       <ContextMenuGroup>
         <IconItem
-          icon={<CopyIcon />}
           disabled={exportCount === 0}
-          onClick={() => onCopyExport(steamids)}
+          icon={<CopyIcon />}
+          onClick={handleCopyExport}
         >
           {copyTokenLabel}
         </IconItem>
         <IconItem
-          icon={<DownloadIcon />}
           disabled={exportCount === 0}
-          onClick={() => onExportFile(steamids)}
+          icon={<DownloadIcon />}
+          onClick={handleExportFile}
         >
           Save to file…
         </IconItem>
@@ -130,20 +175,21 @@ export function AccountContextMenu({
         <ContextMenuSubContent className="w-44">
           {COOLDOWN_PRESETS.map((preset) => (
             <ContextMenuItem
+              data-seconds={preset.seconds}
               key={preset.seconds}
-              onClick={() => onCooldown(steamids, preset.seconds)}
+              onClick={handlePresetClick}
             >
               {preset.label}
             </ContextMenuItem>
           ))}
           <ContextMenuSeparator />
-          <ContextMenuItem onClick={() => onCustomCooldown(steamids)}>
+          <ContextMenuItem onClick={handleCustomCooldown}>
             Custom…
           </ContextMenuItem>
           {hasCooldown ? (
             <ContextMenuItem
+              onClick={handleClearCooldown}
               variant="destructive"
-              onClick={() => onClearCooldown(steamids)}
             >
               Clear cooldown
             </ContextMenuItem>
@@ -155,8 +201,8 @@ export function AccountContextMenu({
 
       <IconItem
         icon={<DeleteIcon />}
+        onClick={handleRemove}
         variant="destructive"
-        onClick={() => onRemove(targets)}
       >
         {multi ? `Remove ${targets.length} accounts` : "Remove account"}
       </IconItem>
@@ -164,10 +210,32 @@ export function AccountContextMenu({
   );
 }
 
+function avatarContent(
+  streamer: boolean,
+  index: number,
+  account: AccountView
+): React.ReactNode {
+  if (streamer) {
+    return <span>{index + 1}</span>;
+  }
+  if (account.avatar) {
+    return (
+      <img
+        alt=""
+        className="size-full object-cover"
+        height={AVATAR_SIZE}
+        src={account.avatar}
+        width={AVATAR_SIZE}
+      />
+    );
+  }
+  return <span>{account.initials}</span>;
+}
+
 function copyTokensLabel(
   exportCount: number,
   selectedCount: number,
-  multi: boolean,
+  multi: boolean
 ): string {
   if (!multi) {
     return exportCount === 1 ? "Copy token" : "Copy tokens";

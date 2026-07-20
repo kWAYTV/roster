@@ -38,8 +38,10 @@ export function LogPanel({ visible }: LogPanelProps) {
   }
 
   return (
-    <section className={styles.panel} aria-label="Application log">
-      <pre className={styles.body}>{lines.join("\n") || "No log output yet."}</pre>
+    <section aria-label="Application log" className={styles.panel}>
+      <pre className={styles.body}>
+        {lines.join("\n") || "No log output yet."}
+      </pre>
     </section>
   );
 }

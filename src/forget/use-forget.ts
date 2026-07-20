@@ -15,7 +15,7 @@ export function useForget() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
   const removeMany = useCallback(
@@ -29,7 +29,7 @@ export function useForget() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
   return { remove, removeMany };

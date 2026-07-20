@@ -55,14 +55,16 @@ export function App() {
 
   const requestSignIn = useCallback(
     (steamid: string) => {
-      const account = accounts.find((candidate) => candidate.steamid === steamid);
+      const account = accounts.find(
+        (candidate) => candidate.steamid === steamid
+      );
       if (account && isCooldownActive(account.cooldown_until)) {
         askCooldownSignIn(account);
         return;
       }
       signIn(steamid);
     },
-    [accounts, askCooldownSignIn, signIn],
+    [accounts, askCooldownSignIn, signIn]
   );
 
   const openProfile = useCallback(
@@ -73,17 +75,17 @@ export function App() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
-  useShellEvents({ notify, openImport, error });
+  useShellEvents({ error, notify, openImport });
   useShellShortcuts({
-    searchOpen: ui.searchOpen,
-    selectedIds,
-    closeSearch,
     clearSelection,
+    closeSearch,
     openSearch,
     requestSignIn,
+    searchOpen: ui.searchOpen,
+    selectedIds,
   });
 
   useEffect(() => {
@@ -94,48 +96,85 @@ export function App() {
 
   const filtered = useMemo(
     () => filterAccounts(accounts, ui.query),
-    [accounts, ui.query],
+    [accounts, ui.query]
   );
   const countLabel =
     filtered.length === accounts.length
       ? `${accounts.length}`
       : `${filtered.length}/${accounts.length}`;
 
+  const exportCountForFiltered = useCallback(
+    (steamids: string[]) => exportCountFor(accounts, steamids),
+    [accounts, exportCountFor]
+  );
+
+  const handleCheckForUpdates = useCallback(() => {
+    checkForUpdate(true).catch(() => undefined);
+  }, [checkForUpdate]);
+
+  const handleConfirmCooldownSignIn = useCallback(() => {
+    if (ui.cooldownTarget) {
+      signIn(ui.cooldownTarget.steamid);
+    }
+  }, [ui.cooldownTarget, signIn]);
+
+  const handleConfirmRemove = useCallback(() => {
+    const ids = ui.removeTargets.map((account) => account.steamid);
+    if (ids.length === 1) {
+      remove(ids[0]);
+    } else {
+      removeMany(ids);
+    }
+    clearSelection();
+  }, [ui.removeTargets, remove, removeMany, clearSelection]);
+
+  const handleInstallUpdate = useCallback(() => {
+    install().catch(() => undefined);
+  }, [install]);
+
+  const handleStartBulkCooldown = useCallback(
+    (seconds: number) => {
+      startMany(ui.bulkCooldownIds, seconds);
+      closeBulkCooldown();
+    },
+    [startMany, ui.bulkCooldownIds, closeBulkCooldown]
+  );
+
   return (
     <div className={styles.app}>
       <Toolbar
-        searchOpen={ui.searchOpen}
-        query={ui.query}
-        countLabel={countLabel}
         accountCount={accounts.length}
-        searchRef={searchRef}
-        onQueryChange={setQuery}
-        onOpenSearch={openSearch}
+        countLabel={countLabel}
         onCloseSearch={closeSearch}
-        onOpenImport={() => openImport()}
+        onOpenImport={openImport}
+        onOpenSearch={openSearch}
         onOpenSettings={openSettings}
+        onQueryChange={setQuery}
+        query={ui.query}
+        searchOpen={ui.searchOpen}
+        searchRef={searchRef}
       />
 
       <main className={styles.main}>
         <RosterList
           accounts={filtered}
+          exportCountFor={exportCountForFiltered}
           loading={loading}
-          streamer={preferences.streamer_mode}
-          pending={pending}
-          statuses={statuses}
-          selectedIds={selectedIds}
-          onSelect={selectAccount}
+          onClearCooldown={clearMany}
           onClearSelection={clearSelection}
-          onSignIn={requestSignIn}
-          onRemove={askRemove}
-          onCopyUsername={copyUsername}
-          onOpenProfile={openProfile}
+          onCooldown={startMany}
           onCopyExport={copyExport}
-          onExportFile={exportFile}
-          onCooldown={(steamids, seconds) => startMany(steamids, seconds)}
-          onClearCooldown={(steamids) => clearMany(steamids)}
+          onCopyUsername={copyUsername}
           onCustomCooldown={askBulkCooldown}
-          exportCountFor={(steamids) => exportCountFor(accounts, steamids)}
+          onExportFile={exportFile}
+          onOpenProfile={openProfile}
+          onRemove={askRemove}
+          onSelect={selectAccount}
+          onSignIn={requestSignIn}
+          pending={pending}
+          selectedIds={selectedIds}
+          statuses={statuses}
+          streamer={preferences.streamer_mode}
         />
       </main>
 
@@ -143,44 +182,29 @@ export function App() {
       <Footer currentVersion={currentVersion} />
 
       <ShellDialogs
+        available={available}
+        bulkCooldownIds={ui.bulkCooldownIds}
+        cooldownTarget={ui.cooldownTarget}
+        currentVersion={currentVersion}
         importOpen={ui.importOpen}
         importPrefill={ui.importPrefill}
-        settingsOpen={ui.settingsOpen}
-        preferences={preferences}
-        currentVersion={currentVersion}
-        updateBusy={busy}
-        available={available}
-        removeTargets={ui.removeTargets}
-        cooldownTarget={ui.cooldownTarget}
-        bulkCooldownIds={ui.bulkCooldownIds}
-        onCloseImport={closeImport}
-        onCloseSettings={closeSettings}
         onChangePreference={setPreference}
-        onPatchPreferences={patchPreferences}
-        onCheckForUpdates={() => void checkForUpdate(true)}
-        onInstallUpdate={() => void install()}
-        onDismissUpdate={dismiss}
-        onConfirmRemove={() => {
-          const ids = ui.removeTargets.map((account) => account.steamid);
-          if (ids.length === 1) {
-            remove(ids[0]);
-          } else {
-            removeMany(ids);
-          }
-          clearSelection();
-        }}
-        onCloseRemove={closeRemove}
-        onConfirmCooldownSignIn={() => {
-          if (ui.cooldownTarget) {
-            signIn(ui.cooldownTarget.steamid);
-          }
-        }}
-        onCloseCooldown={closeCooldown}
-        onStartBulkCooldown={(seconds) => {
-          startMany(ui.bulkCooldownIds, seconds);
-          closeBulkCooldown();
-        }}
+        onCheckForUpdates={handleCheckForUpdates}
         onCloseBulkCooldown={closeBulkCooldown}
+        onCloseCooldown={closeCooldown}
+        onCloseImport={closeImport}
+        onCloseRemove={closeRemove}
+        onCloseSettings={closeSettings}
+        onConfirmCooldownSignIn={handleConfirmCooldownSignIn}
+        onConfirmRemove={handleConfirmRemove}
+        onDismissUpdate={dismiss}
+        onInstallUpdate={handleInstallUpdate}
+        onPatchPreferences={patchPreferences}
+        onStartBulkCooldown={handleStartBulkCooldown}
+        preferences={preferences}
+        removeTargets={ui.removeTargets}
+        settingsOpen={ui.settingsOpen}
+        updateBusy={busy}
       />
     </div>
   );

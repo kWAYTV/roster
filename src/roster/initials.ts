@@ -1,10 +1,13 @@
+const ALPHANUMERIC = /[a-zA-Z0-9]/;
+const DIGITS_ONLY = /^\d+$/;
+
 /// Build two-letter initials for roster avatars.
 export function initialsFor(name: string): string {
   if (looksLikeSteamId(name)) {
     return "?";
   }
   const initials = [...name]
-    .filter((char) => /[a-zA-Z0-9]/.test(char))
+    .filter((char) => ALPHANUMERIC.test(char))
     .slice(0, 2)
     .join("")
     .toUpperCase();
@@ -12,5 +15,5 @@ export function initialsFor(name: string): string {
 }
 
 export function looksLikeSteamId(value: string): boolean {
-  return value.length >= 16 && /^\d+$/.test(value);
+  return value.length >= 16 && DIGITS_ONLY.test(value);
 }

@@ -10,15 +10,15 @@ export function formatLastUsed(timestamp: number): string {
   if (elapsed < 3600) {
     return `${Math.floor(elapsed / 60)}m ago`;
   }
-  if (elapsed < 86400) {
+  if (elapsed < 86_400) {
     return `${Math.floor(elapsed / 3600)}h ago`;
   }
-  if (elapsed < 86400 * 30) {
-    return `${Math.floor(elapsed / 86400)}d ago`;
+  if (elapsed < 86_400 * 30) {
+    return `${Math.floor(elapsed / 86_400)}d ago`;
   }
   return new Date(timestamp * 1000).toLocaleDateString(undefined, {
-    month: "short",
     day: "numeric",
+    month: "short",
     year: "numeric",
   });
 }

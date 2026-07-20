@@ -15,14 +15,14 @@ interface DeleteIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const LID_VARIANTS: Variants = {
-  normal: { y: 0 },
   animate: { y: -1.1 },
+  normal: { y: 0 },
 };
 
 const SPRING_TRANSITION: Transition = {
-  type: "spring",
-  stiffness: 500,
   damping: 30,
+  stiffness: 500,
+  type: "spring",
 };
 
 const DeleteIcon = forwardRef<DeleteIconHandle, DeleteIconProps>(
@@ -92,16 +92,16 @@ const DeleteIcon = forwardRef<DeleteIconHandle, DeleteIconProps>(
             d="M19 8v12c0 1-1 2-2 2H7c-1 0-2-1-2-2V8"
             transition={SPRING_TRANSITION}
             variants={{
-              normal: { d: "M19 8v12c0 1-1 2-2 2H7c-1 0-2-1-2-2V8" },
               animate: { d: "M19 9v12c0 1-1 2-2 2H7c-1 0-2-1-2-2V9" },
+              normal: { d: "M19 8v12c0 1-1 2-2 2H7c-1 0-2-1-2-2V8" },
             }}
           />
           <motion.line
             animate={controls}
             transition={SPRING_TRANSITION}
             variants={{
-              normal: { y1: 11, y2: 17 },
               animate: { y1: 11.5, y2: 17.5 },
+              normal: { y1: 11, y2: 17 },
             }}
             x1="10"
             x2="10"
@@ -112,8 +112,8 @@ const DeleteIcon = forwardRef<DeleteIconHandle, DeleteIconProps>(
             animate={controls}
             transition={SPRING_TRANSITION}
             variants={{
-              normal: { y1: 11, y2: 17 },
               animate: { y1: 11.5, y2: 17.5 },
+              normal: { y1: 11, y2: 17 },
             }}
             x1="14"
             x2="14"

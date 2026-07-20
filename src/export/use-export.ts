@@ -7,13 +7,18 @@ import type { AccountView } from "../roster/account";
 export function useExport() {
   const { notify } = useToast();
 
-  const exportCountFor = useCallback((accounts: AccountView[], steamids: string[]) => {
-    const byId = new Map(accounts.map((account) => [account.steamid, account]));
-    return steamids.filter((steamid) => {
-      const account = byId.get(steamid);
-      return account && account.jwt_expires_in !== 0;
-    }).length;
-  }, []);
+  const exportCountFor = useCallback(
+    (accounts: AccountView[], steamids: string[]) => {
+      const byId = new Map(
+        accounts.map((account) => [account.steamid, account])
+      );
+      return steamids.filter((steamid) => {
+        const account = byId.get(steamid);
+        return account && account.jwt_expires_in !== 0;
+      }).length;
+    },
+    []
+  );
 
   const copyExport = useCallback(
     async (steamids: string[]) => {
@@ -28,13 +33,13 @@ export function useExport() {
         notify(
           skipped
             ? `Copied ${lines.length} token(s). ${skipped} missing.`
-            : `Copied ${lines.length} token(s).`,
+            : `Copied ${lines.length} token(s).`
         );
       } catch (cause) {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
   const exportFile = useCallback(
@@ -45,7 +50,9 @@ export function useExport() {
           notify("No saved tokens to export.", "error");
           return;
         }
-        const blob = new Blob([`${lines.join("\n")}\n`], { type: "text/plain" });
+        const blob = new Blob([`${lines.join("\n")}\n`], {
+          type: "text/plain",
+        });
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
@@ -57,7 +64,7 @@ export function useExport() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
   const copyUsername = useCallback(
@@ -72,8 +79,8 @@ export function useExport() {
         notify(String(cause), "error");
       }
     },
-    [notify],
+    [notify]
   );
 
-  return { exportCountFor, copyExport, exportFile, copyUsername };
+  return { copyExport, copyUsername, exportCountFor, exportFile };
 }

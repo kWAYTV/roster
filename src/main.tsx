@@ -17,7 +17,7 @@ createRoot(container).render(
   <React.StrictMode>
     <TooltipProvider delay={400}>
       <App />
-      <Toaster position="bottom-right" richColors closeButton />
+      <Toaster closeButton position="bottom-right" richColors />
     </TooltipProvider>
-  </React.StrictMode>,
+  </React.StrictMode>
 );

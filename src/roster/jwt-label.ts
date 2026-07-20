@@ -9,7 +9,7 @@ export function formatJwtExpiry(expiresIn: number): string {
   if (expiresIn < 3600) {
     return `JWT ${Math.max(1, Math.floor(expiresIn / 60))}m`;
   }
-  if (expiresIn < 86400 * 2) {
+  if (expiresIn < 86_400 * 2) {
     return `JWT ${Math.floor(expiresIn / 3600)}h`;
   }
   return "";

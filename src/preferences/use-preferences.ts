@@ -8,7 +8,8 @@ import { DEFAULT_PREFERENCES, type Preferences } from "./preferences";
 /// Load preferences and persist single-toggle changes optimistically.
 export function usePreferences() {
   const { notify } = useToast();
-  const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
+  const [preferences, setPreferences] =
+    useState<Preferences>(DEFAULT_PREFERENCES);
 
   const load = useCallback(async () => {
     try {
@@ -36,22 +37,22 @@ export function usePreferences() {
         load();
       }
     },
-    [notify, load],
+    [notify, load]
   );
 
   const setPreference = useCallback(
     async (key: keyof Preferences, value: boolean) => {
       await save({ ...preferences, [key]: value });
     },
-    [preferences, save],
+    [preferences, save]
   );
 
   const patchPreferences = useCallback(
     async (patch: Partial<Preferences>) => {
       await save({ ...preferences, ...patch });
     },
-    [preferences, save],
+    [preferences, save]
   );
 
-  return { preferences, setPreference, patchPreferences };
+  return { patchPreferences, preferences, setPreference };
 }

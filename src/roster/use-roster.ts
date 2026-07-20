@@ -6,9 +6,9 @@ import type { AccountView } from "./account";
 import { initialsFor } from "./initials";
 
 export interface ProfilePatch {
-  steamid: string;
-  display_name?: string;
   avatar?: string;
+  display_name?: string;
+  steamid: string;
 }
 
 /// Load the account roster and keep it in sync with backend change events.
@@ -45,7 +45,7 @@ export function useRoster() {
           next.avatar = patch.avatar;
         }
         return next;
-      }),
+      })
     );
   }, []);
 
@@ -57,5 +57,5 @@ export function useRoster() {
     };
   }, [refresh]);
 
-  return { accounts, loading, error, patchProfile };
+  return { accounts, error, loading, patchProfile };
 }

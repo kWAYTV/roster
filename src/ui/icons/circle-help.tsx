@@ -15,8 +15,8 @@ interface CircleHelpIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const VARIANTS: Variants = {
-  normal: { rotate: 0 },
   animate: { rotate: [0, -10, 10, -10, 0] },
+  normal: { rotate: 0 },
 };
 
 const CircleHelpIcon = forwardRef<CircleHelpIconHandle, CircleHelpIconProps>(

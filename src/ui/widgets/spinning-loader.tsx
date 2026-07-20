@@ -10,11 +10,13 @@ export function SpinningLoader({ size = 16 }: { size?: number }) {
   const ref = useRef<LoaderCircleIconHandle>(null);
 
   useEffect(() => {
-    void ref.current?.startAnimation();
+    const result = ref.current?.startAnimation();
+    Promise.resolve(result).catch(() => undefined);
     return () => {
-      void ref.current?.stopAnimation();
+      const stopResult = ref.current?.stopAnimation();
+      Promise.resolve(stopResult).catch(() => undefined);
     };
   }, []);
 
-  return <LoaderCircleIcon ref={ref} size={size} aria-hidden />;
+  return <LoaderCircleIcon aria-hidden ref={ref} size={size} />;
 }

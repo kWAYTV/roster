@@ -8,12 +8,16 @@ import {
 } from "../platform/events";
 
 interface ShellEventsOptions {
+  error: string | null;
   notify: (message: string, kind?: "ok" | "error") => void;
   openImport: (prefill?: string) => void;
-  error: string | null;
 }
 
-export function useShellEvents({ notify, openImport, error }: ShellEventsOptions) {
+export function useShellEvents({
+  notify,
+  openImport,
+  error,
+}: ShellEventsOptions) {
   useEffect(() => {
     const subscriptions = [
       onStatus(notify),
@@ -28,7 +32,13 @@ export function useShellEvents({ notify, openImport, error }: ShellEventsOptions
       onImportRequest((text) => openImport(text.trim())),
     ];
     return () => {
-      subscriptions.forEach((subscription) => subscription.then((stop) => stop()));
+      for (const subscription of subscriptions) {
+        subscription
+          .then((stop) => {
+            stop();
+          })
+          .catch(() => undefined);
+      }
     };
   }, [notify, openImport]);
 

@@ -3,8 +3,8 @@
 export type OnlineState = "offline" | "online" | "in-game";
 
 export interface AccountStatus {
-  state: OnlineState;
   game: string;
+  state: OnlineState;
 }
 
 export type StatusMap = Record<string, AccountStatus>;

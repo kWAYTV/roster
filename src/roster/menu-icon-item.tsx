@@ -1,21 +1,21 @@
-import {
-  type ComponentProps,
-  type FocusEventHandler,
-  type MouseEventHandler,
-  type ReactElement,
-  type ReactNode,
+import type {
+  ComponentProps,
+  FocusEventHandler,
+  MouseEventHandler,
+  ReactElement,
+  ReactNode,
 } from "react";
 
 import { ChevronRightIcon } from "@/ui/icons/chevron-right";
 import {
-  RowAnimateIcon,
-  useRowIconAnimation,
-  type AnimateHandle,
-} from "@/ui/widgets/row-animate-icon";
-import {
   ContextMenuItem,
   ContextMenuSubTrigger,
 } from "@/ui/primitives/context-menu";
+import {
+  type AnimateHandle,
+  RowAnimateIcon,
+  useRowIconAnimation,
+} from "@/ui/widgets/row-animate-icon";
 
 type IconNode = ReactElement<{
   size?: number;
@@ -37,10 +37,10 @@ export function IconItem({
 }) {
   const anim = useRowIconAnimation(1);
   const hover = mergeHoverHandlers(anim, {
+    onBlur,
+    onFocus,
     onMouseEnter,
     onMouseLeave,
-    onFocus,
-    onBlur,
   });
 
   return (
@@ -64,10 +64,10 @@ export function IconSubTrigger({
 }) {
   const anim = useRowIconAnimation(2);
   const hover = mergeHoverHandlers(anim, {
+    onBlur,
+    onFocus,
     onMouseEnter,
     onMouseLeave,
-    onFocus,
-    onBlur,
   });
 
   return (
@@ -88,9 +88,17 @@ function mergeHoverHandlers(
     onMouseLeave?: MouseEventHandler;
     onFocus?: FocusEventHandler;
     onBlur?: FocusEventHandler;
-  },
+  }
 ) {
   return {
+    onBlur: ((event) => {
+      anim.stop();
+      handlers.onBlur?.(event);
+    }) satisfies FocusEventHandler,
+    onFocus: ((event) => {
+      anim.start();
+      handlers.onFocus?.(event);
+    }) satisfies FocusEventHandler,
     onMouseEnter: ((event) => {
       anim.start();
       handlers.onMouseEnter?.(event);
@@ -99,13 +107,5 @@ function mergeHoverHandlers(
       anim.stop();
       handlers.onMouseLeave?.(event);
     }) satisfies MouseEventHandler,
-    onFocus: ((event) => {
-      anim.start();
-      handlers.onFocus?.(event);
-    }) satisfies FocusEventHandler,
-    onBlur: ((event) => {
-      anim.stop();
-      handlers.onBlur?.(event);
-    }) satisfies FocusEventHandler,
   };
 }

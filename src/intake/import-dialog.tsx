@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/ui/primitives/button";
 import {
@@ -14,11 +14,13 @@ import { Textarea } from "@/ui/primitives/textarea";
 import { commands } from "../platform/invoke";
 import { useImport } from "./use-intake";
 
+const LINE_SPLIT = /\r?\n/;
+
 interface ImportDialogProps {
+  onClose: () => void;
   open: boolean;
   /** Text to preload when the dialog opens (e.g. clipboard from the tray). */
   prefill?: string;
-  onClose: () => void;
 }
 
 export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
@@ -73,33 +75,90 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
     });
   }, [open, bulk]);
 
-  const submit = async (payload: string) => {
-    const text = payload.trim();
-    if (!text) {
-      return;
-    }
-    if (await importText(text)) {
-      onClose();
-    }
-  };
-
-  const pasteInto = async (target: "single" | "bulk") => {
-    const text = (await paste()).trim();
-    if (!text) {
-      return;
-    }
-    if (target === "bulk" || looksLikeBulk(text)) {
-      setBulk(text);
-      if (target === "single") {
-        setSingle("");
+  const submit = useCallback(
+    async (payload: string) => {
+      const text = payload.trim();
+      if (!text) {
+        return;
       }
-      return;
-    }
-    setSingle(text);
-  };
+      if (await importText(text)) {
+        onClose();
+      }
+    },
+    [importText, onClose]
+  );
+
+  const pasteInto = useCallback(
+    async (target: "single" | "bulk") => {
+      const text = (await paste()).trim();
+      if (!text) {
+        return;
+      }
+      if (target === "bulk" || looksLikeBulk(text)) {
+        setBulk(text);
+        if (target === "single") {
+          setSingle("");
+        }
+        return;
+      }
+      setSingle(text);
+    },
+    [paste]
+  );
+
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  const handleSingleChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setSingle(event.target.value);
+    },
+    []
+  );
+
+  const handleSingleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (singleCount > 0) {
+          submit(single).catch(() => undefined);
+        }
+      }
+    },
+    [singleCount, submit, single]
+  );
+
+  const handleBulkChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setBulk(event.target.value);
+    },
+    []
+  );
+
+  const pasteSingle = useCallback(() => {
+    pasteInto("single").catch(() => undefined);
+  }, [pasteInto]);
+
+  const pasteBulk = useCallback(() => {
+    pasteInto("bulk").catch(() => undefined);
+  }, [pasteInto]);
+
+  const submitSingle = useCallback(() => {
+    submit(single).catch(() => undefined);
+  }, [submit, single]);
+
+  const submitBulk = useCallback(() => {
+    submit(bulk).catch(() => undefined);
+  }, [submit, bulk]);
 
   return (
-    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+    <Dialog onOpenChange={handleOpenChange} open={open}>
       <DialogContent className="gap-4 p-5 sm:max-w-md" showCloseButton>
         <DialogHeader className="pr-8">
           <DialogTitle>Import</DialogTitle>
@@ -109,39 +168,34 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
         </DialogHeader>
 
         <section className="flex flex-col gap-2">
-          <div className="text-sm font-medium">Single account</div>
+          <div className="font-medium text-sm">Single account</div>
           <Input
-            spellCheck={false}
-            placeholder="steamid----token or bare JWT"
-            value={single}
             autoFocus
             disabled={busy}
-            onChange={(event) => setSingle(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                if (singleCount > 0) {
-                  void submit(single);
-                }
-              }
-            }}
+            onChange={handleSingleChange}
+            onKeyDown={handleSingleKeyDown}
+            placeholder="steamid----token or bare JWT"
+            spellCheck={false}
+            value={single}
           />
-          {singleHint ? <p className="text-xs text-muted-foreground">{singleHint}</p> : null}
+          {singleHint ? (
+            <p className="text-muted-foreground text-xs">{singleHint}</p>
+          ) : null}
           <div className="flex justify-end gap-2">
             <Button
-              variant="outline"
-              size="sm"
               disabled={busy}
-              onClick={() => void pasteInto("single")}
+              onClick={pasteSingle}
+              size="sm"
+              variant="outline"
             >
               Paste
             </Button>
             <Button
-              size="sm"
               disabled={busy || singleCount === 0}
-              onClick={() => void submit(single)}
+              onClick={submitSingle}
+              size="sm"
             >
-              {busy ? "Importing…" : singleCount > 0 ? `Import ${singleCount}` : "Import"}
+              {importLabel(busy, singleCount)}
             </Button>
           </div>
         </section>
@@ -149,31 +203,33 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
         <Separator />
 
         <section className="flex flex-col gap-2">
-          <div className="text-sm font-medium">Multiple accounts</div>
+          <div className="font-medium text-sm">Multiple accounts</div>
           <Textarea
-            spellCheck={false}
             className="min-h-28 font-mono text-xs"
-            placeholder={"steamid----token\none account per line"}
-            value={bulk}
             disabled={busy}
-            onChange={(event) => setBulk(event.target.value)}
+            onChange={handleBulkChange}
+            placeholder={"steamid----token\none account per line"}
+            spellCheck={false}
+            value={bulk}
           />
-          {bulkHint ? <p className="text-xs text-muted-foreground">{bulkHint}</p> : null}
+          {bulkHint ? (
+            <p className="text-muted-foreground text-xs">{bulkHint}</p>
+          ) : null}
           <div className="flex justify-end gap-2">
             <Button
-              variant="outline"
-              size="sm"
               disabled={busy}
-              onClick={() => void pasteInto("bulk")}
+              onClick={pasteBulk}
+              size="sm"
+              variant="outline"
             >
               Paste
             </Button>
             <Button
-              size="sm"
               disabled={busy || bulkCount === 0}
-              onClick={() => void submit(bulk)}
+              onClick={submitBulk}
+              size="sm"
             >
-              {busy ? "Importing…" : bulkCount > 0 ? `Import ${bulkCount}` : "Import"}
+              {importLabel(busy, bulkCount)}
             </Button>
           </div>
         </section>
@@ -182,33 +238,52 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
   );
 }
 
+function importLabel(busy: boolean, count: number): string {
+  if (busy) {
+    return "Importing…";
+  }
+  if (count > 0) {
+    return `Import ${count}`;
+  }
+  return "Import";
+}
+
 function looksLikeBulk(text: string): boolean {
-  return text.split(/\r?\n/).filter((line) => line.trim()).length > 1;
+  return text.split(LINE_SPLIT).filter((line) => line.trim()).length > 1;
+}
+
+function noopCleanup(): void {
+  // Empty cleanup when there is nothing to cancel.
 }
 
 function classifyField(
   value: string,
-  apply: (count: number, hint: string) => void,
+  apply: (count: number, hint: string) => void
 ): () => void {
   const payload = value.trim();
   if (!payload) {
     apply(0, "");
-    return () => {};
+    return noopCleanup;
   }
 
   let active = true;
-  const timer = window.setTimeout(async () => {
-    try {
-      const result = await commands.classifyImport(payload);
-      if (!active) {
-        return;
-      }
-      apply(result.importable.length, hintFor(result.importable.length, result.expired.length));
-    } catch {
-      if (active) {
-        apply(0, "");
-      }
-    }
+  const timer = window.setTimeout(() => {
+    commands
+      .classifyImport(payload)
+      .then((result) => {
+        if (!active) {
+          return;
+        }
+        apply(
+          result.importable.length,
+          hintFor(result.importable.length, result.expired.length)
+        );
+      })
+      .catch(() => {
+        if (active) {
+          apply(0, "");
+        }
+      });
   }, 250);
 
   return () => {

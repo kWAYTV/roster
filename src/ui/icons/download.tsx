@@ -15,16 +15,16 @@ interface DownloadIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const ARROW_VARIANTS: Variants = {
-  normal: { y: 0 },
   animate: {
-    y: 2,
     transition: {
-      type: "spring",
-      stiffness: 200,
       damping: 10,
       mass: 1,
+      stiffness: 200,
+      type: "spring",
     },
+    y: 2,
   },
+  normal: { y: 0 },
 };
 
 const DownloadIcon = forwardRef<DownloadIconHandle, DownloadIconProps>(

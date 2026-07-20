@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import { Button } from "@/ui/primitives/button";
 
 import { commands } from "../platform/invoke";
@@ -10,14 +12,18 @@ interface FooterProps {
 }
 
 export function Footer({ currentVersion }: FooterProps) {
+  const openGitHub = useCallback(() => {
+    commands.openExternalUrl(GITHUB_REPO).catch(() => undefined);
+  }, []);
+
   return (
     <footer className={styles.foot}>
       <Button
+        className="h-auto px-0"
+        onClick={openGitHub}
+        size="sm"
         type="button"
         variant="link"
-        size="sm"
-        className="h-auto px-0"
-        onClick={() => void commands.openExternalUrl(GITHUB_REPO)}
       >
         GitHub
       </Button>

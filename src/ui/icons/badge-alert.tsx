@@ -15,16 +15,16 @@ interface BadgeAlertIconProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const ICON_VARIANTS: Variants = {
-  normal: { scale: 1, rotate: 0 },
   animate: {
-    scale: [1, 1.1, 1.1, 1.1, 1],
     rotate: [0, -3, 3, -2, 2, 0],
+    scale: [1, 1.1, 1.1, 1.1, 1],
     transition: {
       duration: 0.5,
-      times: [0, 0.2, 0.4, 0.6, 1],
       ease: "easeInOut",
+      times: [0, 0.2, 0.4, 0.6, 1],
     },
   },
+  normal: { rotate: 0, scale: 1 },
 };
 const BadgeAlertIcon = forwardRef<BadgeAlertIconHandle, BadgeAlertIconProps>(
   ({ onMouseEnter, onMouseLeave, className, size = 28, ...props }, ref) => {

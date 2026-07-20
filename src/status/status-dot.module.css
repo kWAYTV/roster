@@ -4,8 +4,8 @@
   bottom: -2px;
   width: 9px;
   height: 9px;
-  border-radius: 50%;
   border: 2px solid var(--bg);
+  border-radius: 50%;
 }
 
 .online {

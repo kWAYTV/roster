@@ -9,19 +9,7 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 
 // Tauri drives the dev server; keep the port fixed so the Rust side can find it.
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  clearScreen: false,
-  resolve: {
-    alias: {
-      "@": path.resolve(root, "./src"),
-    },
-  },
-  server: {
-    port: 1420,
-    strictPort: true,
-  },
   build: {
-    target: "es2022",
     outDir: "dist",
     rolldownOptions: {
       output: {
@@ -43,5 +31,17 @@ export default defineConfig({
         },
       },
     },
+    target: "es2022",
+  },
+  clearScreen: false,
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      "@": path.resolve(root, "./src"),
+    },
+  },
+  server: {
+    port: 1420,
+    strictPort: true,
   },
 });

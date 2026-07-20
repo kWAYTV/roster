@@ -64,13 +64,13 @@ const SettingsIcon = forwardRef<SettingsIconHandle, SettingsIconProps>(
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2"
-          transition={{ type: "spring", stiffness: 50, damping: 10 }}
+          transition={{ damping: 10, stiffness: 50, type: "spring" }}
           variants={{
-            normal: {
-              rotate: 0,
-            },
             animate: {
               rotate: 180,
+            },
+            normal: {
+              rotate: 0,
             },
           }}
           viewBox="0 0 24 24"

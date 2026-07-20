@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,15 +12,15 @@ import {
 } from "@/ui/primitives/alert-dialog";
 
 interface ConfirmDialogProps {
-  open: boolean;
-  title: string;
-  message: string;
+  closeOnConfirm?: boolean;
+  confirmDisabled?: boolean;
   confirmLabel: string;
   danger?: boolean;
-  confirmDisabled?: boolean;
-  closeOnConfirm?: boolean;
-  onConfirm: () => void;
+  message: string;
   onClose: () => void;
+  onConfirm: () => void;
+  open: boolean;
+  title: string;
 }
 
 export function ConfirmDialog({
@@ -32,8 +34,24 @@ export function ConfirmDialog({
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (!next) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  const handleConfirm = useCallback(() => {
+    onConfirm();
+    if (closeOnConfirm) {
+      onClose();
+    }
+  }, [onConfirm, closeOnConfirm, onClose]);
+
   return (
-    <AlertDialog open={open} onOpenChange={(next) => !next && onClose()}>
+    <AlertDialog onOpenChange={handleOpenChange} open={open}>
       <AlertDialogContent size="default">
         <AlertDialogHeader>
           <AlertDialogTitle className={danger ? "text-destructive" : undefined}>
@@ -44,15 +62,10 @@ export function ConfirmDialog({
         <AlertDialogFooter>
           <AlertDialogCancel size="sm">Cancel</AlertDialogCancel>
           <AlertDialogAction
+            disabled={confirmDisabled}
+            onClick={handleConfirm}
             size="sm"
             variant={danger ? "destructive" : "default"}
-            disabled={confirmDisabled}
-            onClick={() => {
-              onConfirm();
-              if (closeOnConfirm) {
-                onClose();
-              }
-            }}
           >
             {confirmLabel}
           </AlertDialogAction>

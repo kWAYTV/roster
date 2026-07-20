@@ -9,8 +9,8 @@ import {
 type Side = "top" | "bottom" | "left" | "right";
 
 interface HintProps {
-  label: string;
   children: ReactElement;
+  label: string;
   side?: Side;
 }
 

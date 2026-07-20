@@ -1,9 +1,9 @@
 import {
   cloneElement,
-  useRef,
   type MouseEventHandler,
   type ReactElement,
   type RefAttributes,
+  useRef,
 } from "react";
 
 export interface AnimateHandle {
@@ -17,7 +17,9 @@ type AnimIconElement = ReactElement<
 
 /** Controlled lucide-animated icon + hover handlers for the parent row. */
 export function useRowIconAnimation(count = 1) {
-  const refs = useRef<(AnimateHandle | null)[]>(Array.from({ length: count }, () => null));
+  const refs = useRef<(AnimateHandle | null)[]>(
+    Array.from({ length: count }, () => null)
+  );
 
   const setRef = (index: number) => (handle: AnimateHandle | null) => {
     refs.current[index] = handle;
@@ -25,20 +27,22 @@ export function useRowIconAnimation(count = 1) {
 
   const start = () => {
     for (const handle of refs.current) {
-      void handle?.startAnimation();
+      const result = handle?.startAnimation();
+      Promise.resolve(result).catch(() => undefined);
     }
   };
 
   const stop = () => {
     for (const handle of refs.current) {
-      void handle?.stopAnimation();
+      const result = handle?.stopAnimation();
+      Promise.resolve(result).catch(() => undefined);
     }
   };
 
   const onMouseEnter: MouseEventHandler = () => start();
   const onMouseLeave: MouseEventHandler = () => stop();
 
-  return { setRef, start, stop, onMouseEnter, onMouseLeave };
+  return { onMouseEnter, onMouseLeave, setRef, start, stop };
 }
 
 export function RowAnimateIcon({
