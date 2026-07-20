@@ -15,6 +15,7 @@ import { commands } from "../platform/invoke";
 import { useImport } from "./use-intake";
 
 const LINE_SPLIT = /\r?\n/;
+const TEXT_FILE = /\.(txt|csv|log|jwt)$/i;
 
 interface ImportDialogProps {
   onClose: () => void;
@@ -31,6 +32,7 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
   const [bulkHint, setBulkHint] = useState("");
   const [singleCount, setSingleCount] = useState(0);
   const [bulkCount, setBulkCount] = useState(0);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -157,13 +159,65 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
     submit(bulk).catch(() => undefined);
   }, [submit, bulk]);
 
+  const applyDroppedText = useCallback((text: string) => {
+    const next = text.trim();
+    if (!next) {
+      return;
+    }
+    if (looksLikeBulk(next)) {
+      setBulk(next);
+      setSingle("");
+      return;
+    }
+    setSingle(next);
+  }, []);
+
+  const handleDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    setDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    setDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      setDragging(false);
+      const file = [...event.dataTransfer.files].find(
+        (item) => TEXT_FILE.test(item.name) || item.type.startsWith("text/")
+      );
+      if (!file) {
+        const text = event.dataTransfer.getData("text/plain").trim();
+        if (text) {
+          applyDroppedText(text);
+        }
+        return;
+      }
+      file
+        .text()
+        .then(applyDroppedText)
+        .catch(() => undefined);
+    },
+    [applyDroppedText]
+  );
+
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogContent className="gap-4 p-5 sm:max-w-md" showCloseButton>
+      <DialogContent
+        className={`gap-4 p-5 sm:max-w-md ${dragging ? "ring-2 ring-primary/50" : ""}`}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        showCloseButton
+      >
         <DialogHeader className="pr-8">
           <DialogTitle>Import</DialogTitle>
           <DialogDescription>
-            Paste one token, or a list. Expired tokens are skipped.
+            Paste one token, a list, or drop a .txt file. Expired tokens are
+            skipped.
           </DialogDescription>
         </DialogHeader>
 
