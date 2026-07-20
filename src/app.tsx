@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { PlusIcon } from "@/components/icons/plus";
 import { SearchIcon } from "@/components/icons/search";
 import { SettingsIcon } from "@/components/icons/settings";
@@ -14,7 +22,6 @@ import { ConfirmDialog } from "./feedback/confirm-dialog";
 import { LogPanel } from "./feedback/log-panel";
 import { useToast } from "./feedback/toast";
 import { useForget } from "./forget/use-forget";
-import { ImportDialog } from "./intake/import-dialog";
 import {
   onCooldownFinished,
   onImportRequest,
@@ -23,7 +30,6 @@ import {
 } from "./ipc/events";
 import { commands } from "./ipc/invoke";
 import { useSignIn } from "./login/use-login";
-import { SettingsDialog } from "./preferences/settings-dialog";
 import { usePreferences } from "./preferences/use-preferences";
 import type { AccountView } from "./roster/account";
 import { RosterList } from "./roster/roster-list";
@@ -31,6 +37,15 @@ import { useRoster } from "./roster/use-roster";
 import { useStatus } from "./status/use-status";
 import { useUpdater } from "./updater/use-updater";
 import styles from "./app.module.css";
+
+const ImportDialog = lazy(() =>
+  import("./intake/import-dialog").then((module) => ({ default: module.ImportDialog })),
+);
+const SettingsDialog = lazy(() =>
+  import("./preferences/settings-dialog").then((module) => ({
+    default: module.SettingsDialog,
+  })),
+);
 
 const GITHUB_REPO = "https://github.com/kWAYTV/roster";
 
@@ -354,23 +369,37 @@ export function App() {
         <span className={styles.version}>v{currentVersion ?? "…"}</span>
       </footer>
 
-      <ImportDialog
-        open={importOpen}
-        prefill={importPrefill}
-        onClose={() => {
-          setImportOpen(false);
-          setImportPrefill("");
+      <Suspense fallback={null}>
+        {importOpen ? (
+          <ImportDialog
+            open={importOpen}
+            prefill={importPrefill}
+            onClose={() => {
+              setImportOpen(false);
+              setImportPrefill("");
+            }}
+          />
+        ) : null}
+        {settingsOpen ? (
+          <SettingsDialog
+            open={settingsOpen}
+            preferences={preferences}
+            currentVersion={currentVersion}
+            updateBusy={busy}
+            onChange={setPreference}
+            onPatch={patchPreferences}
+            onCheckForUpdates={() => void checkForUpdate(true)}
+            onClose={() => setSettingsOpen(false)}
+          />
+        ) : null}
+      </Suspense>
+      <CooldownDialog
+        open={bulkCooldownIds.length > 0}
+        onClose={() => setBulkCooldownIds([])}
+        onStart={(seconds) => {
+          startMany(bulkCooldownIds, seconds);
+          setBulkCooldownIds([]);
         }}
-      />
-      <SettingsDialog
-        open={settingsOpen}
-        preferences={preferences}
-        currentVersion={currentVersion}
-        updateBusy={busy}
-        onChange={setPreference}
-        onPatch={patchPreferences}
-        onCheckForUpdates={() => void checkForUpdate(true)}
-        onClose={() => setSettingsOpen(false)}
       />
       <ConfirmDialog
         open={available !== null}
@@ -411,14 +440,6 @@ export function App() {
         danger
         onConfirm={() => cooldownTarget && signIn(cooldownTarget.steamid)}
         onClose={() => setCooldownTarget(null)}
-      />
-      <CooldownDialog
-        open={bulkCooldownIds.length > 0}
-        onClose={() => setBulkCooldownIds([])}
-        onStart={(seconds) => {
-          startMany(bulkCooldownIds, seconds);
-          setBulkCooldownIds([]);
-        }}
       />
     </div>
   );

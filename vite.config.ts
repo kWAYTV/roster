@@ -23,5 +23,25 @@ export default defineConfig({
   build: {
     target: "es2022",
     outDir: "dist",
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: "motion",
+              test: /node_modules[\\/](motion|framer-motion)[\\/]/,
+            },
+            {
+              name: "react-vendor",
+              test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+            },
+            {
+              name: "base-ui",
+              test: /node_modules[\\/]@base-ui[\\/]/,
+            },
+          ],
+        },
+      },
+    },
   },
 });

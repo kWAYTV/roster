@@ -37,9 +37,10 @@
   --sidebar-accent-foreground: oklch(0.3012 0 0);
   --sidebar-border: oklch(0.8434 0.0231 87.1621);
   --sidebar-ring: oklch(0.3012 0 0);
-  --font-sans: "Inter", sans-serif;
-  --font-serif: "Playfair Display", serif;
-  --font-mono: "JetBrains Mono", monospace;
+  /* System stacks only — no remote font CSS (Tauri CSP + cold start). */
+  --font-sans: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: "Cascadia Mono", Consolas, "Courier New", monospace;
   --radius: 0.5rem;
   --shadow-x: 0px;
   --shadow-y: 4px;
@@ -92,9 +93,9 @@
   --sidebar-accent-foreground: oklch(0.852 0.0205 100.6306);
   --sidebar-border: oklch(0.2931 0 0);
   --sidebar-ring: oklch(0.852 0.0205 100.6306);
-  --font-sans: "Inter", sans-serif;
-  --font-serif: "Playfair Display", serif;
-  --font-mono: "JetBrains Mono", monospace;
+  --font-sans: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-serif: "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: "Cascadia Mono", Consolas, "Courier New", monospace;
   --radius: 0.5rem;
   --shadow-x: 0px;
   --shadow-y: 6px;

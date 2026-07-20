@@ -1,5 +1,4 @@
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
 import { BadgeAlertIcon } from "@/components/icons/badge-alert";
@@ -9,22 +8,13 @@ import { CircleHelpIcon } from "@/components/icons/circle-help";
 import { SpinningLoader } from "@/components/shared/spinning-loader";
 import { cn } from "@/lib/utils";
 
+const theme: ToasterProps["theme"] = document.documentElement.classList.contains(
+  "dark",
+)
+  ? "dark"
+  : "light";
+
 const Toaster = ({ className, ...props }: ToasterProps) => {
-  const [theme, setTheme] = useState<ToasterProps["theme"]>(() =>
-    document.documentElement.classList.contains("dark") ? "dark" : "light",
-  );
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const sync = () => {
-      setTheme(root.classList.contains("dark") ? "dark" : "light");
-    };
-    sync();
-    const observer = new MutationObserver(sync);
-    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <Sonner
       theme={theme}
