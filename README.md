@@ -25,11 +25,16 @@ Signed local build (needs `signing/roster.key`):
 
 ## Release
 
-```bash
-npm run release      # bumpp — pick "conventional", commits + tags v* + pushes
-```
+Releases are driven by [conventional commits](https://www.conventionalcommits.org/) via [release-please](https://github.com/googleapis/release-please):
 
-CI builds on `v*` tags and publishes a signed NSIS installer + updater manifest to [Releases](https://github.com/kWAYTV/roster/releases/latest).
+1. Land commits on `main` via PR or direct push (`feat:`, `fix:`, `feat!:`, …).
+2. On every `main` push the Release workflow runs **CI first** (`backend` + `frontend`). If either fails, release-please does not run.
+3. When CI is green, release-please opens/updates a **Release PR** with version bumps + `CHANGELOG.md`.
+4. Merge that Release PR when ready → tag + GitHub Release → signed NSIS + updater (only if CI was green on that merge push too).
+
+CI also runs on pull requests. Prefer branch protection on `main` with required checks.
+
+Artifacts land on [Releases](https://github.com/kWAYTV/roster/releases/latest).
 
 ## Import formats
 
