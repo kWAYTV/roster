@@ -1,8 +1,11 @@
-import { useMemo, useState } from "react";
-import { ArrowRightIcon, Loader2Icon, TrashIcon } from "lucide-react";
+import { useMemo } from "react";
 
-import { Hint } from "@/components/hint";
+import { ArrowRightIcon } from "@/components/icons/arrow-right";
+import { DeleteIcon } from "@/components/icons/delete";
+import { Hint } from "@/components/shared/hint";
+import { SpinningLoader } from "@/components/shared/spinning-loader";
 import { Button } from "@/components/ui/button";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { CooldownBadge } from "../cooldown/cooldown-badge";
 import { CooldownMenu } from "../cooldown/cooldown-menu";
 import { StatusDot } from "../status/status-dot";
@@ -54,7 +57,6 @@ export function AccountRow({
   onClearCooldown,
   onCustomCooldown,
 }: AccountRowProps) {
-  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const name = streamer ? `Account ${index + 1}` : account.display_name;
   const login = streamer ? "\u2022\u2022\u2022\u2022\u2022" : account.account_name;
   const lastUsed = formatLastUsed(account.last_used);
@@ -69,16 +71,18 @@ export function AccountRow({
   }, [selected]);
 
   return (
-    <>
-      <div
-        className={rowClass}
-        onClick={(event) => onSelect(account, event.ctrlKey || event.metaKey)}
-        onDoubleClick={() => onSignIn(account.steamid)}
-        onContextMenu={(event) => {
-          event.preventDefault();
-          onSelect(account, event.ctrlKey || event.metaKey);
-          setMenu({ x: event.clientX, y: event.clientY });
-        }}
+    <ContextMenu>
+      <ContextMenuTrigger
+        render={
+          <div
+            className={rowClass}
+            onClick={(event) => onSelect(account, event.ctrlKey || event.metaKey)}
+            onDoubleClick={() => onSignIn(account.steamid)}
+            onContextMenu={(event) => {
+              onSelect(account, event.ctrlKey || event.metaKey);
+            }}
+          />
+        }
       >
         <div className={styles.avatarWrap}>
           <div className={styles.avatar}>
@@ -121,7 +125,7 @@ export function AccountRow({
               disabled={busy}
               onClick={() => onSignIn(account.steamid)}
             >
-              {busy ? <Loader2Icon className="animate-spin" /> : <ArrowRightIcon />}
+              {busy ? <SpinningLoader size={16} /> : <ArrowRightIcon size={16} />}
             </Button>
           </Hint>
           <CooldownMenu steamid={account.steamid} until={account.cooldown_until} disabled={busy} />
@@ -134,30 +138,27 @@ export function AccountRow({
               className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
               onClick={() => onRemove([account])}
             >
-              <TrashIcon />
+              <DeleteIcon size={16} />
             </Button>
           </Hint>
         </div>
-      </div>
-      {menu ? (
-        <AccountContextMenu
-          account={account}
-          targets={menuTargets}
-          exportCount={exportCount}
-          streamer={streamer}
-          anchor={menu}
-          onClose={() => setMenu(null)}
-          onSignIn={onSignIn}
-          onCopyUsername={onCopyUsername}
-          onOpenProfile={onOpenProfile}
-          onCopyExport={onCopyExport}
-          onExportFile={onExportFile}
-          onRemove={onRemove}
-          onCooldown={onCooldown}
-          onClearCooldown={onClearCooldown}
-          onCustomCooldown={onCustomCooldown}
-        />
-      ) : null}
-    </>
+      </ContextMenuTrigger>
+      <AccountContextMenu
+        account={account}
+        targets={menuTargets}
+        exportCount={exportCount}
+        streamer={streamer}
+        index={index}
+        onSignIn={onSignIn}
+        onCopyUsername={onCopyUsername}
+        onOpenProfile={onOpenProfile}
+        onCopyExport={onCopyExport}
+        onExportFile={onExportFile}
+        onRemove={onRemove}
+        onCooldown={onCooldown}
+        onClearCooldown={onClearCooldown}
+        onCustomCooldown={onCustomCooldown}
+      />
+    </ContextMenu>
   );
 }

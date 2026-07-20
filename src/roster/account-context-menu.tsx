@@ -1,17 +1,41 @@
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
-import { createPortal } from "react-dom";
+import {
+  type ComponentProps,
+  type FocusEventHandler,
+  type MouseEventHandler,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 
+import { ArrowRightIcon } from "@/components/icons/arrow-right";
+import { ChevronRightIcon } from "@/components/icons/chevron-right";
+import { ClockIcon } from "@/components/icons/clock";
+import { CopyIcon } from "@/components/icons/copy";
+import { DeleteIcon } from "@/components/icons/delete";
+import { DownloadIcon } from "@/components/icons/download";
+import { UserIcon } from "@/components/icons/user";
+import {
+  RowAnimateIcon,
+  useRowIconAnimation,
+  type AnimateHandle,
+} from "@/components/shared/row-animate-icon";
+import {
+  ContextMenuContent,
+  ContextMenuGroup,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+} from "@/components/ui/context-menu";
 import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
 import type { AccountView } from "./account";
-import styles from "./account-context-menu.module.css";
 
 interface AccountContextMenuProps {
   account: AccountView;
   targets: AccountView[];
   exportCount: number;
   streamer: boolean;
-  anchor: { x: number; y: number };
-  onClose: () => void;
+  index: number;
   onSignIn: (steamid: string) => void;
   onCopyUsername: (account: AccountView) => void;
   onOpenProfile: (steamid: string) => void;
@@ -23,174 +47,238 @@ interface AccountContextMenuProps {
   onCustomCooldown: (steamids: string[]) => void;
 }
 
-export function AccountContextMenu(props: AccountContextMenuProps) {
-  const {
-    account,
-    targets,
-    exportCount,
-    streamer,
-    anchor,
-    onClose,
-    onSignIn,
-    onCopyUsername,
-    onOpenProfile,
-    onCopyExport,
-    onExportFile,
-    onRemove,
-    onCooldown,
-    onClearCooldown,
-    onCustomCooldown,
-  } = props;
+type IconNode = ReactElement<{ size?: number; className?: string; ref?: (handle: AnimateHandle | null) => void }>;
 
-  const menuRef = useRef<HTMLDivElement>(null);
+export function AccountContextMenu({
+  account,
+  targets,
+  exportCount,
+  streamer,
+  index,
+  onSignIn,
+  onCopyUsername,
+  onOpenProfile,
+  onCopyExport,
+  onExportFile,
+  onRemove,
+  onCooldown,
+  onClearCooldown,
+  onCustomCooldown,
+}: AccountContextMenuProps) {
   const multi = targets.length > 1;
   const hasCooldown = targets.some((item) => item.cooldown_until > 0);
   const steamids = targets.map((item) => item.steamid);
+  const title = streamer ? `Account ${index + 1}` : account.display_name;
+  const copyTokenLabel = copyTokensLabel(exportCount, targets.length, multi);
 
-  useEffect(() => {
-    const onPointer = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("mousedown", onPointer);
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("mousedown", onPointer);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [onClose]);
+  return (
+    <ContextMenuContent className="w-56">
+      {multi ? (
+        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+          {targets.length} selected
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted text-[10px] font-medium text-muted-foreground">
+            {streamer ? (
+              <span>{index + 1}</span>
+            ) : account.avatar ? (
+              <img src={account.avatar} alt="" className="size-full object-cover" />
+            ) : (
+              <span>{account.initials}</span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium leading-tight">{title}</div>
+            {!streamer ? (
+              <div className="truncate text-xs leading-tight text-muted-foreground">
+                {account.account_name}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      )}
 
-  useLayoutEffect(() => {
-    const menu = menuRef.current;
-    if (!menu) {
-      return;
-    }
+      <ContextMenuSeparator />
 
-    const pad = 8;
-    const rect = menu.getBoundingClientRect();
-    let x = anchor.x;
-    let y = anchor.y;
-
-    if (x > window.innerWidth * 0.45) {
-      x -= rect.width;
-    }
-    if (x + rect.width > window.innerWidth - pad) {
-      x = window.innerWidth - rect.width - pad;
-    }
-    if (x < pad) {
-      x = pad;
-    }
-    if (y + rect.height > window.innerHeight - pad) {
-      y = window.innerHeight - rect.height - pad;
-    }
-    if (y < pad) {
-      y = pad;
-    }
-
-    menu.style.left = `${x}px`;
-    menu.style.top = `${y}px`;
-  }, [anchor, multi, exportCount, hasCooldown]);
-
-  const pick = (action: () => void) => {
-    onClose();
-    action();
-  };
-
-  return createPortal(
-    <>
-      <div className={styles.backdrop} onClick={onClose} />
-      <div
-        ref={menuRef}
-        className={styles.menu}
-        role="menu"
-        style={{ left: anchor.x, top: anchor.y }}
-      >
-        {multi ? <div className={styles.banner}>{targets.length} selected</div> : null}
-
-        {!multi ? (
-          <button className={styles.item} onClick={() => pick(() => onSignIn(account.steamid))}>
+      {!multi ? (
+        <ContextMenuGroup>
+          <IconItem icon={<ArrowRightIcon />} onClick={() => onSignIn(account.steamid)}>
             Sign in
-          </button>
-        ) : null}
+          </IconItem>
+          <IconItem
+            icon={<CopyIcon />}
+            disabled={streamer}
+            onClick={() => onCopyUsername(account)}
+          >
+            Copy username
+          </IconItem>
+          <IconItem icon={<UserIcon />} onClick={() => onOpenProfile(account.steamid)}>
+            Open profile
+          </IconItem>
+        </ContextMenuGroup>
+      ) : null}
 
-        {!multi ? (
-          <>
-            <SectionLabel>Account</SectionLabel>
-            <button
-              className={styles.item}
-              disabled={streamer}
-              onClick={() => pick(() => onCopyUsername(account))}
-            >
-              Copy username
-            </button>
-            <button
-              className={styles.item}
-              onClick={() => pick(() => onOpenProfile(account.steamid))}
-            >
-              Open profile
-            </button>
-          </>
-        ) : null}
+      {!multi ? <ContextMenuSeparator /> : null}
 
-        <SectionLabel>Export{exportCount > 0 ? ` · ${exportCount}` : ""}</SectionLabel>
-        <button
-          className={styles.item}
+      <ContextMenuGroup>
+        <IconItem
+          icon={<CopyIcon />}
           disabled={exportCount === 0}
-          onClick={() => pick(() => onCopyExport(steamids))}
+          onClick={() => onCopyExport(steamids)}
         >
-          Copy {exportCount === 1 ? "token" : "tokens"}
-        </button>
-        <button
-          className={styles.item}
+          {copyTokenLabel}
+        </IconItem>
+        <IconItem
+          icon={<DownloadIcon />}
           disabled={exportCount === 0}
-          onClick={() => pick(() => onExportFile(steamids))}
+          onClick={() => onExportFile(steamids)}
         >
-          Save to file
-        </button>
+          Save to file…
+        </IconItem>
+      </ContextMenuGroup>
 
-        <SectionLabel>Cooldown</SectionLabel>
-        <div className={styles.presetGrid}>
+      <ContextMenuSeparator />
+
+      <ContextMenuSub>
+        <IconSubTrigger icon={<ClockIcon />}>Cooldown</IconSubTrigger>
+        <ContextMenuSubContent className="w-44">
           {COOLDOWN_PRESETS.map((preset) => (
-            <button
+            <ContextMenuItem
               key={preset.seconds}
-              className={styles.preset}
-              onClick={() => pick(() => onCooldown(steamids, preset.seconds))}
+              onClick={() => onCooldown(steamids, preset.seconds)}
             >
               {preset.label}
-            </button>
+            </ContextMenuItem>
           ))}
-        </div>
-        <button className={styles.item} onClick={() => pick(() => onCustomCooldown(steamids))}>
-          Custom duration
-        </button>
-        {hasCooldown ? (
-          <button
-            className={`${styles.item} ${styles.clear}`}
-            onClick={() => pick(() => onClearCooldown(steamids))}
-          >
-            Clear cooldown
-          </button>
-        ) : null}
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={() => onCustomCooldown(steamids)}>
+            Custom…
+          </ContextMenuItem>
+          {hasCooldown ? (
+            <ContextMenuItem
+              variant="destructive"
+              onClick={() => onClearCooldown(steamids)}
+            >
+              Clear cooldown
+            </ContextMenuItem>
+          ) : null}
+        </ContextMenuSubContent>
+      </ContextMenuSub>
 
-        <div className={styles.sep} />
-        <button
-          className={`${styles.item} ${styles.danger}`}
-          onClick={() => pick(() => onRemove(targets))}
-        >
-          {multi ? `Remove ${targets.length} accounts` : "Remove account"}
-        </button>
-      </div>
-    </>,
-    document.body,
+      <ContextMenuSeparator />
+
+      <IconItem
+        icon={<DeleteIcon />}
+        variant="destructive"
+        onClick={() => onRemove(targets)}
+      >
+        {multi ? `Remove ${targets.length} accounts` : "Remove account"}
+      </IconItem>
+    </ContextMenuContent>
   );
 }
 
-function SectionLabel({ children }: { children: ReactNode }) {
-  return <div className={styles.label}>{children}</div>;
+function IconItem({
+  icon,
+  children,
+  onMouseEnter,
+  onMouseLeave,
+  onFocus,
+  onBlur,
+  ...props
+}: ComponentProps<typeof ContextMenuItem> & {
+  icon: IconNode;
+  children: ReactNode;
+}) {
+  const anim = useRowIconAnimation(1);
+  const hover = mergeHoverHandlers(anim, {
+    onMouseEnter,
+    onMouseLeave,
+    onFocus,
+    onBlur,
+  });
+
+  return (
+    <ContextMenuItem {...props} {...hover}>
+      <RowAnimateIcon iconRef={anim.setRef(0)}>{icon}</RowAnimateIcon>
+      {children}
+    </ContextMenuItem>
+  );
+}
+
+function IconSubTrigger({
+  icon,
+  children,
+  onMouseEnter,
+  onMouseLeave,
+  onFocus,
+  onBlur,
+  ...props
+}: ComponentProps<typeof ContextMenuSubTrigger> & {
+  icon: IconNode;
+}) {
+  const anim = useRowIconAnimation(2);
+  const hover = mergeHoverHandlers(anim, {
+    onMouseEnter,
+    onMouseLeave,
+    onFocus,
+    onBlur,
+  });
+
+  return (
+    <ContextMenuSubTrigger {...props} showChevron={false} {...hover}>
+      <RowAnimateIcon iconRef={anim.setRef(0)}>{icon}</RowAnimateIcon>
+      {children}
+      <RowAnimateIcon iconRef={anim.setRef(1)}>
+        <ChevronRightIcon className="ml-auto" />
+      </RowAnimateIcon>
+    </ContextMenuSubTrigger>
+  );
+}
+
+function mergeHoverHandlers(
+  anim: ReturnType<typeof useRowIconAnimation>,
+  handlers: {
+    onMouseEnter?: MouseEventHandler;
+    onMouseLeave?: MouseEventHandler;
+    onFocus?: FocusEventHandler;
+    onBlur?: FocusEventHandler;
+  },
+) {
+  return {
+    onMouseEnter: ((event) => {
+      anim.start();
+      handlers.onMouseEnter?.(event);
+    }) satisfies MouseEventHandler,
+    onMouseLeave: ((event) => {
+      anim.stop();
+      handlers.onMouseLeave?.(event);
+    }) satisfies MouseEventHandler,
+    onFocus: ((event) => {
+      anim.start();
+      handlers.onFocus?.(event);
+    }) satisfies FocusEventHandler,
+    onBlur: ((event) => {
+      anim.stop();
+      handlers.onBlur?.(event);
+    }) satisfies FocusEventHandler,
+  };
+}
+
+function copyTokensLabel(
+  exportCount: number,
+  selectedCount: number,
+  multi: boolean,
+): string {
+  if (!multi) {
+    return exportCount === 1 ? "Copy token" : "Copy tokens";
+  }
+  if (exportCount === 0) {
+    return "Copy tokens";
+  }
+  if (exportCount === selectedCount) {
+    return `Copy tokens (${exportCount})`;
+  }
+  return `Copy tokens (${exportCount}/${selectedCount})`;
 }
