@@ -48,10 +48,7 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
 
     for account in &mut accounts {
         account.avatar_path = avatar::resolve(&install, account);
-        account.metadata = metadata
-            .get(&account.steamid)
-            .cloned()
-            .unwrap_or_default();
+        account.metadata = metadata.get(&account.steamid).cloned().unwrap_or_default();
         if let Some(map) = token_cache.as_ref() {
             account.jwt_expires_in = jwt_expires_in(map, account);
         }

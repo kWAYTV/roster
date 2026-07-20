@@ -32,21 +32,21 @@ pub fn sweep(steamids: &[String], on_result: impl FnMut(&str, Option<FetchedProf
     for _ in 0..worker_count {
         let queue = Arc::clone(&queue);
         let tx = tx.clone();
-        thread::spawn(move || {
-            loop {
-                let steamid = {
-                    let mut guard = queue.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-                    if guard.is_empty() {
-                        break;
-                    }
-                    guard.remove(0)
-                };
-                let fetched = fetch_one(&steamid);
-                if tx.send((steamid, fetched)).is_err() {
+        thread::spawn(move || loop {
+            let steamid = {
+                let mut guard = queue
+                    .lock()
+                    .unwrap_or_else(|poisoned| poisoned.into_inner());
+                if guard.is_empty() {
                     break;
                 }
-                thread::sleep(THROTTLE);
+                guard.remove(0)
+            };
+            let fetched = fetch_one(&steamid);
+            if tx.send((steamid, fetched)).is_err() {
+                break;
             }
+            thread::sleep(THROTTLE);
         });
     }
     drop(tx);

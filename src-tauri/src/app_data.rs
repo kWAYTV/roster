@@ -14,8 +14,7 @@ pub fn init(app: &AppHandle) -> Result<(), String> {
         .path()
         .app_data_dir()
         .map_err(|error| format!("Failed to resolve the app data directory: {error}"))?;
-    fs::create_dir_all(&dir)
-        .map_err(|_| "Failed to create the app data directory.".to_string())?;
+    fs::create_dir_all(&dir).map_err(|_| "Failed to create the app data directory.".to_string())?;
     let _ = DIR.set(dir);
     Ok(())
 }
