@@ -24,5 +24,27 @@ export function useSelection() {
     setSelectedIds(new Set());
   }, []);
 
-  return { clearSelection, selectAccount, selectedIds };
+  const selectAll = useCallback((accounts: AccountView[]) => {
+    setSelectedIds(new Set(accounts.map((account) => account.steamid)));
+  }, []);
+
+  const invertSelection = useCallback((accounts: AccountView[]) => {
+    setSelectedIds((current) => {
+      const next = new Set<string>();
+      for (const account of accounts) {
+        if (!current.has(account.steamid)) {
+          next.add(account.steamid);
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  return {
+    clearSelection,
+    invertSelection,
+    selectAccount,
+    selectAll,
+    selectedIds,
+  };
 }

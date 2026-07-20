@@ -1,23 +1,32 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { isCooldownActive } from "../cooldown/cooldown";
+import { isCooldownActive, nowSeconds } from "../cooldown/cooldown";
 import { useCooldown } from "../cooldown/use-cooldown";
+import { useNow } from "../cooldown/use-now";
 import { useExport } from "../export/use-export";
 import { LogPanel } from "../feedback/log-panel";
 import { useToast } from "../feedback/toast";
 import { useForget } from "../forget/use-forget";
 import { useSignIn } from "../login/use-login";
 import { commands } from "../platform/invoke";
+import { useMetadataBackup } from "../preferences/use-metadata-backup";
 import { usePreferences } from "../preferences/use-preferences";
+import type { AccountView } from "../roster/account";
+import { NoteDialog } from "../roster/note-dialog";
+import { OverridesDialog } from "../roster/overrides-dialog";
 import { RosterList } from "../roster/roster-list";
+import { useAccountMeta } from "../roster/use-account-meta";
 import { useRoster } from "../roster/use-roster";
 import { useStatus } from "../status/use-status";
 import { useUpdater } from "../updater/use-updater";
 import { ShellDialogs } from "./dialogs";
-import { filterAccounts } from "./filter-accounts";
+import { filterAccounts, sortAccounts } from "./filter-accounts";
+import { FilterBar } from "./filter-bar";
 import { Footer } from "./footer";
 import styles from "./shell.module.css";
 import { Toolbar } from "./toolbar";
+import { useJwtWarnings } from "./use-jwt-warnings";
+import { useRosterView } from "./use-roster-view";
 import { useSelection } from "./use-selection";
 import { useShellEvents } from "./use-shell-events";
 import { useShellShortcuts } from "./use-shell-shortcuts";
@@ -30,11 +39,21 @@ export function App() {
   const { signIn, pending } = useSignIn();
   const { remove, removeMany } = useForget();
   const { startMany, clearMany } = useCooldown();
+  const { setPinned, setNote, setOverrides } = useAccountMeta();
+  const { exportBackup, importBackup } = useMetadataBackup();
   const { notify } = useToast();
   const { exportCountFor, copyExport, exportFile, copyUsername } = useExport();
   const { available, busy, currentVersion, checkForUpdate, install, dismiss } =
     useUpdater(notify);
-  const { selectedIds, selectAccount, clearSelection } = useSelection();
+  const {
+    selectedIds,
+    selectAccount,
+    clearSelection,
+    selectAll,
+    invertSelection,
+  } = useSelection();
+  const { filter, sort, setFilter, setSort } = useRosterView();
+  const now = useNow(1000);
   const {
     ui,
     openSearch,
@@ -52,17 +71,36 @@ export function App() {
     closeBulkCooldown,
   } = useShellUi();
   const searchRef = useRef<HTMLInputElement>(null);
+  const [noteTarget, setNoteTarget] = useState<AccountView | null>(null);
+  const [overridesTarget, setOverridesTarget] = useState<AccountView | null>(
+    null
+  );
+
+  const filtered = useMemo(() => {
+    const matched = filterAccounts(
+      accounts,
+      ui.query,
+      filter,
+      statuses,
+      now || nowSeconds()
+    );
+    return sortAccounts(matched, sort);
+  }, [accounts, filter, now, sort, statuses, ui.query]);
 
   const requestSignIn = useCallback(
-    (steamid: string) => {
+    (steamid: string, forceInvisible = false) => {
       const account = accounts.find(
         (candidate) => candidate.steamid === steamid
       );
-      if (account && isCooldownActive(account.cooldown_until)) {
+      if (
+        account &&
+        !forceInvisible &&
+        isCooldownActive(account.cooldown_until)
+      ) {
         askCooldownSignIn(account);
         return;
       }
-      signIn(steamid);
+      signIn(steamid, forceInvisible);
     },
     [accounts, askCooldownSignIn, signIn]
   );
@@ -78,10 +116,41 @@ export function App() {
     [notify]
   );
 
+  const handleTogglePin = useCallback(
+    (account: AccountView) => {
+      setPinned(account.steamid, !account.pinned);
+    },
+    [setPinned]
+  );
+
+  const handleSaveNote = useCallback(
+    (note: string) => {
+      if (noteTarget) {
+        setNote(noteTarget.steamid, note);
+      }
+    },
+    [noteTarget, setNote]
+  );
+
+  const handleSelectAll = useCallback(() => {
+    selectAll(filtered);
+  }, [filtered, selectAll]);
+
+  const handleInvertSelection = useCallback(() => {
+    invertSelection(filtered);
+  }, [filtered, invertSelection]);
+
   useShellEvents({ error, notify, openImport });
+  useJwtWarnings({
+    accounts,
+    notify,
+    warnDays: preferences.warn_jwt_expiry_days,
+  });
   useShellShortcuts({
     clearSelection,
     closeSearch,
+    onInvertSelection: handleInvertSelection,
+    onSelectAll: handleSelectAll,
     openSearch,
     requestSignIn,
     searchOpen: ui.searchOpen,
@@ -94,10 +163,6 @@ export function App() {
     }
   }, [ui.searchOpen]);
 
-  const filtered = useMemo(
-    () => filterAccounts(accounts, ui.query),
-    [accounts, ui.query]
-  );
   const countLabel =
     filtered.length === accounts.length
       ? `${accounts.length}`
@@ -140,6 +205,14 @@ export function App() {
     [startMany, ui.bulkCooldownIds, closeBulkCooldown]
   );
 
+  const closeNote = useCallback(() => {
+    setNoteTarget(null);
+  }, []);
+
+  const closeOverrides = useCallback(() => {
+    setOverridesTarget(null);
+  }, []);
+
   return (
     <div className={styles.app}>
       <Toolbar
@@ -155,9 +228,25 @@ export function App() {
         searchRef={searchRef}
       />
 
+      <FilterBar
+        filter={filter}
+        onFilter={setFilter}
+        onInvertSelection={handleInvertSelection}
+        onSelectAll={handleSelectAll}
+        onSort={setSort}
+        sort={sort}
+        visible={accounts.length > 0}
+      />
+
       <main className={styles.main}>
         <RosterList
           accounts={filtered}
+          emptyHint={
+            accounts.length > 0
+              ? "Try another filter or clear search."
+              : "Use + to import an account and get started."
+          }
+          emptyTitle={accounts.length > 0 ? "No matches" : "No accounts yet"}
           exportCountFor={exportCountForFiltered}
           loading={loading}
           onClearCooldown={clearMany}
@@ -166,11 +255,14 @@ export function App() {
           onCopyExport={copyExport}
           onCopyUsername={copyUsername}
           onCustomCooldown={askBulkCooldown}
+          onEditNote={setNoteTarget}
+          onEditOverrides={setOverridesTarget}
           onExportFile={exportFile}
           onOpenProfile={openProfile}
           onRemove={askRemove}
           onSelect={selectAccount}
           onSignIn={requestSignIn}
+          onTogglePin={handleTogglePin}
           pending={pending}
           selectedIds={selectedIds}
           statuses={statuses}
@@ -198,6 +290,8 @@ export function App() {
         onConfirmCooldownSignIn={handleConfirmCooldownSignIn}
         onConfirmRemove={handleConfirmRemove}
         onDismissUpdate={dismiss}
+        onExportMetadata={exportBackup}
+        onImportMetadata={importBackup}
         onInstallUpdate={handleInstallUpdate}
         onPatchPreferences={patchPreferences}
         onStartBulkCooldown={handleStartBulkCooldown}
@@ -205,6 +299,20 @@ export function App() {
         removeTargets={ui.removeTargets}
         settingsOpen={ui.settingsOpen}
         updateBusy={busy}
+      />
+
+      <NoteDialog
+        initial={noteTarget?.note ?? ""}
+        name={noteTarget?.display_name ?? ""}
+        onClose={closeNote}
+        onSave={handleSaveNote}
+        open={noteTarget !== null}
+      />
+      <OverridesDialog
+        account={overridesTarget}
+        onClose={closeOverrides}
+        onSave={setOverrides}
+        open={overridesTarget !== null}
       />
     </div>
   );

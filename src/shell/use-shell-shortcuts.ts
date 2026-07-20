@@ -3,6 +3,8 @@ import { useEffect } from "react";
 interface ShellShortcutsOptions {
   clearSelection: () => void;
   closeSearch: () => void;
+  onInvertSelection: () => void;
+  onSelectAll: () => void;
   openSearch: () => void;
   requestSignIn: (steamid: string) => void;
   searchOpen: boolean;
@@ -16,35 +18,121 @@ export function useShellShortcuts({
   clearSelection,
   openSearch,
   requestSignIn,
+  onSelectAll,
+  onInvertSelection,
 }: ShellShortcutsOptions) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (searchOpen) {
-          closeSearch();
-          return;
-        }
-        clearSelection();
-      }
-      if (event.altKey && event.key === "Enter" && selectedIds.size === 1) {
-        const [steamid] = [...selectedIds];
-        if (steamid) {
-          requestSignIn(steamid);
-        }
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
-        event.preventDefault();
-        openSearch();
-      }
+      handleShortcut(event, {
+        clearSelection,
+        closeSearch,
+        onInvertSelection,
+        onSelectAll,
+        openSearch,
+        requestSignIn,
+        searchOpen,
+        selectedIds,
+      });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [
     clearSelection,
     closeSearch,
+    onInvertSelection,
+    onSelectAll,
     openSearch,
     requestSignIn,
     searchOpen,
     selectedIds,
   ]);
+}
+
+function handleShortcut(
+  event: KeyboardEvent,
+  options: ShellShortcutsOptions
+): void {
+  if (handleEscape(event, options)) {
+    return;
+  }
+  if (handleSignInShortcut(event, options)) {
+    return;
+  }
+  if (handleSearchShortcut(event, options)) {
+    return;
+  }
+  handleSelectionShortcuts(event, options);
+}
+
+function handleEscape(
+  event: KeyboardEvent,
+  options: Pick<
+    ShellShortcutsOptions,
+    "searchOpen" | "closeSearch" | "clearSelection"
+  >
+): boolean {
+  if (event.key !== "Escape") {
+    return false;
+  }
+  if (options.searchOpen) {
+    options.closeSearch();
+    return true;
+  }
+  options.clearSelection();
+  return true;
+}
+
+function handleSignInShortcut(
+  event: KeyboardEvent,
+  options: Pick<ShellShortcutsOptions, "selectedIds" | "requestSignIn">
+): boolean {
+  if (
+    !(event.altKey && event.key === "Enter" && options.selectedIds.size === 1)
+  ) {
+    return false;
+  }
+  const [steamid] = [...options.selectedIds];
+  if (steamid) {
+    options.requestSignIn(steamid);
+  }
+  return true;
+}
+
+function handleSearchShortcut(
+  event: KeyboardEvent,
+  options: Pick<ShellShortcutsOptions, "openSearch">
+): boolean {
+  if (!((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f")) {
+    return false;
+  }
+  event.preventDefault();
+  options.openSearch();
+  return true;
+}
+
+function handleSelectionShortcuts(
+  event: KeyboardEvent,
+  options: Pick<ShellShortcutsOptions, "onSelectAll" | "onInvertSelection">
+): void {
+  if (!(event.ctrlKey || event.metaKey) || isEditable(event.target)) {
+    return;
+  }
+  const key = event.key.toLowerCase();
+  if (key === "a") {
+    event.preventDefault();
+    options.onSelectAll();
+    return;
+  }
+  if (key === "i") {
+    event.preventDefault();
+    options.onInvertSelection();
+  }
+}
+
+function isEditable(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) {
+    return false;
+  }
+  const tag = target.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable;
 }
