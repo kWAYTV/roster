@@ -19,7 +19,6 @@ pub fn list_tray() -> Result<Vec<Account>, String> {
 }
 
 /// SteamIDs only — for background status sweeps.
-#[allow(dead_code)]
 pub fn steamids() -> Result<Vec<String>, String> {
     let install = install_dir()?;
     let path = install.join("config").join("loginusers.vdf");
@@ -49,15 +48,20 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
 
     for account in &mut accounts {
         account.avatar_path = avatar::resolve(&install, account);
-        account.metadata = metadata.get(&account.steamid).copied().unwrap_or_default();
+        account.metadata = metadata
+            .get(&account.steamid)
+            .cloned()
+            .unwrap_or_default();
         if let Some(map) = token_cache.as_ref() {
             account.jwt_expires_in = jwt_expires_in(map, account);
         }
     }
 
     accounts.sort_by(|a, b| {
-        b.most_recent
-            .cmp(&a.most_recent)
+        b.metadata
+            .pinned
+            .cmp(&a.metadata.pinned)
+            .then_with(|| b.most_recent.cmp(&a.most_recent))
             .then_with(|| a.display_name().cmp(b.display_name()))
     });
     Ok(accounts)

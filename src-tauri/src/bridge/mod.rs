@@ -6,6 +6,7 @@ pub mod export;
 pub mod intake;
 pub mod login;
 pub mod logs;
+pub mod metadata;
 pub mod preferences;
 pub mod reset;
 pub mod roster;

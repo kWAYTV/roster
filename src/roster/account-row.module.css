@@ -108,6 +108,18 @@
   border-color: rgba(201, 162, 39, 0.35);
 }
 
+.pin {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--warn);
+}
+
+.note {
+  color: var(--text-secondary);
+  opacity: 0.95;
+}
+
 .login {
   margin-top: 0;
   overflow: hidden;

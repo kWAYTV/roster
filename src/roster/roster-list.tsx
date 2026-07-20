@@ -8,6 +8,8 @@ import styles from "./roster-list.module.css";
 
 interface RosterListProps {
   accounts: AccountView[];
+  emptyHint?: string;
+  emptyTitle?: string;
   exportCountFor: (steamids: string[]) => number;
   loading: boolean;
   onClearCooldown: (steamids: string[]) => void;
@@ -16,11 +18,14 @@ interface RosterListProps {
   onCopyExport: (steamids: string[]) => void;
   onCopyUsername: (account: AccountView) => void;
   onCustomCooldown: (steamids: string[]) => void;
+  onEditNote: (account: AccountView) => void;
+  onEditOverrides: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
   onOpenProfile: (steamid: string) => void;
   onRemove: (accounts: AccountView[]) => void;
   onSelect: (account: AccountView, additive: boolean) => void;
-  onSignIn: (steamid: string) => void;
+  onSignIn: (steamid: string, forceInvisible?: boolean) => void;
+  onTogglePin: (account: AccountView) => void;
   pending: string | null;
   selectedIds: Set<string>;
   statuses: StatusMap;
@@ -29,6 +34,8 @@ interface RosterListProps {
 
 export function RosterList({
   accounts,
+  emptyTitle = "No accounts yet",
+  emptyHint = "Use + to import an account and get started.",
   loading,
   streamer,
   pending,
@@ -45,6 +52,9 @@ export function RosterList({
   onCooldown,
   onClearCooldown,
   onCustomCooldown,
+  onTogglePin,
+  onEditNote,
+  onEditOverrides,
   exportCountFor,
 }: RosterListProps) {
   const byId = useMemo(
@@ -103,10 +113,8 @@ export function RosterList({
     }
     return (
       <div className={styles.empty}>
-        <p className={styles.emptyTitle}>No accounts yet</p>
-        <p className={styles.emptyHint}>
-          Use + to import an account and get started.
-        </p>
+        <p className={styles.emptyTitle}>{emptyTitle}</p>
+        <p className={styles.emptyHint}>{emptyHint}</p>
       </div>
     );
   }
@@ -129,11 +137,14 @@ export function RosterList({
               onCopyExport={onCopyExport}
               onCopyUsername={onCopyUsername}
               onCustomCooldown={onCustomCooldown}
+              onEditNote={onEditNote}
+              onEditOverrides={onEditOverrides}
               onExportFile={onExportFile}
               onOpenProfile={onOpenProfile}
               onRemove={onRemove}
               onSelect={onSelect}
               onSignIn={onSignIn}
+              onTogglePin={onTogglePin}
               selected={selectedIds.has(account.steamid)}
               status={statuses[account.steamid]}
               streamer={streamer}

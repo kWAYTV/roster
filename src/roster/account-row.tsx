@@ -35,11 +35,14 @@ interface AccountRowProps {
   onCopyExport: (steamids: string[]) => void;
   onCopyUsername: (account: AccountView) => void;
   onCustomCooldown: (steamids: string[]) => void;
+  onEditNote: (account: AccountView) => void;
+  onEditOverrides: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
   onOpenProfile: (steamid: string) => void;
   onRemove: (accounts: AccountView[]) => void;
   onSelect: (account: AccountView, additive: boolean) => void;
-  onSignIn: (steamid: string) => void;
+  onSignIn: (steamid: string, forceInvisible?: boolean) => void;
+  onTogglePin: (account: AccountView) => void;
   selected: boolean;
   status?: AccountStatus;
   streamer: boolean;
@@ -64,6 +67,9 @@ export function AccountRow({
   onCooldown,
   onClearCooldown,
   onCustomCooldown,
+  onTogglePin,
+  onEditNote,
+  onEditOverrides,
 }: AccountRowProps) {
   const name = streamer ? `Account ${index + 1}` : account.display_name;
   const login = streamer
@@ -72,6 +78,7 @@ export function AccountRow({
   const lastUsed = formatLastUsed(account.last_used);
   const game = status?.state === "in-game" ? status.game : "";
   const jwtLabel = formatJwtExpiry(account.jwt_expires_in);
+  const note = streamer ? "" : account.note.trim();
   const rowClass = useMemo(() => {
     const parts = [styles.row];
     if (selected) {
@@ -135,6 +142,11 @@ export function AccountRow({
           </div>
           <div className={styles.info}>
             <div className={styles.name}>
+              {account.pinned ? (
+                <span className={styles.pin} title="Pinned">
+                  ★
+                </span>
+              ) : null}
               {name}
               {account.most_recent ? (
                 <span className={styles.badge}>last used</span>
@@ -157,6 +169,9 @@ export function AccountRow({
             </div>
             <div className={styles.login}>
               {login}
+              {note ? (
+                <span className={styles.note}> &middot; {note}</span>
+              ) : null}
               {game ? (
                 <span className={styles.game}> &middot; {game}</span>
               ) : null}
@@ -209,10 +224,13 @@ export function AccountRow({
         onCopyExport={onCopyExport}
         onCopyUsername={onCopyUsername}
         onCustomCooldown={onCustomCooldown}
+        onEditNote={onEditNote}
+        onEditOverrides={onEditOverrides}
         onExportFile={onExportFile}
         onOpenProfile={onOpenProfile}
         onRemove={onRemove}
         onSignIn={onSignIn}
+        onTogglePin={onTogglePin}
         streamer={streamer}
         targets={menuTargets}
       />

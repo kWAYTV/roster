@@ -23,6 +23,20 @@ pub fn all() -> Store {
     }
 }
 
+/// Pretty-printed JSON of the full metadata store (for backup).
+pub fn export_json() -> Result<String, String> {
+    serde_json::to_string_pretty(&all()).map_err(|_| "Failed to encode metadata.".to_string())
+}
+
+/// Replace the store with parsed backup JSON.
+pub fn import_json(raw: &str) -> Result<usize, String> {
+    let store: Store =
+        serde_json::from_str(raw.trim()).map_err(|_| "Invalid metadata backup.".to_string())?;
+    let count = store.len();
+    save(&store)?;
+    Ok(count)
+}
+
 /// Record that an account was just signed in to (best effort).
 pub fn mark_used(steamid: &str) {
     let _ = update(steamid, |record| record.last_used = now());
@@ -44,6 +58,41 @@ pub fn clear_cooldown(steamid: &str) -> Result<(), String> {
     })
 }
 
+/// Pin or unpin an account.
+pub fn set_pinned(steamid: &str, pinned: bool) -> Result<(), String> {
+    update(steamid, |record| record.pinned = pinned)
+}
+
+/// Replace the freeform note (empty clears it).
+pub fn set_note(steamid: &str, note: String) -> Result<(), String> {
+    update(steamid, |record| record.note = note.trim().to_string())
+}
+
+/// Patch optional per-account sign-in overrides. `None` fields are left alone;
+/// pass `Some(None)` via dedicated clear helpers when needed.
+pub fn set_overrides(
+    steamid: &str,
+    always_invisible: Option<Option<bool>>,
+    mute_notifications: Option<Option<bool>>,
+    launch_cs2: Option<Option<bool>>,
+    cs2_launch_options: Option<Option<String>>,
+) -> Result<(), String> {
+    update(steamid, |record| {
+        if let Some(value) = always_invisible {
+            record.always_invisible = value;
+        }
+        if let Some(value) = mute_notifications {
+            record.mute_notifications = value;
+        }
+        if let Some(value) = launch_cs2 {
+            record.launch_cs2 = value;
+        }
+        if let Some(value) = cs2_launch_options {
+            record.cs2_launch_options = value.map(|text| text.trim().to_string());
+        }
+    })
+}
+
 /// Drop all metadata for an account (used when it is removed).
 pub fn forget(steamid: &str) {
     let mut store = all();
@@ -57,6 +106,9 @@ fn update(steamid: &str, mutate: impl FnOnce(&mut AccountMetadata)) -> Result<()
     let mut store = all();
     let record = store.entry(steamid.to_string()).or_default();
     mutate(record);
+    if record.is_empty() {
+        store.remove(steamid);
+    }
     save(&store)
 }
 

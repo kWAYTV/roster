@@ -21,6 +21,12 @@ pub struct AccountView {
     pub cooldown_duration: u64,
     /// Seconds until JWT expiry; `-1` expired, `0` unknown.
     pub jwt_expires_in: i64,
+    pub pinned: bool,
+    pub note: String,
+    pub always_invisible: Option<bool>,
+    pub mute_notifications: Option<bool>,
+    pub launch_cs2: Option<bool>,
+    pub cs2_launch_options: Option<String>,
 }
 
 impl From<&Account> for AccountView {
@@ -37,6 +43,12 @@ impl From<&Account> for AccountView {
             cooldown_until: account.metadata.cooldown_until,
             cooldown_duration: account.metadata.cooldown_duration,
             jwt_expires_in: account.jwt_expires_in,
+            pinned: account.metadata.pinned,
+            note: account.metadata.note.clone(),
+            always_invisible: account.metadata.always_invisible,
+            mute_notifications: account.metadata.mute_notifications,
+            launch_cs2: account.metadata.launch_cs2,
+            cs2_launch_options: account.metadata.cs2_launch_options.clone(),
         }
     }
 }

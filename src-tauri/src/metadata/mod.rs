@@ -1,4 +1,5 @@
-//! Per-account metadata we track ourselves: last-used time and cooldowns.
+//! Per-account metadata we track ourselves: last-used, cooldowns, pins, notes,
+//! and optional sign-in overrides.
 //!
 //! Keyed by SteamID and stored beside preferences, so it survives cache resets
 //! and is independent of Steam's own config files.
@@ -8,5 +9,8 @@ mod store;
 mod watch;
 
 pub use record::AccountMetadata;
-pub use store::{all, clear_cooldown, forget, mark_used, set_cooldown};
+pub use store::{
+    all, clear_cooldown, export_json, forget, import_json, mark_used, set_cooldown, set_note,
+    set_overrides, set_pinned,
+};
 pub use watch::start as start_cooldown_watch;

@@ -1,10 +1,13 @@
 import { useCallback, useMemo } from "react";
 
 import { ArrowRightIcon } from "@/ui/icons/arrow-right";
+import { BanIcon } from "@/ui/icons/ban";
 import { ClockIcon } from "@/ui/icons/clock";
 import { CopyIcon } from "@/ui/icons/copy";
 import { DeleteIcon } from "@/ui/icons/delete";
 import { DownloadIcon } from "@/ui/icons/download";
+import { PinIcon } from "@/ui/icons/pin";
+import { SettingsIcon } from "@/ui/icons/settings";
 import { UserIcon } from "@/ui/icons/user";
 import {
   ContextMenuContent,
@@ -30,10 +33,13 @@ interface AccountContextMenuProps {
   onCopyExport: (steamids: string[]) => void;
   onCopyUsername: (account: AccountView) => void;
   onCustomCooldown: (steamids: string[]) => void;
+  onEditNote: (account: AccountView) => void;
+  onEditOverrides: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
   onOpenProfile: (steamid: string) => void;
   onRemove: (accounts: AccountView[]) => void;
-  onSignIn: (steamid: string) => void;
+  onSignIn: (steamid: string, forceInvisible?: boolean) => void;
+  onTogglePin: (account: AccountView) => void;
   streamer: boolean;
   targets: AccountView[];
 }
@@ -53,6 +59,9 @@ export function AccountContextMenu({
   onCooldown,
   onClearCooldown,
   onCustomCooldown,
+  onTogglePin,
+  onEditNote,
+  onEditOverrides,
 }: AccountContextMenuProps) {
   const multi = targets.length > 1;
   const hasCooldown = targets.some((item) => item.cooldown_until > 0);
@@ -65,6 +74,10 @@ export function AccountContextMenu({
 
   const handleSignIn = useCallback(() => {
     onSignIn(account.steamid);
+  }, [onSignIn, account.steamid]);
+
+  const handleSignInInvisible = useCallback(() => {
+    onSignIn(account.steamid, true);
   }, [onSignIn, account.steamid]);
 
   const handleCopyUsername = useCallback(() => {
@@ -94,6 +107,18 @@ export function AccountContextMenu({
   const handleRemove = useCallback(() => {
     onRemove(targets);
   }, [onRemove, targets]);
+
+  const handleTogglePin = useCallback(() => {
+    onTogglePin(account);
+  }, [account, onTogglePin]);
+
+  const handleEditNote = useCallback(() => {
+    onEditNote(account);
+  }, [account, onEditNote]);
+
+  const handleEditOverrides = useCallback(() => {
+    onEditOverrides(account);
+  }, [account, onEditOverrides]);
 
   const handlePresetClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -136,6 +161,9 @@ export function AccountContextMenu({
           <IconItem icon={<ArrowRightIcon />} onClick={handleSignIn}>
             Sign in
           </IconItem>
+          <IconItem icon={<BanIcon />} onClick={handleSignInInvisible}>
+            Sign in invisible
+          </IconItem>
           <IconItem
             disabled={streamer}
             icon={<CopyIcon />}
@@ -145,6 +173,22 @@ export function AccountContextMenu({
           </IconItem>
           <IconItem icon={<UserIcon />} onClick={handleOpenProfile}>
             Open profile
+          </IconItem>
+        </ContextMenuGroup>
+      )}
+
+      {multi ? null : <ContextMenuSeparator />}
+
+      {multi ? null : (
+        <ContextMenuGroup>
+          <IconItem icon={<PinIcon />} onClick={handleTogglePin}>
+            {account.pinned ? "Unpin" : "Pin"}
+          </IconItem>
+          <IconItem icon={<CopyIcon />} onClick={handleEditNote}>
+            {account.note ? "Edit note…" : "Add note…"}
+          </IconItem>
+          <IconItem icon={<SettingsIcon />} onClick={handleEditOverrides}>
+            Sign-in overrides…
           </IconItem>
         </ContextMenuGroup>
       )}
