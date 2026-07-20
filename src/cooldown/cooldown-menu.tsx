@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { ClockIcon } from "lucide-react";
-
-import { Hint } from "@/components/hint";
+import { ClockIcon } from "@/components/icons/clock";
+import { Hint } from "@/components/shared/hint";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,7 +33,7 @@ export function CooldownMenu({ steamid, until, disabled }: CooldownMenuProps) {
               <Button variant="ghost" size="icon-sm" aria-label="Set cooldown" />
             }
           >
-            <ClockIcon />
+            <ClockIcon size={16} />
           </DropdownMenuTrigger>
         </Hint>
         <DropdownMenuContent align="end" className="min-w-40 w-auto">

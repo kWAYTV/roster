@@ -1,13 +1,11 @@
 import type { CSSProperties } from "react";
-import {
-  CircleCheckIcon,
-  InfoIcon,
-  Loader2Icon,
-  OctagonXIcon,
-  TriangleAlertIcon,
-} from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
+import { BadgeAlertIcon } from "@/components/icons/badge-alert";
+import { BanIcon } from "@/components/icons/ban";
+import { CircleCheckIcon } from "@/components/icons/circle-check";
+import { CircleHelpIcon } from "@/components/icons/circle-help";
+import { SpinningLoader } from "@/components/shared/spinning-loader";
 import { cn } from "@/lib/utils";
 
 const Toaster = ({ className, ...props }: ToasterProps) => {
@@ -16,11 +14,11 @@ const Toaster = ({ className, ...props }: ToasterProps) => {
       theme="dark"
       className={cn("toaster group", className)}
       icons={{
-        success: <CircleCheckIcon className="size-4" />,
-        info: <InfoIcon className="size-4" />,
-        warning: <TriangleAlertIcon className="size-4" />,
-        error: <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
+        success: <CircleCheckIcon size={16} />,
+        info: <CircleHelpIcon size={16} />,
+        warning: <BadgeAlertIcon size={16} />,
+        error: <BanIcon size={16} />,
+        loading: <SpinningLoader size={16} />,
       }}
       style={
         {

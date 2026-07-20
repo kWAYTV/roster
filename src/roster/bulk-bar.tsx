@@ -1,6 +1,5 @@
-import { ChevronDownIcon } from "lucide-react";
-
-import { Hint } from "@/components/hint";
+import { ChevronDownIcon } from "@/components/icons/chevron-down";
+import { Hint } from "@/components/shared/hint";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -50,7 +49,7 @@ export function BulkBar({
             render={<Button variant="outline" size="xs" className={styles.cooldownBtn} />}
           >
             Cooldown
-            <ChevronDownIcon />
+            <ChevronDownIcon size={14} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-36 w-auto">
             {COOLDOWN_PRESETS.map((preset) => (
