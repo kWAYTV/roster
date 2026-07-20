@@ -4,6 +4,11 @@ import { useToast } from "../feedback/toast";
 import { commands } from "../platform/invoke";
 import type { AccountView } from "../roster/account";
 
+/** True when the account has a known, non-expired JWT the backend can export. */
+export function isExportable(account: AccountView): boolean {
+  return account.jwt_expires_in > 0;
+}
+
 export function useExport() {
   const { notify } = useToast();
 
@@ -14,7 +19,7 @@ export function useExport() {
       );
       return steamids.filter((steamid) => {
         const account = byId.get(steamid);
-        return account && account.jwt_expires_in !== 0;
+        return account ? isExportable(account) : false;
       }).length;
     },
     []
