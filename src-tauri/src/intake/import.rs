@@ -92,6 +92,9 @@ mod tests {
     #[test]
     fn summary_multi_with_failures() {
         let failures: Vec<String> = (1..=4).map(|i| format!("#{i}: Bad entry.")).collect();
-        assert_eq!(summary(2, "alice", &failures), "Imported 2 accounts · 4 failed");
+        assert_eq!(
+            summary(2, "alice", &failures),
+            "Imported 2 accounts · 4 failed"
+        );
     }
 }
