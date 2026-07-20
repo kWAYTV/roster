@@ -11,11 +11,11 @@ const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground hover:bg-primary/90 [&]:text-primary-foreground",
         outline:
-          "border-border bg-secondary text-secondary-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
+          "border-border bg-secondary text-secondary-foreground hover:border-input hover:bg-accent hover:text-accent-foreground aria-expanded:border-input aria-expanded:bg-accent aria-expanded:text-accent-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-muted aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground",
         ghost:
-          "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
+          "bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground",
         destructive:
           "bg-destructive/15 text-destructive hover:bg-destructive/25 focus-visible:border-destructive/40 focus-visible:ring-destructive/20",
         link: "text-muted-foreground underline-offset-4 hover:text-foreground hover:underline",
