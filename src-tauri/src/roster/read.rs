@@ -24,7 +24,7 @@ pub fn steamids() -> Result<Vec<String>, String> {
     let install = install_dir()?;
     let path = install.join("config").join("loginusers.vdf");
     let content = fs::read_to_string(&path)
-        .map_err(|_| "Couldn't read loginusers.vdf. Open Steam once first.".to_string())?;
+        .map_err(|_| "Open Steam once to create login data".to_string())?;
     Ok(parse(&content)
         .into_iter()
         .map(|account| account.steamid)
@@ -35,7 +35,7 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
     let install = install_dir()?;
     let path = install.join("config").join("loginusers.vdf");
     let content = fs::read_to_string(&path)
-        .map_err(|_| "Couldn't read loginusers.vdf. Open Steam once first.".to_string())?;
+        .map_err(|_| "Open Steam once to create login data".to_string())?;
 
     let mut accounts = parse(&content);
     let metadata = crate::metadata::all();

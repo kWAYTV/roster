@@ -18,7 +18,7 @@ pub fn clear() -> Result<String, String> {
         fs::remove_dir_all(&cache).map_err(|e| format!("Failed to clear the Steam cache: {e}"))?;
     }
 
-    Ok("Cleared local Steam login data.".to_string())
+    Ok("Login data cleared".to_string())
 }
 
 fn remove_file_if_present(path: &std::path::Path, label: &str) -> Result<(), String> {

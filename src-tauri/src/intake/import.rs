@@ -12,7 +12,7 @@ use crate::steam_config::{config_vdf, connect_cache, loginusers};
 pub fn import_text(text: &str) -> Result<String, String> {
     let entries = batch::split(text);
     if entries.is_empty() {
-        return Err("Nothing to import.".to_string());
+        return Err("Nothing to import".to_string());
     }
 
     let _guard = crate::steam_client::mutation_guard();
@@ -50,7 +50,7 @@ pub fn import_text(text: &str) -> Result<String, String> {
 fn store_entry(entry: &str, install: &Path, cache: &Path) -> Result<(String, String), String> {
     let (username, token) = parse::parse(entry)?;
     if !jwt::is_importable(&token) {
-        return Err("Token expired or invalid — paste a fresh refresh token.".to_string());
+        return Err("Token expired or invalid".to_string());
     }
     let steamid = jwt::steamid(&token)?;
     config_vdf::add_account(
@@ -63,25 +63,15 @@ fn store_entry(entry: &str, install: &Path, cache: &Path) -> Result<(String, Str
 }
 
 fn summary(stored: usize, username: &str, failures: &[String]) -> String {
-    let mut message = if stored == 1 {
-        format!("Imported {username}. Starting Steam.")
+    let base = if stored == 1 {
+        format!("Imported {username}")
     } else {
-        format!("Imported {stored} accounts. Starting Steam.")
+        format!("Imported {stored} accounts")
     };
-    if !failures.is_empty() {
-        message.push_str(&format!(" {} failed: {}", failures.len(), detail(failures)));
+    if failures.is_empty() {
+        return base;
     }
-    message
-}
-
-/// The first couple of failure reasons, so the toast stays readable.
-fn detail(failures: &[String]) -> String {
-    const SHOWN: usize = 2;
-    let mut text = failures[..failures.len().min(SHOWN)].join(" ");
-    if failures.len() > SHOWN {
-        text.push_str(&format!(" (+{} more)", failures.len() - SHOWN));
-    }
-    text
+    format!("{base} · {} failed", failures.len())
 }
 
 #[cfg(test)]
@@ -89,18 +79,19 @@ mod tests {
     use super::summary;
 
     #[test]
-    fn summary_includes_failure_reasons() {
-        let failures = vec!["#2: The username is empty.".to_string()];
-        let message = summary(1, "alice", &failures);
-        assert!(message.contains("1 failed: #2: The username is empty."));
+    fn summary_single_success() {
+        assert_eq!(summary(1, "alice", &[]), "Imported alice");
     }
 
     #[test]
-    fn summary_caps_failure_details() {
+    fn summary_notes_failure_count() {
+        let failures = vec!["#2: The username is empty.".to_string()];
+        assert_eq!(summary(1, "alice", &failures), "Imported alice · 1 failed");
+    }
+
+    #[test]
+    fn summary_multi_with_failures() {
         let failures: Vec<String> = (1..=4).map(|i| format!("#{i}: Bad entry.")).collect();
-        let message = summary(2, "alice", &failures);
-        assert!(message.contains("4 failed:"));
-        assert!(message.contains("(+2 more)"));
-        assert!(!message.contains("#3"));
+        assert_eq!(summary(2, "alice", &failures), "Imported 2 accounts · 4 failed");
     }
 }

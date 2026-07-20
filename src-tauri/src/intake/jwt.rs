@@ -9,9 +9,9 @@ pub fn steamid(jwt: &str) -> Result<String, String> {
     let sub = claims
         .get("sub")
         .and_then(|v| v.as_str())
-        .ok_or("The token is missing its SteamID.")?;
+        .ok_or("Token missing SteamID")?;
     if sub.parse::<u64>().is_err() {
-        return Err("The token's SteamID is not numeric.".to_string());
+        return Err("Invalid token SteamID".to_string());
     }
     Ok(sub.to_string())
 }
@@ -128,14 +128,14 @@ fn claims(jwt: &str) -> Result<serde_json::Value, String> {
     let token = compact(jwt);
     let parts: Vec<&str> = token.split('.').collect();
     if parts.len() != 3 {
-        return Err("The token format is invalid.".to_string());
+        return Err("Invalid token format".to_string());
     }
     let payload = URL_SAFE_NO_PAD
         .decode(parts[1])
         .or_else(|_| URL_SAFE.decode(parts[1]))
         .or_else(|_| STANDARD.decode(parts[1]))
-        .map_err(|_| "The token payload could not be decoded.".to_string())?;
-    serde_json::from_slice(&payload).map_err(|_| "The token payload is not valid JSON.".to_string())
+        .map_err(|_| "Token decode failed".to_string())?;
+    serde_json::from_slice(&payload).map_err(|_| "Invalid token payload".to_string())
 }
 
 /// Carve a three-part JWT out of the start of `s`, stopping at the first

@@ -24,11 +24,11 @@ export function useUpdater(notify: (message: string) => void) {
           return;
         }
         if (manual) {
-          notify("You're on the latest version.");
+          notify("Up to date");
         }
-      } catch (cause) {
+      } catch {
         if (manual) {
-          notify(`Update check failed: ${cause}`);
+          notify("Update check failed");
         }
       }
     },
@@ -65,8 +65,8 @@ export function useUpdater(notify: (message: string) => void) {
     try {
       await available.downloadAndInstall();
       await relaunch();
-    } catch (cause) {
-      notify(`Update failed: ${cause}`);
+    } catch {
+      notify("Update failed");
       setBusy(false);
     }
   }, [available, notify]);

@@ -24,9 +24,9 @@ export function useShellEvents({
       onStatusError((message) => notify(message, "error")),
       onCooldownFinished((names) => {
         if (names.length === 1) {
-          notify(`${names[0]} cooldown finished.`);
+          notify(`${names[0]} ready`);
         } else {
-          notify(`${names.length} accounts ready.`);
+          notify(`${names.length} accounts ready`);
         }
       }),
       onImportRequest((text) => openImport(text.trim())),

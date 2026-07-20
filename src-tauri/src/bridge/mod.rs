@@ -35,5 +35,5 @@ pub(crate) fn find_account(steamid: &str) -> Result<crate::roster::Account, Stri
     crate::roster::list()?
         .into_iter()
         .find(|account| account.steamid == steamid)
-        .ok_or_else(|| "That account is no longer available.".to_string())
+        .ok_or_else(|| "Account unavailable".to_string())
 }

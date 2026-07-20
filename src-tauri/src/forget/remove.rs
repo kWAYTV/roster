@@ -27,13 +27,13 @@ pub fn remove(account: &Account) -> Result<String, String> {
     clear_autologin_if_matches(&account.account_name);
     crate::metadata::forget(&account.steamid);
 
-    Ok(format!("Removed {}.", account.display_name()))
+    Ok(format!("Removed {}", account.display_name()))
 }
 
 /// Remove several accounts without stopping Steam unless the active login is included.
 pub fn remove_many(accounts: &[Account]) -> Result<String, String> {
     if accounts.is_empty() {
-        return Err("No accounts selected.".to_string());
+        return Err("No accounts selected".to_string());
     }
 
     let _guard = crate::steam_client::mutation_guard();
@@ -61,5 +61,8 @@ pub fn remove_many(accounts: &[Account]) -> Result<String, String> {
         names.push(account.display_name().to_string());
     }
 
-    Ok(format!("Removed {} account(s).", names.len()))
+    Ok(match names.len() {
+        1 => format!("Removed {}", names[0]),
+        n => format!("Removed {n} accounts"),
+    })
 }

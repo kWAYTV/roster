@@ -294,13 +294,13 @@ function classifyField(
 
 function hintFor(importable: number, expired: number): string {
   if (importable && expired) {
-    return `${importable} importable · ${expired} expired (skipped)`;
+    return `${importable} ready · ${expired} expired`;
   }
   if (expired) {
-    return `${expired} expired — nothing to import`;
+    return `${expired} expired`;
   }
   if (!importable) {
-    return "No valid tokens found";
+    return "No valid tokens";
   }
   return "";
 }

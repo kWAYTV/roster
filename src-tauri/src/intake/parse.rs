@@ -8,7 +8,7 @@ use super::jwt;
 pub fn parse(entry: &str) -> Result<(String, String), String> {
     let text = entry.trim();
     if text.is_empty() {
-        return Err("Nothing to import.".to_string());
+        return Err("Nothing to import".to_string());
     }
 
     if let Some((label, token)) = split_delimited(text) {
@@ -27,7 +27,7 @@ pub fn parse(entry: &str) -> Result<(String, String), String> {
         return Ok((username, token));
     }
 
-    Err("Unrecognized format. Paste `steamid----token`, `username----token`, or the token on its own.".to_string())
+    Err("Unrecognized import format".to_string())
 }
 
 /// Whether a value looks like a SteamID64.
@@ -50,13 +50,13 @@ fn split_delimited(text: &str) -> Option<(String, String)> {
 /// Reject account names that would corrupt the VDF files we write.
 fn ensure_username(value: &str) -> Result<(), String> {
     if value.is_empty() {
-        return Err("The username is empty.".to_string());
+        return Err("Empty username".to_string());
     }
     if value
         .chars()
         .any(|c| matches!(c, '"' | '\\' | '{' | '}' | '\n' | '\r' | '\t'))
     {
-        return Err("The username contains invalid characters.".to_string());
+        return Err("Invalid username".to_string());
     }
     Ok(())
 }

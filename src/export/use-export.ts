@@ -25,15 +25,15 @@ export function useExport() {
       try {
         const lines = await commands.exportTokenEntries(steamids);
         if (!lines.length) {
-          notify("No saved tokens to export.", "error");
+          notify("No tokens to export", "error");
           return;
         }
         await commands.writeClipboard(lines.join("\n"));
         const skipped = steamids.length - lines.length;
         notify(
           skipped
-            ? `Copied ${lines.length} token(s). ${skipped} missing.`
-            : `Copied ${lines.length} token(s).`
+            ? `Copied ${lines.length} · ${skipped} missing`
+            : `Copied ${lines.length}`
         );
       } catch (cause) {
         notify(String(cause), "error");
@@ -47,7 +47,7 @@ export function useExport() {
       try {
         const lines = await commands.exportTokenEntries(steamids);
         if (!lines.length) {
-          notify("No saved tokens to export.", "error");
+          notify("No tokens to export", "error");
           return;
         }
         const blob = new Blob([`${lines.join("\n")}\n`], {
@@ -59,7 +59,7 @@ export function useExport() {
         anchor.download = "tokens.txt";
         anchor.click();
         URL.revokeObjectURL(url);
-        notify(`Exported ${lines.length} token(s).`);
+        notify(`Exported ${lines.length}`);
       } catch (cause) {
         notify(String(cause), "error");
       }
@@ -74,7 +74,7 @@ export function useExport() {
       }
       try {
         await commands.writeClipboard(account.account_name);
-        notify("Username copied.");
+        notify("Copied");
       } catch (cause) {
         notify(String(cause), "error");
       }
