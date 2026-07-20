@@ -107,10 +107,10 @@ export function RosterList({
     onRemove(selectedAccounts);
   }, [onRemove, selectedAccounts]);
 
+  if (accounts.length === 0 && loading) {
+    return null;
+  }
   if (accounts.length === 0) {
-    if (loading) {
-      return null;
-    }
     return (
       <div className={styles.empty}>
         <p className={styles.emptyTitle}>{emptyTitle}</p>

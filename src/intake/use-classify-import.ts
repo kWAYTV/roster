@@ -45,9 +45,10 @@ export function useClassifyImport(
           });
         })
         .catch(() => {
-          if (active) {
-            setResult(EMPTY);
+          if (!active) {
+            return;
           }
+          setResult(EMPTY);
         });
     }, 250);
 

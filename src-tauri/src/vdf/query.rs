@@ -31,15 +31,17 @@ pub fn block_range(lines: &[&str], key: &str) -> Option<(usize, usize)> {
 fn locate_block_open(lines: &[&str], key: &str) -> Option<(usize, usize)> {
     for (i, line) in lines.iter().enumerate() {
         let fields = quoted_fields(line);
-        if fields.len() == 1 && fields[0].eq_ignore_ascii_case(key) {
-            let mut j = i + 1;
-            while j < lines.len() && lines[j].trim().is_empty() {
-                j += 1;
-            }
-            if j < lines.len() && lines[j].trim() == "{" {
-                return Some((i, j));
-            }
+        if fields.len() != 1 || !fields[0].eq_ignore_ascii_case(key) {
+            continue;
         }
+        let mut j = i + 1;
+        while j < lines.len() && lines[j].trim().is_empty() {
+            j += 1;
+        }
+        if j >= lines.len() || lines[j].trim() != "{" {
+            continue;
+        }
+        return Some((i, j));
     }
     None
 }

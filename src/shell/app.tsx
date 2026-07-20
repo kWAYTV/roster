@@ -92,11 +92,11 @@ export function App() {
       const account = accounts.find(
         (candidate) => candidate.steamid === steamid
       );
-      if (
-        account &&
-        !forceInvisible &&
-        isCooldownActive(account.cooldown_until)
-      ) {
+      if (!account || forceInvisible) {
+        signIn(steamid, forceInvisible);
+        return;
+      }
+      if (isCooldownActive(account.cooldown_until)) {
         askCooldownSignIn(account);
         return;
       }
@@ -125,9 +125,10 @@ export function App() {
 
   const handleSaveNote = useCallback(
     (note: string) => {
-      if (noteTarget) {
-        setNote(noteTarget.steamid, note);
+      if (!noteTarget) {
+        return;
       }
+      setNote(noteTarget.steamid, note);
     },
     [noteTarget, setNote]
   );
@@ -167,9 +168,10 @@ export function App() {
   }, [checkForUpdate]);
 
   const handleConfirmCooldownSignIn = useCallback(() => {
-    if (ui.cooldownTarget) {
-      signIn(ui.cooldownTarget.steamid);
+    if (!ui.cooldownTarget) {
+      return;
     }
+    signIn(ui.cooldownTarget.steamid);
   }, [ui.cooldownTarget, signIn]);
 
   const handleConfirmRemove = useCallback(() => {

@@ -20,12 +20,14 @@ pub fn steamid(jwt: &str) -> Result<String, String> {
 pub fn username(jwt: &str, steamid: &str) -> Result<String, String> {
     let claims = claims(jwt)?;
     for key in ["preferred_username", "name", "unique_name"] {
-        if let Some(value) = claims.get(key).and_then(|v| v.as_str()) {
-            let candidate = trim_wrapping(value);
-            if !candidate.is_empty() && candidate != steamid {
-                return Ok(candidate);
-            }
+        let Some(value) = claims.get(key).and_then(|v| v.as_str()) else {
+            continue;
+        };
+        let candidate = trim_wrapping(value);
+        if candidate.is_empty() || candidate == steamid {
+            continue;
         }
+        return Ok(candidate);
     }
     let tail = &steamid[steamid.len().saturating_sub(6)..];
     Ok(format!("user{tail}"))
@@ -38,9 +40,10 @@ pub fn find(text: &str) -> Option<String> {
         return Some(compact);
     }
     for (start, _) in compact.match_indices("ey") {
-        if let Some(token) = slice_parts(&compact[start..]) {
-            return Some(token);
-        }
+        let Some(token) = slice_parts(&compact[start..]) else {
+            continue;
+        };
+        return Some(token);
     }
     None
 }

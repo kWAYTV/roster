@@ -42,13 +42,17 @@ export function useStatus(
           ...current,
           [payload.steamid]: { game: payload.game, state: payload.state },
         }));
-        if (onProfile && (payload.display_name || payload.avatar)) {
-          onProfile({
-            avatar: payload.avatar,
-            display_name: payload.display_name,
-            steamid: payload.steamid,
-          });
+        if (!onProfile) {
+          return;
         }
+        if (!(payload.display_name || payload.avatar)) {
+          return;
+        }
+        onProfile({
+          avatar: payload.avatar,
+          display_name: payload.display_name,
+          steamid: payload.steamid,
+        });
       }),
       onAccountsChanged(refresh),
     ];

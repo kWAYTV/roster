@@ -13,15 +13,21 @@ pub fn relaunch(install: &Path, steamid: &str, prefs: &SignInPrefs) -> Result<()
     launch(install, prefs.launch_steam_minimized)?;
 
     if prefs.cancel_downloads_on_login {
-        if let Ok(steamid3) = steamid3_from_steamid64(steamid) {
-            reassert_download_pause(localconfig_path(install, &steamid3));
-        }
+        let Ok(steamid3) = steamid3_from_steamid64(steamid) else {
+            return finish_relaunch(install, prefs);
+        };
+        reassert_download_pause(localconfig_path(install, &steamid3));
     }
 
-    if prefs.launch_cs2_on_login {
-        std::thread::sleep(Duration::from_secs(2));
-        let _ = launch_cs2(install, &prefs.cs2_launch_options);
+    finish_relaunch(install, prefs)
+}
+
+fn finish_relaunch(install: &Path, prefs: &SignInPrefs) -> Result<(), String> {
+    if !prefs.launch_cs2_on_login {
+        return Ok(());
     }
+    std::thread::sleep(Duration::from_secs(2));
+    let _ = launch_cs2(install, &prefs.cs2_launch_options);
     Ok(())
 }
 
@@ -30,8 +36,9 @@ pub fn relaunch(install: &Path, steamid: &str, prefs: &SignInPrefs) -> Result<()
 fn reassert_download_pause(path: PathBuf) {
     std::thread::spawn(move || {
         std::thread::sleep(Duration::from_secs(5));
-        if let Ok(content) = fs::read_to_string(&path) {
-            let _ = fs::write(&path, downloads::pause(&content));
-        }
+        let Ok(content) = fs::read_to_string(&path) else {
+            return;
+        };
+        let _ = fs::write(&path, downloads::pause(&content));
     });
 }

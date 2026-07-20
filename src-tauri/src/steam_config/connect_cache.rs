@@ -76,6 +76,7 @@ fn upsert_entry(content: &str, key: &str, encrypted: &str) -> Option<String> {
     let mut inside = false;
     let mut depth = 0_i32;
     let mut written = false;
+    let key_prefix = format!("\"{key}\"");
 
     for line in content.lines() {
         let trimmed = line.trim();
@@ -83,32 +84,46 @@ fn upsert_entry(content: &str, key: &str, encrypted: &str) -> Option<String> {
         if trimmed == "\"ConnectCache\"" {
             inside = true;
             depth = 0;
-            out.push_str(line);
-            out.push('\n');
+            push_line(&mut out, line);
             continue;
         }
 
-        if inside {
-            if trimmed.starts_with('{') {
-                depth += 1;
-            } else if trimmed.starts_with('}') {
-                depth -= 1;
-                if depth == 0 && !written {
-                    out.push_str(&entry_line(key, encrypted));
-                    written = true;
-                }
-            } else if trimmed.starts_with(&format!("\"{key}\"")) {
-                out.push_str(&entry_line(key, encrypted));
-                written = true;
-                continue;
-            }
+        if !inside {
+            push_line(&mut out, line);
+            continue;
         }
 
-        out.push_str(line);
-        out.push('\n');
+        if trimmed.starts_with('{') {
+            depth += 1;
+            push_line(&mut out, line);
+            continue;
+        }
+
+        if trimmed.starts_with('}') {
+            depth -= 1;
+            if depth == 0 && !written {
+                out.push_str(&entry_line(key, encrypted));
+                written = true;
+            }
+            push_line(&mut out, line);
+            continue;
+        }
+
+        if trimmed.starts_with(&key_prefix) {
+            out.push_str(&entry_line(key, encrypted));
+            written = true;
+            continue;
+        }
+
+        push_line(&mut out, line);
     }
 
     written.then_some(out)
+}
+
+fn push_line(out: &mut String, line: &str) {
+    out.push_str(line);
+    out.push('\n');
 }
 
 fn entry_line(key: &str, encrypted: &str) -> String {
@@ -123,22 +138,25 @@ fn insert_cache_block(content: &str, key: &str, encrypted: &str) -> Option<Strin
     let mut inserted = false;
 
     for line in content.lines() {
-        out.push_str(line);
-        out.push('\n');
+        push_line(&mut out, line);
 
         let trimmed = line.trim();
-        if after_steam_header {
-            after_steam_header = false;
-            if !inserted && trimmed.starts_with('{') {
-                let indent = format!("{}\t", indent_of(line));
-                out.push_str(&format!(
-                    "{indent}\"ConnectCache\"\n{indent}{{\n{indent}\t\"{key}\"\t\t\"{encrypted}\"\n{indent}}}\n"
-                ));
-                inserted = true;
-            }
-        } else if trimmed == "\"Steam\"" {
+        if trimmed == "\"Steam\"" {
             after_steam_header = true;
+            continue;
         }
+        if !after_steam_header {
+            continue;
+        }
+        after_steam_header = false;
+        if inserted || !trimmed.starts_with('{') {
+            continue;
+        }
+        let indent = format!("{}\t", indent_of(line));
+        out.push_str(&format!(
+            "{indent}\"ConnectCache\"\n{indent}{{\n{indent}\t\"{key}\"\t\t\"{encrypted}\"\n{indent}}}\n"
+        ));
+        inserted = true;
     }
 
     inserted.then_some(out)

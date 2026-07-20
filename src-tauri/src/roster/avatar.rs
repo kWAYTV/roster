@@ -23,9 +23,10 @@ fn from_cache(install: &Path, account: &Account) -> Option<PathBuf> {
             format!("{hash}.jpg"),
         ] {
             let candidate = dir.join(name);
-            if candidate.exists() {
-                return Some(candidate);
+            if !candidate.exists() {
+                continue;
             }
+            return Some(candidate);
         }
     }
 
@@ -35,9 +36,10 @@ fn from_cache(install: &Path, account: &Account) -> Option<PathBuf> {
         account.steamid.clone(),
     ] {
         let candidate = dir.join(name);
-        if candidate.exists() {
-            return Some(candidate);
+        if !candidate.exists() {
+            continue;
         }
+        return Some(candidate);
     }
 
     scan_for_match(&dir, account)

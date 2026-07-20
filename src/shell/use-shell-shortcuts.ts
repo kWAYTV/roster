@@ -92,9 +92,10 @@ function handleSignInShortcut(
     return false;
   }
   const [steamid] = [...options.selectedIds];
-  if (steamid) {
-    options.requestSignIn(steamid);
+  if (!steamid) {
+    return true;
   }
+  options.requestSignIn(steamid);
   return true;
 }
 

@@ -22,54 +22,71 @@ fn upsert_launch_options(content: &str, options: &str) -> String {
     let mut inside_app = false;
     let mut depth = 0_i32;
     let mut wrote = false;
+    let app_header = format!("\"{CS2_APP_ID}\"");
 
     for line in content.lines() {
         let trimmed = line.trim();
-        if trimmed == format!("\"{CS2_APP_ID}\"") {
+
+        if trimmed == app_header {
             inside_app = true;
             depth = 0;
-            out.push_str(line);
-            out.push('\n');
+            push_line(&mut out, line);
             continue;
         }
 
-        if inside_app {
-            if trimmed.starts_with('{') {
-                depth += 1;
-            } else if trimmed.starts_with('}') {
-                depth -= 1;
-                if depth == 0 && !wrote {
-                    out.push_str(&format!(
-                        "{}\t\t\"LaunchOptions\"\t\t\"{options}\"\n",
-                        indent_of(line)
-                    ));
-                    wrote = true;
-                    inside_app = false;
-                }
-            } else if trimmed.starts_with("\"LaunchOptions\"") {
+        if !inside_app {
+            push_line(&mut out, line);
+            continue;
+        }
+
+        if trimmed.starts_with('{') {
+            depth += 1;
+            push_line(&mut out, line);
+            continue;
+        }
+
+        if trimmed.starts_with('}') {
+            depth -= 1;
+            if depth == 0 && !wrote {
                 out.push_str(&format!(
                     "{}\t\t\"LaunchOptions\"\t\t\"{options}\"\n",
                     indent_of(line)
                 ));
                 wrote = true;
-                continue;
             }
+            if depth == 0 {
+                inside_app = false;
+            }
+            push_line(&mut out, line);
+            continue;
         }
 
-        out.push_str(line);
-        out.push('\n');
+        if trimmed.starts_with("\"LaunchOptions\"") {
+            out.push_str(&format!(
+                "{}\t\t\"LaunchOptions\"\t\t\"{options}\"\n",
+                indent_of(line)
+            ));
+            wrote = true;
+            continue;
+        }
+
+        push_line(&mut out, line);
     }
 
     if wrote {
-        out
-    } else if let Some(offset) = block_body_offset(content, "apps") {
-        let mut patched = content.to_string();
-        let entry = format!(
-            "\t\t\"{CS2_APP_ID}\"\n\t\t{{\n\t\t\t\"LaunchOptions\"\t\t\"{options}\"\n\t\t}}\n"
-        );
-        patched.insert_str(offset, &entry);
-        patched
-    } else {
-        apply(content, options)
+        return out;
     }
+    let Some(offset) = block_body_offset(content, "apps") else {
+        return apply(content, options);
+    };
+    let mut patched = content.to_string();
+    let entry =
+        format!("\t\t\"{CS2_APP_ID}\"\n\t\t{{\n\t\t\t\"LaunchOptions\"\t\t\"{options}\"\n\t\t}}\n");
+    patched.insert_str(offset, &entry);
+    patched
+}
+
+fn push_line(out: &mut String, line: &str) {
+    out.push_str(line);
+    out.push('\n');
 }

@@ -69,11 +69,13 @@ fn jwt_expires_in(map: &HashMap<String, String>, account: &Account) -> i64 {
         if name.is_empty() {
             continue;
         }
-        if let Some(token) = connect_cache::decrypt_cached(map, name) {
-            if is_jwt(&token) {
-                return expires_in(&token);
-            }
+        let Some(token) = connect_cache::decrypt_cached(map, name) else {
+            continue;
+        };
+        if !is_jwt(&token) {
+            continue;
         }
+        return expires_in(&token);
     }
     0
 }
@@ -95,17 +97,23 @@ fn parse(content: &str) -> Vec<Account> {
         }
 
         if line.trim() == "}" {
-            if let Some(account) = current.take() {
-                if !account.steamid.is_empty() {
-                    accounts.push(account);
-                }
+            let Some(account) = current.take() else {
+                continue;
+            };
+            if account.steamid.is_empty() {
+                continue;
             }
+            accounts.push(account);
             continue;
         }
 
-        if let (Some(account), 2) = (current.as_mut(), fields.len()) {
-            assign_field(account, &fields[0], &fields[1]);
+        let Some(account) = current.as_mut() else {
+            continue;
+        };
+        if fields.len() != 2 {
+            continue;
         }
+        assign_field(account, &fields[0], &fields[1]);
     }
 
     accounts

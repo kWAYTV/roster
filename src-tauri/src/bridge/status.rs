@@ -47,10 +47,11 @@ fn start_sweep(app: AppHandle) {
 
     std::thread::spawn(move || {
         sweep(&steamids, |steamid, fetched| {
-            if let Some(fetched) = fetched {
-                let account = accounts.iter().find(|item| item.steamid == steamid);
-                let _ = app.emit("account-status", view(steamid, account, &fetched));
-            }
+            let Some(fetched) = fetched else {
+                return;
+            };
+            let account = accounts.iter().find(|item| item.steamid == steamid);
+            let _ = app.emit("account-status", view(steamid, account, &fetched));
         });
         SWEEPING.store(false, Ordering::SeqCst);
         if QUEUED.swap(false, Ordering::SeqCst) {

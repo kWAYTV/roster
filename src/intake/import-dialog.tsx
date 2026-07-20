@@ -53,14 +53,14 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
       if (!text) {
         return;
       }
-      if (target === "bulk" || looksLikeBulk(text)) {
-        setBulk(text);
-        if (target === "single") {
-          setSingle("");
-        }
+      if (target !== "bulk" && !looksLikeBulk(text)) {
+        setSingle(text);
         return;
       }
-      setSingle(text);
+      setBulk(text);
+      if (target === "single") {
+        setSingle("");
+      }
     },
     [paste]
   );
@@ -83,12 +83,14 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
 
   const handleSingleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        if (singleClassified.count > 0) {
-          submit(single).catch(() => undefined);
-        }
+      if (event.key !== "Enter") {
+        return;
       }
+      event.preventDefault();
+      if (singleClassified.count === 0) {
+        return;
+      }
+      submit(single).catch(() => undefined);
     },
     [singleClassified.count, submit, single]
   );
@@ -148,9 +150,10 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
       );
       if (!file) {
         const text = event.dataTransfer.getData("text/plain").trim();
-        if (text) {
-          applyDroppedText(text);
+        if (!text) {
+          return;
         }
+        applyDroppedText(text);
         return;
       }
       file

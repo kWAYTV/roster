@@ -63,39 +63,57 @@ fn rewrite_body<'a>(out: &mut String, lines: &mut impl Iterator<Item = &'a str>,
 
     for line in lines.by_ref() {
         let closing = line.trim() == "}";
-        if line.contains("\"AccountName\"") {
-            body.push(format!("\t\t\"AccountName\"\t\t\"{username}\"\n"));
-        } else if line.contains("\"MostRecent\"") {
-            body.push("\t\t\"MostRecent\"\t\t\"1\"\n".to_string());
-        } else if line.contains("\"Timestamp\"") {
-            body.push(format!("\t\t\"Timestamp\"\t\t\"{}\"\n", now()));
-        } else if line.contains("\"RememberPassword\"") {
-            seen_remember = true;
-            body.push("\t\t\"RememberPassword\"\t\t\"1\"\n".to_string());
-        } else if line.contains("\"AllowAutoLogin\"") {
-            seen_autologin = true;
-            body.push("\t\t\"AllowAutoLogin\"\t\t\"1\"\n".to_string());
-        } else {
-            body.push(format!("{line}\n"));
-        }
+        body.push(rewrite_field(
+            line,
+            username,
+            &mut seen_remember,
+            &mut seen_autologin,
+        ));
         if closing {
             break;
         }
     }
 
-    if let Some(closing) = body.pop() {
-        if !seen_remember {
-            body.push("\t\t\"RememberPassword\"\t\t\"1\"\n".to_string());
-        }
-        if !seen_autologin {
-            body.push("\t\t\"AllowAutoLogin\"\t\t\"1\"\n".to_string());
-        }
-        body.push(closing);
+    let Some(closing) = body.pop() else {
+        return;
+    };
+    if !seen_remember {
+        body.push("\t\t\"RememberPassword\"\t\t\"1\"\n".to_string());
     }
+    if !seen_autologin {
+        body.push("\t\t\"AllowAutoLogin\"\t\t\"1\"\n".to_string());
+    }
+    body.push(closing);
 
     for line in body {
         out.push_str(&line);
     }
+}
+
+fn rewrite_field(
+    line: &str,
+    username: &str,
+    seen_remember: &mut bool,
+    seen_autologin: &mut bool,
+) -> String {
+    if line.contains("\"AccountName\"") {
+        return format!("\t\t\"AccountName\"\t\t\"{username}\"\n");
+    }
+    if line.contains("\"MostRecent\"") {
+        return "\t\t\"MostRecent\"\t\t\"1\"\n".to_string();
+    }
+    if line.contains("\"Timestamp\"") {
+        return format!("\t\t\"Timestamp\"\t\t\"{}\"\n", now());
+    }
+    if line.contains("\"RememberPassword\"") {
+        *seen_remember = true;
+        return "\t\t\"RememberPassword\"\t\t\"1\"\n".to_string();
+    }
+    if line.contains("\"AllowAutoLogin\"") {
+        *seen_autologin = true;
+        return "\t\t\"AllowAutoLogin\"\t\t\"1\"\n".to_string();
+    }
+    format!("{line}\n")
 }
 
 fn strip_block(content: &str, steamid: &str) -> String {
@@ -104,15 +122,19 @@ fn strip_block(content: &str, steamid: &str) -> String {
     let mut i = 0;
 
     while i < lines.len() {
-        if is_header(lines[i], steamid) {
-            if let Some(end) = block_end(&lines, i) {
-                i = end + 1;
-                continue;
-            }
+        if !is_header(lines[i], steamid) {
+            out.push_str(lines[i]);
+            out.push('\n');
+            i += 1;
+            continue;
         }
-        out.push_str(lines[i]);
-        out.push('\n');
-        i += 1;
+        let Some(end) = block_end(&lines, i) else {
+            out.push_str(lines[i]);
+            out.push('\n');
+            i += 1;
+            continue;
+        };
+        i = end + 1;
     }
 
     out

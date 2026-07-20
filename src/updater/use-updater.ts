@@ -21,9 +21,10 @@ export function useUpdater(notify: (message: string) => void) {
     const runStartupCheck = async () => {
       try {
         const update = await check();
-        if (!cancelled && update) {
-          setAvailable(update);
+        if (cancelled || !update) {
+          return;
         }
+        setAvailable(update);
       } catch {
         // Startup checks stay silent; Settings still surfaces manual failures.
       }

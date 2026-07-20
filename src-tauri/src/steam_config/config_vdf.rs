@@ -30,8 +30,9 @@ fn insert_account(content: &str, username: &str, steamid: &str) -> Result<String
     }
 
     let lines: Vec<&str> = content.lines().collect();
-    let (_, close) = block_range(&lines, "Steam")
-        .ok_or("config.vdf is malformed; open Steam once to regenerate it.")?;
+    let Some((_, close)) = block_range(&lines, "Steam") else {
+        return Err("config.vdf is malformed; open Steam once to regenerate it.".to_string());
+    };
     let at = byte_offset_of_line(&lines, close);
     let mut out = content.to_string();
     out.insert_str(at, &accounts_section(username, steamid));
@@ -41,26 +42,40 @@ fn insert_account(content: &str, username: &str, steamid: &str) -> Result<String
 fn strip_account(content: &str, steamid: &str) -> String {
     let lines: Vec<&str> = content.lines().collect();
     let range = block_range(&lines, "Accounts");
+    let marker = steamid_marker(steamid);
     let mut out = String::new();
     let mut i = 0;
 
     while i < lines.len() {
-        if let Some((open, close)) = range {
-            if i > open && i < close && quoted_fields(lines[i]).len() == 1 {
-                if let Some(end) = sub_block_end(&lines, i) {
-                    if lines[i..=end].join("\n").contains(&steamid_marker(steamid)) {
-                        i = end + 1;
-                        continue;
-                    }
-                }
-            }
+        let Some((open, close)) = range else {
+            push_line(&mut out, lines[i]);
+            i += 1;
+            continue;
+        };
+        if !(i > open && i < close) || quoted_fields(lines[i]).len() != 1 {
+            push_line(&mut out, lines[i]);
+            i += 1;
+            continue;
         }
-        out.push_str(lines[i]);
-        out.push('\n');
+        let Some(end) = sub_block_end(&lines, i) else {
+            push_line(&mut out, lines[i]);
+            i += 1;
+            continue;
+        };
+        if lines[i..=end].join("\n").contains(&marker) {
+            i = end + 1;
+            continue;
+        }
+        push_line(&mut out, lines[i]);
         i += 1;
     }
 
     out
+}
+
+fn push_line(out: &mut String, line: &str) {
+    out.push_str(line);
+    out.push('\n');
 }
 
 fn sub_block_end(lines: &[&str], key: usize) -> Option<usize> {

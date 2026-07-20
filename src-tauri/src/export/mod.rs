@@ -37,9 +37,10 @@ fn read_token_for(account: &Account, map: &HashMap<String, String>) -> Option<St
         if name.is_empty() {
             continue;
         }
-        if let Some(token) = connect_cache::decrypt_cached(map, name) {
-            return Some(token);
-        }
+        let Some(token) = connect_cache::decrypt_cached(map, name) else {
+            continue;
+        };
+        return Some(token);
     }
     None
 }

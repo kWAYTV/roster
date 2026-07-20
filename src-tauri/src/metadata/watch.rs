@@ -71,28 +71,32 @@ fn notify_finished(app: &AppHandle, names: &[String]) {
     if names.is_empty() {
         return;
     }
-    let body = if names.len() == 1 {
-        format!("{} is ready to sign in.", names[0])
-    } else {
-        let preview: Vec<_> = names.iter().take(3).cloned().collect();
-        let mut text = format!("{} accounts ready: {}", names.len(), preview.join(", "));
-        if names.len() > 3 {
-            text.push_str(&format!(" +{} more", names.len() - 3));
-        }
-        text
-    };
     let _ = app
         .notification()
         .builder()
         .title("Cooldown finished")
-        .body(body)
+        .body(finished_body(names))
         .show();
 
-    if let Some(window) = app.get_webview_window("main") {
-        if window.is_visible().unwrap_or(false) {
-            let _ = app.emit("cooldown-finished", names);
-        }
+    let Some(window) = app.get_webview_window("main") else {
+        return;
+    };
+    if !window.is_visible().unwrap_or(false) {
+        return;
     }
+    let _ = app.emit("cooldown-finished", names);
+}
+
+fn finished_body(names: &[String]) -> String {
+    if names.len() == 1 {
+        return format!("{} is ready to sign in.", names[0]);
+    }
+    let preview: Vec<_> = names.iter().take(3).cloned().collect();
+    let mut text = format!("{} accounts ready: {}", names.len(), preview.join(", "));
+    if names.len() > 3 {
+        text.push_str(&format!(" +{} more", names.len() - 3));
+    }
+    text
 }
 
 fn unix_now() -> u64 {
