@@ -1,5 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SearchIcon, SettingsIcon, XIcon } from "lucide-react";
 
+import { Hint } from "@/components/hint";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatRemaining, isCooldownActive } from "./cooldown/cooldown";
 import { CooldownDialog } from "./cooldown/cooldown-dialog";
 import { useCooldown } from "./cooldown/use-cooldown";
@@ -18,7 +23,6 @@ import { commands } from "./ipc/invoke";
 import { useSignIn } from "./login/use-login";
 import { SettingsDialog } from "./preferences/settings-dialog";
 import { usePreferences } from "./preferences/use-preferences";
-import { ResetControl } from "./reset/reset-control";
 import type { AccountView } from "./roster/account";
 import { RosterList } from "./roster/roster-list";
 import { useRoster } from "./roster/use-roster";
@@ -40,6 +44,7 @@ export function App() {
     useUpdater(notify);
 
   const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [importPrefill, setImportPrefill] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -47,6 +52,7 @@ export function App() {
   const [cooldownTarget, setCooldownTarget] = useState<AccountView | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [bulkCooldownIds, setBulkCooldownIds] = useState<string[]>([]);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const requestSignIn = useCallback(
     (steamid: string) => {
@@ -158,6 +164,16 @@ export function App() {
     [notify],
   );
 
+  const openImport = useCallback((prefill = "") => {
+    setImportPrefill(prefill);
+    setImportOpen(true);
+  }, []);
+
+  const closeSearch = useCallback(() => {
+    setSearchOpen(false);
+    setQuery("");
+  }, []);
+
   useEffect(() => {
     const subscriptions = [
       onStatus(notify),
@@ -169,15 +185,12 @@ export function App() {
           notify(`${names.length} accounts ready.`);
         }
       }),
-      onImportRequest((text) => {
-        setImportPrefill(text);
-        setImportOpen(true);
-      }),
+      onImportRequest((text) => openImport(text.trim())),
     ];
     return () => {
       subscriptions.forEach((subscription) => subscription.then((stop) => stop()));
     };
-  }, [notify]);
+  }, [notify, openImport]);
 
   useEffect(() => {
     if (error) {
@@ -186,8 +199,18 @@ export function App() {
   }, [error, notify]);
 
   useEffect(() => {
+    if (searchOpen) {
+      searchRef.current?.focus();
+    }
+  }, [searchOpen]);
+
+  useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (searchOpen) {
+          closeSearch();
+          return;
+        }
         clearSelection();
       }
       if (event.altKey && event.key === "Enter" && selectedIds.size === 1) {
@@ -196,40 +219,97 @@ export function App() {
           requestSignIn(steamid);
         }
       }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [clearSelection, requestSignIn, selectedIds]);
+  }, [clearSelection, closeSearch, requestSignIn, searchOpen, selectedIds]);
 
   const filtered = useMemo(() => filterAccounts(accounts, query), [accounts, query]);
+  const countLabel =
+    filtered.length === accounts.length
+      ? `${accounts.length}`
+      : `${filtered.length}/${accounts.length}`;
 
   return (
     <div className={styles.app}>
-      <div className={styles.toolbar}>
-        <div className={styles.searchWrap}>
-          <SearchIcon />
-          <input
-            className={styles.searchInput}
-            placeholder="Search accounts"
-            aria-label="Search accounts"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </div>
-        {accounts.length > 0 ? (
-          <span className={styles.count}>
-            {filtered.length === accounts.length
-              ? `${accounts.length}`
-              : `${filtered.length}/${accounts.length}`}
-          </span>
-        ) : null}
-        <button className="btn btn-accent btn-sm" onClick={() => setImportOpen(true)}>
-          Import
-        </button>
-        <button className="btn-icon" aria-label="Settings" onClick={() => setSettingsOpen(true)}>
-          <GearIcon />
-        </button>
-      </div>
+      <header className={styles.toolbar}>
+        {searchOpen ? (
+          <>
+            <SearchIcon className={styles.searchGlyph} aria-hidden="true" />
+            <Input
+              ref={searchRef}
+              className={styles.searchInput}
+              placeholder="Filter accounts"
+              aria-label="Filter accounts"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            {accounts.length > 0 ? (
+              <Badge variant="secondary" className={styles.count}>
+                {countLabel}
+              </Badge>
+            ) : null}
+            <Hint label="Close search">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Close search"
+                onClick={closeSearch}
+              >
+                <XIcon />
+              </Button>
+            </Hint>
+          </>
+        ) : (
+          <>
+            <div className={styles.brand}>
+              <span className={styles.title}>Roster</span>
+              {accounts.length > 0 ? (
+                <Badge variant="secondary" className={styles.count}>
+                  {accounts.length}
+                </Badge>
+              ) : null}
+            </div>
+            <div className={styles.actions}>
+              <Button
+                variant="outline"
+                size="sm"
+                className={styles.importBtn}
+                onClick={() => openImport()}
+              >
+                Import
+              </Button>
+              <Hint label="Search accounts">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Search accounts"
+                  onClick={() => setSearchOpen(true)}
+                >
+                  <SearchIcon />
+                </Button>
+              </Hint>
+              <Hint label="Settings">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Settings"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  <SettingsIcon />
+                </Button>
+              </Hint>
+            </div>
+          </>
+        )}
+      </header>
 
       <main className={styles.main}>
         <RosterList
@@ -259,15 +339,16 @@ export function App() {
       <footer className={styles.foot}>
         <div className={styles.footMeta}>
           <span className={styles.version}>v{currentVersion ?? "…"}</span>
-          <button
+          <Button
             type="button"
-            className={`btn-link ${styles.footLink}`}
+            variant="link"
+            size="sm"
+            className={styles.footLink}
             onClick={() => void commands.openExternalUrl(GITHUB_REPO)}
           >
             GitHub
-          </button>
+          </Button>
         </div>
-        <ResetControl />
       </footer>
 
       <ImportDialog
@@ -370,43 +451,4 @@ function cooldownMessage(account: AccountView | null, streamer: boolean): string
   return remaining
     ? `${name} is on cooldown for another ${remaining}. Sign in anyway?`
     : `${name} is on cooldown. Sign in anyway?`;
-}
-
-function GearIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      className={styles.searchIcon}
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <circle cx="11" cy="11" r="7" />
-      <path d="M20 20l-4-4" />
-    </svg>
-  );
 }

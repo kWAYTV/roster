@@ -1,4 +1,13 @@
-import { Modal } from "./modal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -12,7 +21,6 @@ interface ConfirmDialogProps {
   onClose: () => void;
 }
 
-/// A yes/no dialog built on `Modal`, used for destructive actions.
 export function ConfirmDialog({
   open,
   title,
@@ -25,17 +33,19 @@ export function ConfirmDialog({
   onClose,
 }: ConfirmDialogProps) {
   return (
-    <Modal
-      open={open}
-      title={title}
-      onClose={onClose}
-      footer={
-        <>
-          <button className="btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button
-            className={danger ? "btn btn-danger" : "btn btn-accent"}
+    <AlertDialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <AlertDialogContent size="default">
+        <AlertDialogHeader>
+          <AlertDialogTitle className={danger ? "text-destructive" : undefined}>
+            {title}
+          </AlertDialogTitle>
+          <AlertDialogDescription>{message}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel size="sm">Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            size="sm"
+            variant={danger ? "destructive" : "default"}
             disabled={confirmDisabled}
             onClick={() => {
               onConfirm();
@@ -45,11 +55,9 @@ export function ConfirmDialog({
             }}
           >
             {confirmLabel}
-          </button>
-        </>
-      }
-    >
-      <p>{message}</p>
-    </Modal>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

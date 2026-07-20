@@ -1,3 +1,4 @@
+import { Hint } from "@/components/hint";
 import type { AccountStatus } from "./status";
 import styles from "./status-dot.module.css";
 
@@ -7,10 +8,13 @@ export function StatusDot({ status }: { status?: AccountStatus }) {
     return null;
   }
   const inGame = status.state === "in-game";
+  const label = inGame && status.game ? `In-game: ${status.game}` : "Online";
+
   return (
-    <span
-      className={inGame ? `${styles.dot} ${styles.ingame}` : `${styles.dot} ${styles.online}`}
-      title={inGame && status.game ? `In-game: ${status.game}` : "Online"}
-    />
+    <Hint label={label}>
+      <span
+        className={inGame ? `${styles.dot} ${styles.ingame}` : `${styles.dot} ${styles.online}`}
+      />
+    </Hint>
   );
 }

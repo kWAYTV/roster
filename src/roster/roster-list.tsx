@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 
 import { AccountRow } from "./account-row";
 import { BulkBar } from "./bulk-bar";
@@ -80,7 +81,7 @@ export function RosterList({
     return (
       <div className={styles.empty}>
         <p className={styles.emptyTitle}>No accounts yet</p>
-        <p className={styles.emptyHint}>Import a refresh token to add your first account.</p>
+        <p className={styles.emptyHint}>Use Import → Add account to get started.</p>
       </div>
     );
   }
@@ -88,42 +89,47 @@ export function RosterList({
   const selectedSteamids = selectedAccounts.map((account) => account.steamid);
 
   return (
-    <div className={styles.list}>
-      <BulkBar
-        count={selectedAccounts.length}
-        exportCount={exportCountFor(selectedSteamids)}
-        onClear={onClearSelection}
-        onCooldown={(seconds) => onCooldown(selectedSteamids, seconds)}
-        onClearCooldown={() => onClearCooldown(selectedSteamids)}
-        onCopyExport={() => onCopyExport(selectedSteamids)}
-        onRemove={() => onRemove(selectedAccounts)}
-      />
-      {accounts.map((account, index) => {
-        const targets = menuTargetsFor(account);
-        return (
-          <AccountRow
-            key={account.steamid}
-            account={account}
-            index={index}
-            streamer={streamer}
-            busy={pending === account.steamid}
-            selected={selectedIds.has(account.steamid)}
-            status={statuses[account.steamid]}
-            menuTargets={targets}
-            exportCount={exportCountFor(targets.map((item) => item.steamid))}
-            onSelect={onSelect}
-            onSignIn={onSignIn}
-            onRemove={onRemove}
-            onCopyUsername={onCopyUsername}
-            onOpenProfile={onOpenProfile}
-            onCopyExport={onCopyExport}
-            onExportFile={onExportFile}
-            onCooldown={onCooldown}
-            onClearCooldown={onClearCooldown}
-            onCustomCooldown={onCustomCooldown}
-          />
-        );
-      })}
-    </div>
+    <>
+      <div className={styles.list}>
+        {accounts.map((account, index) => {
+          const targets = menuTargetsFor(account);
+          return (
+            <AccountRow
+              key={account.steamid}
+              account={account}
+              index={index}
+              streamer={streamer}
+              busy={pending === account.steamid}
+              selected={selectedIds.has(account.steamid)}
+              status={statuses[account.steamid]}
+              menuTargets={targets}
+              exportCount={exportCountFor(targets.map((item) => item.steamid))}
+              onSelect={onSelect}
+              onSignIn={onSignIn}
+              onRemove={onRemove}
+              onCopyUsername={onCopyUsername}
+              onOpenProfile={onOpenProfile}
+              onCopyExport={onCopyExport}
+              onExportFile={onExportFile}
+              onCooldown={onCooldown}
+              onClearCooldown={onClearCooldown}
+              onCustomCooldown={onCustomCooldown}
+            />
+          );
+        })}
+      </div>
+      {createPortal(
+        <BulkBar
+          count={selectedAccounts.length}
+          exportCount={exportCountFor(selectedSteamids)}
+          onClear={onClearSelection}
+          onCooldown={(seconds) => onCooldown(selectedSteamids, seconds)}
+          onClearCooldown={() => onClearCooldown(selectedSteamids)}
+          onCopyExport={() => onCopyExport(selectedSteamids)}
+          onRemove={() => onRemove(selectedAccounts)}
+        />,
+        document.body,
+      )}
+    </>
   );
 }

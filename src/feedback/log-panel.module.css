@@ -2,7 +2,7 @@
   flex-shrink: 0;
   margin: 0 var(--space-4) var(--space-3);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--r);
   background: var(--control-bg);
   overflow: hidden;
 }
@@ -15,7 +15,7 @@
   overflow-x: hidden;
   font: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--muted);
+  color: var(--text-muted);
   white-space: pre-wrap;
   word-break: break-word;
 }

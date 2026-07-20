@@ -1,3 +1,13 @@
+import { ChevronDownIcon } from "lucide-react";
+
+import { Hint } from "@/components/hint";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
 import styles from "./bulk-bar.module.css";
 
@@ -24,46 +34,71 @@ export function BulkBar({
     return null;
   }
 
+  const copyLabel =
+    exportCount === 0
+      ? "Copy"
+      : exportCount === count
+        ? `Copy ${exportCount}`
+        : `Copy ${exportCount}/${count}`;
+
   return (
     <div className={styles.bar}>
       <span className={styles.label}>{count} selected</span>
       <div className={styles.actions}>
-        <select
-          className={`field ${styles.select}`}
-          defaultValue=""
-          onChange={(event) => {
-            const seconds = Number(event.target.value);
-            if (seconds > 0) {
-              onCooldown(seconds);
-              event.target.value = "";
-            }
-          }}
-        >
-          <option value="" disabled>
-            Set cooldown…
-          </option>
-          {COOLDOWN_PRESETS.map((preset) => (
-            <option key={preset.seconds} value={preset.seconds}>
-              {preset.label}
-            </option>
-          ))}
-        </select>
-        <button className="btn btn-ghost btn-sm" onClick={onClearCooldown}>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="outline" size="xs" className={styles.cooldownBtn} />}
+          >
+            Cooldown
+            <ChevronDownIcon />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="min-w-36 w-auto">
+            {COOLDOWN_PRESETS.map((preset) => (
+              <DropdownMenuItem
+                key={preset.seconds}
+                onClick={() => onCooldown(preset.seconds)}
+              >
+                {preset.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button variant="ghost" size="xs" onClick={onClearCooldown}>
           Clear CD
-        </button>
-        <button
-          className="btn btn-ghost btn-sm"
-          disabled={exportCount === 0}
-          onClick={onCopyExport}
+        </Button>
+        {exportCount < count ? (
+          <Hint
+            label={
+              exportCount === 0
+                ? "No saved tokens on selected accounts"
+                : `${count - exportCount} selected account(s) have no saved token`
+            }
+          >
+            <Button
+              variant="ghost"
+              size="xs"
+              disabled={exportCount === 0}
+              onClick={onCopyExport}
+            >
+              {copyLabel}
+            </Button>
+          </Hint>
+        ) : (
+          <Button variant="ghost" size="xs" onClick={onCopyExport}>
+            {copyLabel}
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="xs"
+          className="text-destructive hover:bg-destructive/15 hover:text-destructive"
+          onClick={onRemove}
         >
-          Copy {exportCount}
-        </button>
-        <button className="btn btn-ghost btn-sm btn-ghost-danger" onClick={onRemove}>
           Remove
-        </button>
-        <button className="btn btn-ghost btn-sm" onClick={onClear}>
+        </Button>
+        <Button variant="ghost" size="xs" onClick={onClear}>
           Done
-        </button>
+        </Button>
       </div>
     </div>
   );

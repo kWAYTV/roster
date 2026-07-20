@@ -3,16 +3,15 @@
   --panel: #0a0a0a;
   --panel-raised: #161616;
   --panel-hover: #1c1c1c;
-  --border: #1f1f1f;
   --border-strong: #2e2e2e;
   --text: #ededed;
   --text-secondary: #b3b3b3;
-  --muted: #a1a1a1;
+  --text-muted: #a1a1a1;
 
-  --accent: #ffffff;
-  --accent-fg: #000000;
-  --accent-hover: #e5e5e5;
-  --accent-soft: rgba(255, 255, 255, 0.08);
+  --brand: #ffffff;
+  --brand-fg: #000000;
+  --brand-hover: #e5e5e5;
+  --brand-soft: rgba(255, 255, 255, 0.08);
 
   --danger: #e5484d;
   --danger-soft: rgba(229, 72, 77, 0.12);
@@ -29,10 +28,10 @@
   --control-border: #2e2e2e;
   --focus-ring: rgba(255, 255, 255, 0.35);
 
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius: 8px;
-  --radius-lg: 12px;
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r: 8px;
+  --r-lg: 12px;
 
   --space-1: 4px;
   --space-2: 8px;

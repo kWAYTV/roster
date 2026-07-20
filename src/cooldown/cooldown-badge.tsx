@@ -1,3 +1,4 @@
+import { Hint } from "@/components/hint";
 import { cooldownProgress, formatRemaining, isCooldownActive, nowSeconds } from "./cooldown";
 import { useNow } from "./use-now";
 import styles from "./cooldown-badge.module.css";
@@ -20,14 +21,15 @@ export function CooldownBadge({ until, duration }: CooldownBadgeProps) {
   const percent = Math.round(cooldownProgress(until, duration, now) * 100);
 
   return (
-    <span
-      className={styles.badge}
-      style={{
-        background: `linear-gradient(to right, var(--danger-soft) ${percent}%, transparent ${percent}%)`,
-      }}
-      title={`Cooldown ends ${new Date(until * 1000).toLocaleString()}`}
-    >
-      CD {formatRemaining(until, now)}
-    </span>
+    <Hint label={`Cooldown ends ${new Date(until * 1000).toLocaleString()}`}>
+      <span
+        className={styles.badge}
+        style={{
+          background: `linear-gradient(to right, var(--danger-soft) ${percent}%, transparent ${percent}%)`,
+        }}
+      >
+        CD {formatRemaining(until, now)}
+      </span>
+    </Hint>
   );
 }

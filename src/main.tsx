@@ -1,8 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { App } from "./app";
-import { ToastProvider } from "./feedback/toast";
+import "./index.css";
 import "./theme/tokens.css";
 import "./theme/globals.css";
 
@@ -13,8 +15,9 @@ if (!container) {
 
 createRoot(container).render(
   <React.StrictMode>
-    <ToastProvider>
+    <TooltipProvider delay={400}>
       <App />
-    </ToastProvider>
+      <Toaster position="bottom-right" richColors closeButton />
+    </TooltipProvider>
   </React.StrictMode>,
 );

@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
+import { ArrowRightIcon, Loader2Icon, TrashIcon } from "lucide-react";
 
+import { Hint } from "@/components/hint";
+import { Button } from "@/components/ui/button";
 import { CooldownBadge } from "../cooldown/cooldown-badge";
 import { CooldownMenu } from "../cooldown/cooldown-menu";
 import { StatusDot } from "../status/status-dot";
@@ -59,14 +62,11 @@ export function AccountRow({
   const jwtLabel = formatJwtExpiry(account.jwt_expires_in);
   const rowClass = useMemo(() => {
     const parts = [styles.row];
-    if (account.most_recent) {
-      parts.push(styles.recent);
-    }
     if (selected) {
       parts.push(styles.selected);
     }
     return parts.join(" ");
-  }, [account.most_recent, selected]);
+  }, [selected]);
 
   return (
     <>
@@ -114,23 +114,29 @@ export function AccountRow({
           </div>
         </div>
         <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
-          <button
-            className="btn btn-accent btn-sm"
-            disabled={busy}
-            onClick={() => onSignIn(account.steamid)}
-          >
-            {busy ? "\u2026" : "Sign in"}
-          </button>
+          <Hint label="Sign in">
+            <Button
+              size="icon-sm"
+              aria-label="Sign in"
+              disabled={busy}
+              onClick={() => onSignIn(account.steamid)}
+            >
+              {busy ? <Loader2Icon className="animate-spin" /> : <ArrowRightIcon />}
+            </Button>
+          </Hint>
           <CooldownMenu steamid={account.steamid} until={account.cooldown_until} disabled={busy} />
-          <button
-            className="btn-icon btn-ghost-danger"
-            aria-label="Remove account"
-            title="Remove"
-            disabled={busy}
-            onClick={() => onRemove([account])}
-          >
-            <TrashIcon />
-          </button>
+          <Hint label="Remove">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Remove account"
+              disabled={busy}
+              className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+              onClick={() => onRemove([account])}
+            >
+              <TrashIcon />
+            </Button>
+          </Hint>
         </div>
       </div>
       {menu ? (
@@ -153,24 +159,5 @@ export function AccountRow({
         />
       ) : null}
     </>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </svg>
   );
 }
