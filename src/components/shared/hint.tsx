@@ -14,7 +14,7 @@ interface HintProps {
   side?: Side;
 }
 
-/** shadcn tooltip wrapper for icon buttons and badges. */
+/** Tooltip wrapper for icon buttons and badges. */
 export function Hint({ label, children, side = "top" }: HintProps) {
   return (
     <Tooltip>
