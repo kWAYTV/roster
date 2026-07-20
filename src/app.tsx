@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SearchIcon, SettingsIcon, XIcon } from "lucide-react";
-
-import { Hint } from "@/components/hint";
+import { SearchIcon } from "@/components/icons/search";
+import { SettingsIcon } from "@/components/icons/settings";
+import { XIcon } from "@/components/icons/x";
+import { Hint } from "@/components/shared/hint";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -239,7 +240,7 @@ export function App() {
       <header className={styles.toolbar}>
         {searchOpen ? (
           <>
-            <SearchIcon className={styles.searchGlyph} aria-hidden="true" />
+            <SearchIcon size={15} className={styles.searchGlyph} aria-hidden="true" />
             <Input
               ref={searchRef}
               className={styles.searchInput}
@@ -261,7 +262,7 @@ export function App() {
                 aria-label="Close search"
                 onClick={closeSearch}
               >
-                <XIcon />
+                <XIcon size={16} />
               </Button>
             </Hint>
           </>
@@ -276,12 +277,7 @@ export function App() {
               ) : null}
             </div>
             <div className={styles.actions}>
-              <Button
-                variant="outline"
-                size="sm"
-                className={styles.importBtn}
-                onClick={() => openImport()}
-              >
+              <Button variant="outline" size="sm" onClick={() => openImport()}>
                 Import
               </Button>
               <Hint label="Search accounts">
@@ -292,7 +288,7 @@ export function App() {
                   aria-label="Search accounts"
                   onClick={() => setSearchOpen(true)}
                 >
-                  <SearchIcon />
+                  <SearchIcon size={16} />
                 </Button>
               </Hint>
               <Hint label="Settings">
@@ -303,7 +299,7 @@ export function App() {
                   aria-label="Settings"
                   onClick={() => setSettingsOpen(true)}
                 >
-                  <SettingsIcon />
+                  <SettingsIcon size={16} />
                 </Button>
               </Hint>
             </div>
@@ -337,18 +333,15 @@ export function App() {
       <LogPanel visible={preferences.show_log_panel} />
 
       <footer className={styles.foot}>
-        <div className={styles.footMeta}>
-          <span className={styles.version}>v{currentVersion ?? "…"}</span>
-          <Button
-            type="button"
-            variant="link"
-            size="sm"
-            className={styles.footLink}
-            onClick={() => void commands.openExternalUrl(GITHUB_REPO)}
-          >
-            GitHub
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => void commands.openExternalUrl(GITHUB_REPO)}
+        >
+          GitHub
+        </Button>
+        <span className={styles.version}>v{currentVersion ?? "…"}</span>
       </footer>
 
       <ImportDialog
