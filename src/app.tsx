@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { PlusIcon } from "@/components/icons/plus";
 import { SearchIcon } from "@/components/icons/search";
 import { SettingsIcon } from "@/components/icons/settings";
 import { XIcon } from "@/components/icons/x";
@@ -277,9 +278,17 @@ export function App() {
               ) : null}
             </div>
             <div className={styles.actions}>
-              <Button variant="outline" size="sm" onClick={() => openImport()}>
-                Import
-              </Button>
+              <Hint label="Import">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Import"
+                  onClick={() => openImport()}
+                >
+                  <PlusIcon size={16} />
+                </Button>
+              </Hint>
               <Hint label="Search accounts">
                 <Button
                   type="button"
@@ -335,8 +344,9 @@ export function App() {
       <footer className={styles.foot}>
         <Button
           type="button"
-          variant="ghost"
+          variant="link"
           size="sm"
+          className="h-auto px-0"
           onClick={() => void commands.openExternalUrl(GITHUB_REPO)}
         >
           GitHub
