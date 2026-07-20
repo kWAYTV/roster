@@ -2,7 +2,7 @@ use tauri::menu::MenuEvent;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconEvent};
 use tauri::{AppHandle, Emitter};
 
-use super::menu::{IMPORT, QUIT, SHOW, SIGN_IN_PREFIX};
+use super::menu::{IMPORT, QUIT, SHOW, SIGN_IN_INVISIBLE_PREFIX, SIGN_IN_PREFIX};
 use super::{rebuild, window};
 
 /// Handle a click on any tray menu item.
@@ -11,7 +11,16 @@ pub(super) fn on_menu(app: &AppHandle, event: MenuEvent) {
         SHOW => window::show(app),
         QUIT => app.exit(0),
         IMPORT => import(app),
-        id if id.starts_with(SIGN_IN_PREFIX) => sign_in(app, id.trim_start_matches(SIGN_IN_PREFIX)),
+        id if id.starts_with(SIGN_IN_INVISIBLE_PREFIX) => {
+            sign_in(
+                app,
+                id.trim_start_matches(SIGN_IN_INVISIBLE_PREFIX),
+                true,
+            );
+        }
+        id if id.starts_with(SIGN_IN_PREFIX) => {
+            sign_in(app, id.trim_start_matches(SIGN_IN_PREFIX), false);
+        }
         _ => {}
     }
 }
@@ -35,11 +44,11 @@ fn import(app: &AppHandle) {
     let _ = app.emit("import-request", clipboard_or_empty());
 }
 
-fn sign_in(app: &AppHandle, steamid: &str) {
+fn sign_in(app: &AppHandle, steamid: &str, force_invisible: bool) {
     let Ok(account) = crate::bridge::find_account(steamid) else {
         return;
     };
-    match crate::login::sign_in(&account) {
+    match crate::login::sign_in(&account, force_invisible) {
         Ok(message) => announce(app, message),
         Err(error) => {
             crate::log::append(format!("Error: {error}"));

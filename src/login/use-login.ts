@@ -9,10 +9,10 @@ export function useSignIn() {
   const [pending, setPending] = useState<string | null>(null);
 
   const signIn = useCallback(
-    async (steamid: string) => {
+    async (steamid: string, forceInvisible = false) => {
       setPending(steamid);
       try {
-        notify(await commands.signIn(steamid));
+        notify(await commands.signIn(steamid, forceInvisible));
       } catch (cause) {
         notify(String(cause), "error");
       } finally {

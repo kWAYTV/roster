@@ -1,4 +1,4 @@
-use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
+use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{AppHandle, Runtime};
 
 use crate::roster::Account;
@@ -9,6 +9,7 @@ pub(super) const SHOW: &str = "show";
 pub(super) const IMPORT: &str = "import";
 pub(super) const QUIT: &str = "quit";
 pub(super) const SIGN_IN_PREFIX: &str = "signin:";
+pub(super) const SIGN_IN_INVISIBLE_PREFIX: &str = "signin-invisible:";
 
 /// Build the full tray menu: show, import, the account list, then quit.
 pub(super) fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
@@ -20,10 +21,25 @@ pub(super) fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
 
     let accounts = crate::roster::list_tray().unwrap_or_default();
     let streamer = crate::preferences::load().streamer_mode;
-    let account_items = account_items(app, &accounts, streamer)?;
 
+    if accounts.is_empty() {
+        let empty = MenuItem::with_id(app, "empty", "No accounts", false, None::<&str>)?;
+        return Menu::with_items(
+            app,
+            &[
+                &show,
+                &import,
+                &separator_top,
+                &empty,
+                &separator_bottom,
+                &quit,
+            ],
+        );
+    }
+
+    let account_menus = account_submenus(app, &accounts, streamer)?;
     let mut items: Vec<&dyn tauri::menu::IsMenuItem<R>> = vec![&show, &import, &separator_top];
-    for item in &account_items {
+    for item in &account_menus {
         items.push(item);
     }
     items.push(&separator_bottom);
@@ -32,41 +48,50 @@ pub(super) fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     Menu::with_items(app, &items)
 }
 
-fn account_items<R: Runtime>(
+fn account_submenus<R: Runtime>(
     app: &AppHandle<R>,
     accounts: &[Account],
     streamer: bool,
-) -> tauri::Result<Vec<MenuItem<R>>> {
-    if accounts.is_empty() {
-        return Ok(vec![MenuItem::with_id(
-            app,
-            "empty",
-            "No accounts",
-            false,
-            None::<&str>,
-        )?]);
-    }
-
+) -> tauri::Result<Vec<Submenu<R>>> {
     accounts
         .iter()
         .enumerate()
         .map(|(index, account)| {
-            let id = format!("{SIGN_IN_PREFIX}{}", account.steamid);
-            MenuItem::with_id(app, id, label(account, index, streamer), true, None::<&str>)
+            let sign_in = MenuItem::with_id(
+                app,
+                format!("{SIGN_IN_PREFIX}{}", account.steamid),
+                "Sign in",
+                true,
+                None::<&str>,
+            )?;
+            let invisible = MenuItem::with_id(
+                app,
+                format!("{SIGN_IN_INVISIBLE_PREFIX}{}", account.steamid),
+                "Sign in invisible",
+                true,
+                None::<&str>,
+            )?;
+            Submenu::with_items(
+                app,
+                label(account, index, streamer),
+                true,
+                &[&sign_in, &invisible],
+            )
         })
         .collect()
 }
 
 fn label(account: &Account, index: usize, streamer: bool) -> String {
+    let pin = if account.metadata.pinned { "★ " } else { "" };
     let base = if streamer {
         format!("Account {}", index + 1)
     } else {
         truncate(account.display_name())
     };
     if account.most_recent {
-        format!("{base}  •")
+        format!("{pin}{base}  •")
     } else {
-        base
+        format!("{pin}{base}")
     }
 }
 
