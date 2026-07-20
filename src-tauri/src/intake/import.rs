@@ -1,14 +1,16 @@
-//! The import use case: parse entries, store tokens, then sign in the last one.
+//! The import use case: parse entries, store tokens, optionally sign in the last one.
 
 use std::path::Path;
 
 use super::{batch, jwt, parse};
-use crate::login;
+use crate::login::{self, SignInPrefs};
 use crate::preferences;
 use crate::steam_client::{cache_dir, install_dir, stop};
 use crate::steam_config::{config_vdf, connect_cache, loginusers};
 
-/// Import one or more accounts from pasted `text` and start Steam on the last.
+/// Import one or more accounts from pasted `text`.
+///
+/// When `import_without_sign_in` is set, tokens are stored only — Steam is left alone.
 pub fn import_text(text: &str) -> Result<String, String> {
     let entries = batch::split(text);
     if entries.is_empty() {
@@ -39,9 +41,14 @@ pub fn import_text(text: &str) -> Result<String, String> {
     };
 
     let prefs = preferences::load();
+    if prefs.import_without_sign_in {
+        return Ok(summary_store_only(stored, &username, &failures));
+    }
+
     stop()?;
-    login::activate(&username, &steamid, &install, &prefs)?;
-    login::relaunch(&install, &steamid, &prefs)?;
+    let sign_prefs = SignInPrefs::merge(&prefs, &Default::default(), false);
+    login::activate(&username, &steamid, &install, &sign_prefs)?;
+    login::relaunch(&install, &steamid, &sign_prefs)?;
     crate::metadata::mark_used(&steamid);
     Ok(summary(stored, &username, &failures))
 }
@@ -68,6 +75,19 @@ fn summary(stored: usize, username: &str, failures: &[String]) -> String {
     } else {
         format!("Imported {stored} accounts")
     };
+    with_failures(base, failures)
+}
+
+fn summary_store_only(stored: usize, username: &str, failures: &[String]) -> String {
+    let base = if stored == 1 {
+        format!("Stored {username}")
+    } else {
+        format!("Stored {stored} accounts")
+    };
+    with_failures(base, failures)
+}
+
+fn with_failures(base: String, failures: &[String]) -> String {
     if failures.is_empty() {
         return base;
     }

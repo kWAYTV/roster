@@ -18,6 +18,8 @@ interface SettingsDialogProps {
   onChange: (key: keyof Preferences, value: boolean) => void;
   onCheckForUpdates: () => void;
   onClose: () => void;
+  onExportMetadata: () => void;
+  onImportMetadata: () => void;
   onPatch: (patch: Partial<Preferences>) => void;
   open: boolean;
   preferences: Preferences;
@@ -32,6 +34,8 @@ export function SettingsDialog({
   onChange,
   onPatch,
   onCheckForUpdates,
+  onExportMetadata,
+  onImportMetadata,
   onClose,
 }: SettingsDialogProps) {
   const [tab, setTab] = useState("sign-in");
@@ -104,6 +108,8 @@ export function SettingsDialog({
               currentVersion={currentVersion}
               onChange={onChange}
               onCheckForUpdates={onCheckForUpdates}
+              onExportMetadata={onExportMetadata}
+              onImportMetadata={onImportMetadata}
               onPatch={onPatch}
               onRequestReset={requestReset}
               preferences={preferences}

@@ -38,6 +38,8 @@ interface ShellDialogsProps {
   onConfirmCooldownSignIn: () => void;
   onConfirmRemove: () => void;
   onDismissUpdate: () => void;
+  onExportMetadata: () => void;
+  onImportMetadata: () => void;
   onInstallUpdate: () => void;
   onPatchPreferences: (patch: Partial<Preferences>) => void;
   onStartBulkCooldown: (seconds: number) => void;
@@ -71,6 +73,8 @@ export function ShellDialogs({
   onCloseCooldown,
   onStartBulkCooldown,
   onCloseBulkCooldown,
+  onExportMetadata,
+  onImportMetadata,
 }: ShellDialogsProps) {
   return (
     <>
@@ -88,6 +92,8 @@ export function ShellDialogs({
             onChange={onChangePreference}
             onCheckForUpdates={onCheckForUpdates}
             onClose={onCloseSettings}
+            onExportMetadata={onExportMetadata}
+            onImportMetadata={onImportMetadata}
             onPatch={onPatchPreferences}
             open={settingsOpen}
             preferences={preferences}

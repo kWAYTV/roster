@@ -4,12 +4,15 @@ export interface Preferences {
   cancel_downloads_on_login: boolean;
   cs2_launch_options: string;
   hide_from_capture: boolean;
+  import_without_sign_in: boolean;
   launch_cs2_on_login: boolean;
   launch_steam_minimized: boolean;
   minimize_to_tray_on_close: boolean;
   mute_notifications_on_login: boolean;
   show_log_panel: boolean;
   streamer_mode: boolean;
+  /** 0 = disabled. */
+  warn_jwt_expiry_days: number;
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -17,10 +20,12 @@ export const DEFAULT_PREFERENCES: Preferences = {
   cancel_downloads_on_login: false,
   cs2_launch_options: "",
   hide_from_capture: true,
+  import_without_sign_in: false,
   launch_cs2_on_login: false,
   launch_steam_minimized: false,
   minimize_to_tray_on_close: true,
   mute_notifications_on_login: false,
   show_log_panel: false,
   streamer_mode: false,
+  warn_jwt_expiry_days: 7,
 };
