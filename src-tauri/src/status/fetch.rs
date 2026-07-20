@@ -1,4 +1,5 @@
-use std::thread::sleep;
+use std::sync::{mpsc, Arc, Mutex};
+use std::thread;
 use std::time::Duration;
 
 use base64::engine::general_purpose::STANDARD;
@@ -6,8 +7,10 @@ use base64::Engine;
 
 use super::profile::{self, ProfileStatus};
 
-/// Pause between requests so a large roster stays under Steam's rate limits.
-const THROTTLE: Duration = Duration::from_millis(400);
+/// Concurrent workers with light spacing so large rosters finish faster
+/// without slamming Steam Community.
+const WORKERS: usize = 4;
+const THROTTLE: Duration = Duration::from_millis(120);
 const TIMEOUT: Duration = Duration::from_secs(10);
 
 pub struct FetchedProfile {
@@ -15,14 +18,42 @@ pub struct FetchedProfile {
     pub avatar: Option<String>,
 }
 
-/// Fetch each account's profile in order, reporting results one at a time.
+/// Fetch each account's profile, reporting results as they arrive.
 /// A failed fetch yields `None` so callers can keep whatever they had.
-pub fn sweep(steamids: &[String], mut on_result: impl FnMut(&str, Option<FetchedProfile>)) {
-    for (index, steamid) in steamids.iter().enumerate() {
-        if index > 0 {
-            sleep(THROTTLE);
-        }
-        on_result(steamid, fetch_one(steamid));
+pub fn sweep(steamids: &[String], on_result: impl FnMut(&str, Option<FetchedProfile>) + Send) {
+    if steamids.is_empty() {
+        return;
+    }
+
+    let (tx, rx) = mpsc::channel::<(String, Option<FetchedProfile>)>();
+    let queue = Arc::new(Mutex::new(steamids.to_vec()));
+    let worker_count = WORKERS.min(steamids.len()).max(1);
+
+    for _ in 0..worker_count {
+        let queue = Arc::clone(&queue);
+        let tx = tx.clone();
+        thread::spawn(move || {
+            loop {
+                let steamid = {
+                    let mut guard = queue.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+                    if guard.is_empty() {
+                        break;
+                    }
+                    guard.remove(0)
+                };
+                let fetched = fetch_one(&steamid);
+                if tx.send((steamid, fetched)).is_err() {
+                    break;
+                }
+                thread::sleep(THROTTLE);
+            }
+        });
+    }
+    drop(tx);
+
+    let mut on_result = on_result;
+    while let Ok((steamid, fetched)) = rx.recv() {
+        on_result(&steamid, fetched);
     }
 }
 

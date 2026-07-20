@@ -37,15 +37,13 @@ fn start_sweep(app: AppHandle) {
     }
 
     let accounts: Vec<Account> = crate::roster::list_tray().unwrap_or_default();
-    let steamids: Vec<String> = accounts
-        .iter()
-        .map(|account| account.steamid.clone())
-        .collect();
-
-    if steamids.is_empty() {
-        SWEEPING.store(false, Ordering::SeqCst);
-        return;
-    }
+    let steamids = match crate::roster::steamids() {
+        Ok(ids) if !ids.is_empty() => ids,
+        _ => {
+            SWEEPING.store(false, Ordering::SeqCst);
+            return;
+        }
+    };
 
     std::thread::spawn(move || {
         sweep(&steamids, |steamid, fetched| {

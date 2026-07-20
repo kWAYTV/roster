@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { useToast } from "../feedback/toast";
 import { onAccountStatus, onAccountsChanged } from "../platform/events";
 import { commands } from "../platform/invoke";
 import type { ProfilePatch } from "../roster/use-roster";
@@ -14,7 +15,9 @@ export function useStatus(
   rosterReady: boolean,
   onProfile?: (patch: ProfilePatch) => void
 ): StatusMap {
+  const { notify } = useToast();
   const [statuses, setStatuses] = useState<StatusMap>({});
+  const failureNotified = useRef(false);
 
   useEffect(() => {
     if (!rosterReady) {
@@ -22,9 +25,13 @@ export function useStatus(
     }
 
     const refresh = () => {
-      commands
-        .refreshStatuses()
-        .catch((cause) => console.error("Status refresh failed:", cause));
+      commands.refreshStatuses().catch((cause) => {
+        if (failureNotified.current) {
+          return;
+        }
+        failureNotified.current = true;
+        notify(`Status refresh failed: ${cause}`, "error");
+      });
     };
 
     const startup = window.setTimeout(refresh, STARTUP_DELAY_MS);
@@ -57,7 +64,7 @@ export function useStatus(
       }
       clearInterval(timer);
     };
-  }, [onProfile, rosterReady]);
+  }, [notify, onProfile, rosterReady]);
 
   return statuses;
 }
