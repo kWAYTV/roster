@@ -221,7 +221,7 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
         <section className="flex flex-col gap-2">
           <div className="font-medium text-sm">Multiple accounts</div>
           <Textarea
-            className="min-h-28 font-mono text-xs"
+            className="min-h-28 resize-none font-mono text-xs"
             disabled={busy}
             onChange={handleBulkChange}
             placeholder={"steamid----token\none account per line"}
