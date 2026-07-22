@@ -27,7 +27,11 @@ export function useShellUi() {
 
   const openImport = useCallback(
     (prefill = "") => {
-      dispatch({ prefill, type: "open-import" });
+      // Click handlers pass a MouseEvent as arg1 — only accept real strings.
+      dispatch({
+        prefill: typeof prefill === "string" ? prefill : "",
+        type: "open-import",
+      });
     },
     [dispatch]
   );

@@ -55,6 +55,10 @@ export function Toolbar({
     [onQueryChange]
   );
 
+  const handleOpenImport = useCallback(() => {
+    onOpenImport();
+  }, [onOpenImport]);
+
   const viewMenu = (
     <ViewMenu
       filter={filter}
@@ -116,7 +120,7 @@ export function Toolbar({
             <Hint label="Import">
               <Button
                 aria-label="Import"
-                onClick={onOpenImport}
+                onClick={handleOpenImport}
                 size="icon-sm"
                 type="button"
                 variant="ghost"

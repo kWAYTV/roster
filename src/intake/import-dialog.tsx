@@ -260,7 +260,7 @@ function seedFields(prefill: string | undefined): {
   bulk: string;
   single: string;
 } {
-  const next = prefill?.trim() ?? "";
+  const next = typeof prefill === "string" ? prefill.trim() : "";
   if (!next) {
     return { bulk: "", single: "" };
   }
