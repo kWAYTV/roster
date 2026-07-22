@@ -1,25 +1,14 @@
-import { lazy, Suspense } from "react";
-
 import { CooldownDialog } from "../cooldown/cooldown-dialog";
 import { ConfirmDialog } from "../feedback/confirm-dialog";
+import { ImportDialog } from "../intake/import-dialog";
 import type { Preferences } from "../preferences/preferences";
+import { SettingsDialog } from "../preferences/settings-dialog";
 import type { AccountView } from "../roster/account";
 import { cooldownMessage, removeMessage } from "./confirm-messages";
 
 interface AvailableUpdate {
   version: string;
 }
-
-const ImportDialog = lazy(() =>
-  import("../intake/import-dialog").then((module) => ({
-    default: module.ImportDialog,
-  }))
-);
-const SettingsDialog = lazy(() =>
-  import("../preferences/settings-dialog").then((module) => ({
-    default: module.SettingsDialog,
-  }))
-);
 
 interface ShellDialogsProps {
   available: AvailableUpdate | null;
@@ -28,6 +17,7 @@ interface ShellDialogsProps {
   currentVersion: string | null;
   importOpen: boolean;
   importPrefill: string;
+  importSession: number;
   onChangePreference: (key: keyof Preferences, value: boolean) => void;
   onCheckForUpdates: () => void;
   onCloseBulkCooldown: () => void;
@@ -52,6 +42,7 @@ interface ShellDialogsProps {
 export function ShellDialogs({
   importOpen,
   importPrefill,
+  importSession,
   settingsOpen,
   preferences,
   currentVersion,
@@ -78,30 +69,28 @@ export function ShellDialogs({
 }: ShellDialogsProps) {
   return (
     <>
-      <Suspense fallback={null}>
-        {importOpen ? (
-          <ImportDialog
-            key={importPrefill || "import"}
-            onClose={onCloseImport}
-            open={importOpen}
-            prefill={importPrefill}
-          />
-        ) : null}
-        {settingsOpen ? (
-          <SettingsDialog
-            currentVersion={currentVersion}
-            onChange={onChangePreference}
-            onCheckForUpdates={onCheckForUpdates}
-            onClose={onCloseSettings}
-            onExportMetadata={onExportMetadata}
-            onImportMetadata={onImportMetadata}
-            onPatch={onPatchPreferences}
-            open={settingsOpen}
-            preferences={preferences}
-            updateBusy={updateBusy}
-          />
-        ) : null}
-      </Suspense>
+      {/*
+        Eager + kept mounted while closing. Lazy Suspense(null) blanked the
+        window; unmounting while open left a stuck Base UI backdrop.
+      */}
+      <ImportDialog
+        key={importSession || "import"}
+        onClose={onCloseImport}
+        open={importOpen}
+        prefill={importPrefill}
+      />
+      <SettingsDialog
+        currentVersion={currentVersion}
+        onChange={onChangePreference}
+        onCheckForUpdates={onCheckForUpdates}
+        onClose={onCloseSettings}
+        onExportMetadata={onExportMetadata}
+        onImportMetadata={onImportMetadata}
+        onPatch={onPatchPreferences}
+        open={settingsOpen}
+        preferences={preferences}
+        updateBusy={updateBusy}
+      />
       <CooldownDialog
         onClose={onCloseBulkCooldown}
         onStart={onStartBulkCooldown}

@@ -5,6 +5,8 @@ export interface ShellUiState {
   cooldownTarget: AccountView | null;
   importOpen: boolean;
   importPrefill: string;
+  /** Bumps on each open so ImportDialog remounts with fresh prefill. */
+  importSession: number;
   query: string;
   removeTargets: AccountView[];
   searchOpen: boolean;
@@ -31,6 +33,7 @@ export const initialShellUi: ShellUiState = {
   cooldownTarget: null,
   importOpen: false,
   importPrefill: "",
+  importSession: 0,
   query: "",
   removeTargets: [],
   searchOpen: false,
@@ -53,9 +56,15 @@ export function shellUiReducer(
         ...state,
         importOpen: true,
         importPrefill: action.prefill ?? "",
+        // Remount only when opening from closed — remount-while-open orphans the portal.
+        importSession: state.importOpen
+          ? state.importSession
+          : state.importSession + 1,
       };
     case "close-import":
-      return { ...state, importOpen: false, importPrefill: "" };
+      // Keep session/prefill — dialog stays mounted with open=false so the
+      // portal can tear down cleanly (unmount-while-open left a stuck backdrop).
+      return { ...state, importOpen: false };
     case "open-settings":
       return { ...state, settingsOpen: true };
     case "close-settings":

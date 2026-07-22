@@ -278,6 +278,7 @@ export function App() {
         currentVersion={currentVersion}
         importOpen={ui.importOpen}
         importPrefill={ui.importPrefill}
+        importSession={ui.importSession}
         onChangePreference={setPreference}
         onCheckForUpdates={handleCheckForUpdates}
         onCloseBulkCooldown={closeBulkCooldown}
