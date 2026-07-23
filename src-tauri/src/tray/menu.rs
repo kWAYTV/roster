@@ -1,6 +1,9 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{AppHandle, Runtime};
 
+use crate::metadata::AccountMetadata;
 use crate::roster::Account;
 
 const MAX_LABEL: usize = 30;
@@ -88,11 +91,44 @@ fn label(account: &Account, index: usize, streamer: bool) -> String {
     } else {
         truncate(account.display_name())
     };
-    if account.most_recent {
-        format!("{pin}{base}  •")
-    } else {
-        format!("{pin}{base}")
+    let recent = if account.most_recent { "  •" } else { "" };
+    let cooldown = cooldown_suffix(&account.metadata);
+    format!("{pin}{base}{recent}{cooldown}")
+}
+
+fn cooldown_suffix(meta: &AccountMetadata) -> String {
+    let now = unix_now();
+    if meta.cooldown_until <= now {
+        return String::new();
     }
+    format!(" · {}", format_remaining(meta.cooldown_until - now))
+}
+
+fn format_remaining(seconds: u64) -> String {
+    if seconds < 60 {
+        return format!("{seconds}s");
+    }
+    if seconds < 3600 {
+        return format!("{}m", seconds / 60);
+    }
+    if seconds < 86_400 * 2 {
+        let hours = seconds / 3600;
+        let minutes = (seconds % 3600) / 60;
+        if minutes == 0 {
+            format!("{hours}h")
+        } else {
+            format!("{hours}h {minutes}m")
+        }
+    } else {
+        format!("{}d", seconds / 86_400)
+    }
+}
+
+fn unix_now() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
 }
 
 fn truncate(name: &str) -> String {
