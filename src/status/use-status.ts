@@ -36,6 +36,12 @@ export function useStatus(
     };
 
     const startup = window.setTimeout(refresh, STARTUP_DELAY_MS);
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
     const subscriptions = [
       onAccountStatus((payload) => {
         setStatuses((current) => ({
@@ -60,6 +66,7 @@ export function useStatus(
 
     return () => {
       window.clearTimeout(startup);
+      document.removeEventListener("visibilitychange", onVisibility);
       for (const subscription of subscriptions) {
         subscription
           .then((stop) => {
