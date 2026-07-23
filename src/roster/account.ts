@@ -8,6 +8,8 @@ export interface AccountView {
   cooldown_until: number;
   cs2_launch_options: string | null;
   display_name: string;
+  /** Whether a decryptable JWT is present in ConnectCache. */
+  has_token: boolean;
   initials: string;
   /** Seconds until JWT expiry; 0 = unknown/none; -1 = expired. */
   jwt_expires_in: number;

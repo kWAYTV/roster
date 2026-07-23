@@ -12,8 +12,10 @@ pub struct Account {
     pub avatar_path: Option<PathBuf>,
     pub most_recent: bool,
     pub metadata: AccountMetadata,
-    /// Seconds until JWT expiry; `-1` expired/missing, `0` unknown.
+    /// Seconds until JWT expiry; `-1` expired, `0` unknown/none.
     pub jwt_expires_in: i64,
+    /// Whether a decryptable JWT is present in ConnectCache.
+    pub has_token: bool,
 }
 
 impl Account {

@@ -4,9 +4,9 @@ import { useToast } from "../feedback/toast";
 import { commands } from "../platform/invoke";
 import type { AccountView } from "../roster/account";
 
-/** True when the account has a known, non-expired JWT the backend can export. */
+/** True when a non-expired JWT is present (unknown expiry still counts). */
 export function isExportable(account: AccountView): boolean {
-  return account.jwt_expires_in > 0;
+  return account.has_token && account.jwt_expires_in >= 0;
 }
 
 export function useExport() {

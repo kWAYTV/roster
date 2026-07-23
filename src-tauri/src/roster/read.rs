@@ -50,7 +50,9 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
         account.avatar_path = avatar::resolve(&install, account);
         account.metadata = metadata.get(&account.steamid).cloned().unwrap_or_default();
         if let Some(map) = token_cache.as_ref() {
-            account.jwt_expires_in = jwt_expires_in(map, account);
+            let (has_token, expires_in) = token_state(map, account);
+            account.has_token = has_token;
+            account.jwt_expires_in = expires_in;
         }
     }
 
@@ -64,7 +66,7 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
     Ok(accounts)
 }
 
-fn jwt_expires_in(map: &HashMap<String, String>, account: &Account) -> i64 {
+fn token_state(map: &HashMap<String, String>, account: &Account) -> (bool, i64) {
     for name in [&account.account_name, &account.steamid] {
         if name.is_empty() {
             continue;
@@ -75,9 +77,9 @@ fn jwt_expires_in(map: &HashMap<String, String>, account: &Account) -> i64 {
         if !is_jwt(&token) {
             continue;
         }
-        return expires_in(&token);
+        return (true, expires_in(&token));
     }
-    0
+    (false, 0)
 }
 
 /// Parse the `steamid { field ... }` blocks into accounts.
