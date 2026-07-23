@@ -125,6 +125,14 @@ export function App() {
     [notify]
   );
 
+  const handleReimport = useCallback(
+    (account: AccountView) => {
+      const label = account.account_name || account.steamid;
+      openImport(`${label}----`);
+    },
+    [openImport]
+  );
+
   const handleTogglePin = useCallback(
     (account: AccountView) => {
       const next = !account.pinned;
@@ -273,6 +281,7 @@ export function App() {
           onExportFile={exportFile}
           onImport={accounts.length === 0 ? openImport : undefined}
           onOpenProfile={openProfile}
+          onReimport={handleReimport}
           onRemove={askRemove}
           onSelect={selectAccount}
           onSignIn={requestSignIn}

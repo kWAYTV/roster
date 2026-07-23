@@ -26,6 +26,7 @@ interface RosterListProps {
   onExportFile: (steamids: string[]) => void;
   onImport?: () => void;
   onOpenProfile: (steamid: string) => void;
+  onReimport: (account: AccountView) => void;
   onRemove: (accounts: AccountView[]) => void;
   onSelect: (account: AccountView, additive: boolean) => void;
   onSignIn: (steamid: string, forceInvisible?: boolean) => void;
@@ -52,6 +53,7 @@ export function RosterList({
   onCopyUsername,
   onCopySteamId,
   onOpenProfile,
+  onReimport,
   onCopyExport,
   onExportFile,
   onCooldown,
@@ -153,6 +155,7 @@ export function RosterList({
               onEditOverrides={onEditOverrides}
               onExportFile={onExportFile}
               onOpenProfile={onOpenProfile}
+              onReimport={onReimport}
               onRemove={onRemove}
               onSelect={onSelect}
               onSignIn={onSignIn}

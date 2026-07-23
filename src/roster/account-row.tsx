@@ -40,6 +40,7 @@ interface AccountRowProps {
   onEditOverrides: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
   onOpenProfile: (steamid: string) => void;
+  onReimport: (account: AccountView) => void;
   onRemove: (accounts: AccountView[]) => void;
   onSelect: (account: AccountView, additive: boolean) => void;
   onSignIn: (steamid: string, forceInvisible?: boolean) => void;
@@ -64,6 +65,7 @@ export function AccountRow({
   onCopyUsername,
   onCopySteamId,
   onOpenProfile,
+  onReimport,
   onCopyExport,
   onExportFile,
   onCooldown,
@@ -231,6 +233,7 @@ export function AccountRow({
         onEditOverrides={onEditOverrides}
         onExportFile={onExportFile}
         onOpenProfile={onOpenProfile}
+        onReimport={onReimport}
         onRemove={onRemove}
         onSignIn={onSignIn}
         onTogglePin={onTogglePin}

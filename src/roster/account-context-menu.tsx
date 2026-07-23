@@ -38,6 +38,7 @@ interface AccountContextMenuProps {
   onEditOverrides: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
   onOpenProfile: (steamid: string) => void;
+  onReimport: (account: AccountView) => void;
   onRemove: (accounts: AccountView[]) => void;
   onSignIn: (steamid: string, forceInvisible?: boolean) => void;
   onTogglePin: (account: AccountView) => void;
@@ -57,6 +58,7 @@ export function AccountContextMenu({
   onOpenProfile,
   onCopyExport,
   onExportFile,
+  onReimport,
   onRemove,
   onCooldown,
   onClearCooldown,
@@ -114,9 +116,15 @@ export function AccountContextMenu({
     onRemove(targets);
   }, [onRemove, targets]);
 
+  const handleReimport = useCallback(() => {
+    onReimport(account);
+  }, [account, onReimport]);
+
   const handleTogglePin = useCallback(() => {
     onTogglePin(account);
   }, [account, onTogglePin]);
+
+  const needsToken = !account.has_token || account.jwt_expires_in < 0;
 
   const handleEditNote = useCallback(() => {
     onEditNote(account);
@@ -187,6 +195,11 @@ export function AccountContextMenu({
           <IconItem icon={<UserIcon />} onClick={handleOpenProfile}>
             Open profile
           </IconItem>
+          {needsToken ? (
+            <IconItem icon={<DownloadIcon />} onClick={handleReimport}>
+              Re-import token…
+            </IconItem>
+          ) : null}
         </ContextMenuGroup>
       )}
 
