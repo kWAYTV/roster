@@ -6,6 +6,7 @@ interface ShellShortcutsOptions {
   onInvertSelection: () => void;
   onSelectAll: () => void;
   openSearch: () => void;
+  requestRemoveSelection: () => void;
   requestSignIn: (steamid: string) => void;
   searchOpen: boolean;
   selectedIds: Set<string>;
@@ -17,6 +18,7 @@ export function useShellShortcuts({
   closeSearch,
   clearSelection,
   openSearch,
+  requestRemoveSelection,
   requestSignIn,
   onSelectAll,
   onInvertSelection,
@@ -29,6 +31,7 @@ export function useShellShortcuts({
         onInvertSelection,
         onSelectAll,
         openSearch,
+        requestRemoveSelection,
         requestSignIn,
         searchOpen,
         selectedIds,
@@ -42,6 +45,7 @@ export function useShellShortcuts({
     onInvertSelection,
     onSelectAll,
     openSearch,
+    requestRemoveSelection,
     requestSignIn,
     searchOpen,
     selectedIds,
@@ -56,6 +60,9 @@ function handleShortcut(
     return;
   }
   if (handleSignInShortcut(event, options)) {
+    return;
+  }
+  if (handleRemoveShortcut(event, options)) {
     return;
   }
   if (handleSearchShortcut(event, options)) {
@@ -96,6 +103,21 @@ function handleSignInShortcut(
     return true;
   }
   options.requestSignIn(steamid);
+  return true;
+}
+
+function handleRemoveShortcut(
+  event: KeyboardEvent,
+  options: Pick<ShellShortcutsOptions, "selectedIds" | "requestRemoveSelection">
+): boolean {
+  if (event.key !== "Delete" && event.key !== "Backspace") {
+    return false;
+  }
+  if (isEditable(event.target) || options.selectedIds.size === 0) {
+    return false;
+  }
+  event.preventDefault();
+  options.requestRemoveSelection();
   return true;
 }
 

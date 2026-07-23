@@ -156,6 +156,16 @@ export function App() {
     invertSelection(filtered);
   }, [filtered, invertSelection]);
 
+  const requestRemoveSelection = useCallback(() => {
+    const selected = accounts.filter((account) =>
+      selectedIds.has(account.steamid)
+    );
+    if (selected.length === 0) {
+      return;
+    }
+    askRemove(selected);
+  }, [accounts, askRemove, selectedIds]);
+
   useShellEvents({ notify, openImport });
   useShellShortcuts({
     clearSelection,
@@ -163,6 +173,7 @@ export function App() {
     onInvertSelection: handleInvertSelection,
     onSelectAll: handleSelectAll,
     openSearch,
+    requestRemoveSelection,
     requestSignIn,
     searchOpen: ui.searchOpen,
     selectedIds,
