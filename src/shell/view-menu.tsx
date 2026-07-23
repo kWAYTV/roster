@@ -20,6 +20,7 @@ const FILTERS: { id: RosterFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "pinned", label: "Pinned" },
   { id: "cooldown", label: "Cooldown" },
+  { id: "expiring", label: "Expiring soon" },
   { id: "expired", label: "Expired" },
   { id: "online", label: "Online" },
   { id: "offline", label: "Offline" },

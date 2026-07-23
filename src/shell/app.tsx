@@ -82,10 +82,19 @@ export function App() {
       ui.query,
       filter,
       statuses,
-      now || nowSeconds()
+      now || nowSeconds(),
+      preferences.warn_jwt_expiry_days
     );
     return sortAccounts(matched, sort);
-  }, [accounts, filter, now, sort, statuses, ui.query]);
+  }, [
+    accounts,
+    filter,
+    now,
+    preferences.warn_jwt_expiry_days,
+    sort,
+    statuses,
+    ui.query,
+  ]);
 
   const requestSignIn = useCallback(
     (steamid: string, forceInvisible = false) => {

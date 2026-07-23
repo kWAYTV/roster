@@ -7,6 +7,7 @@ export type RosterFilter =
   | "pinned"
   | "cooldown"
   | "expired"
+  | "expiring"
   | "online"
   | "offline";
 
@@ -17,11 +18,12 @@ export function filterAccounts(
   query: string,
   filter: RosterFilter,
   statuses: StatusMap,
-  nowSeconds: number
+  nowSeconds: number,
+  warnJwtDays = 0
 ): AccountView[] {
   const needle = query.trim().toLowerCase();
   return accounts.filter((account) => {
-    if (!matchesFilter(account, filter, statuses, nowSeconds)) {
+    if (!matchesFilter(account, filter, statuses, nowSeconds, warnJwtDays)) {
       return false;
     }
     if (!needle) {
@@ -64,7 +66,8 @@ function matchesFilter(
   account: AccountView,
   filter: RosterFilter,
   statuses: StatusMap,
-  nowSeconds: number
+  nowSeconds: number,
+  warnJwtDays: number
 ): boolean {
   switch (filter) {
     case "all":
@@ -75,6 +78,8 @@ function matchesFilter(
       return isCooldownActive(account.cooldown_until, nowSeconds);
     case "expired":
       return account.jwt_expires_in < 0;
+    case "expiring":
+      return isExpiringSoon(account.jwt_expires_in, warnJwtDays);
     case "online": {
       const state = statuses[account.steamid]?.state;
       return state === "online" || state === "in-game";
@@ -86,6 +91,15 @@ function matchesFilter(
     default:
       return true;
   }
+}
+
+/** Known, non-expired JWT within the warn window (falls back to 7 days). */
+function isExpiringSoon(expiresIn: number, warnJwtDays: number): boolean {
+  if (expiresIn <= 0) {
+    return false;
+  }
+  const days = warnJwtDays > 0 ? warnJwtDays : 7;
+  return expiresIn <= days * 86_400;
 }
 
 function nameCmp(a: AccountView, b: AccountView): number {
