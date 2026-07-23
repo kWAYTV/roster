@@ -87,5 +87,26 @@ export function useExport() {
     [notify]
   );
 
-  return { copyExport, copyUsername, exportCountFor, exportFile };
+  const copySteamId = useCallback(
+    async (account: AccountView) => {
+      if (!account.steamid) {
+        return;
+      }
+      try {
+        await commands.writeClipboard(account.steamid);
+        notify("Copied SteamID");
+      } catch (cause) {
+        notify(String(cause), "error");
+      }
+    },
+    [notify]
+  );
+
+  return {
+    copyExport,
+    copySteamId,
+    copyUsername,
+    exportCountFor,
+    exportFile,
+  };
 }

@@ -31,6 +31,7 @@ interface AccountContextMenuProps {
   onClearCooldown: (steamids: string[]) => void;
   onCooldown: (steamids: string[], seconds: number) => void;
   onCopyExport: (steamids: string[]) => void;
+  onCopySteamId: (account: AccountView) => void;
   onCopyUsername: (account: AccountView) => void;
   onCustomCooldown: (steamids: string[]) => void;
   onEditNote: (account: AccountView) => void;
@@ -52,6 +53,7 @@ export function AccountContextMenu({
   index,
   onSignIn,
   onCopyUsername,
+  onCopySteamId,
   onOpenProfile,
   onCopyExport,
   onExportFile,
@@ -83,6 +85,10 @@ export function AccountContextMenu({
   const handleCopyUsername = useCallback(() => {
     onCopyUsername(account);
   }, [onCopyUsername, account]);
+
+  const handleCopySteamId = useCallback(() => {
+    onCopySteamId(account);
+  }, [onCopySteamId, account]);
 
   const handleOpenProfile = useCallback(() => {
     onOpenProfile(account.steamid);
@@ -170,6 +176,13 @@ export function AccountContextMenu({
             onClick={handleCopyUsername}
           >
             Copy username
+          </IconItem>
+          <IconItem
+            disabled={streamer}
+            icon={<CopyIcon />}
+            onClick={handleCopySteamId}
+          >
+            Copy SteamID
           </IconItem>
           <IconItem icon={<UserIcon />} onClick={handleOpenProfile}>
             Open profile

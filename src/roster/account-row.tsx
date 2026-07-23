@@ -33,6 +33,7 @@ interface AccountRowProps {
   onClearCooldown: (steamids: string[]) => void;
   onCooldown: (steamids: string[], seconds: number) => void;
   onCopyExport: (steamids: string[]) => void;
+  onCopySteamId: (account: AccountView) => void;
   onCopyUsername: (account: AccountView) => void;
   onCustomCooldown: (steamids: string[]) => void;
   onEditNote: (account: AccountView) => void;
@@ -61,6 +62,7 @@ export function AccountRow({
   onSignIn,
   onRemove,
   onCopyUsername,
+  onCopySteamId,
   onOpenProfile,
   onCopyExport,
   onExportFile,
@@ -222,6 +224,7 @@ export function AccountRow({
         onClearCooldown={onClearCooldown}
         onCooldown={onCooldown}
         onCopyExport={onCopyExport}
+        onCopySteamId={onCopySteamId}
         onCopyUsername={onCopyUsername}
         onCustomCooldown={onCustomCooldown}
         onEditNote={onEditNote}

@@ -42,7 +42,8 @@ export function App() {
   const { setPinned, setNote, setOverrides } = useAccountMeta();
   const { exportBackup, importBackup } = useMetadataBackup();
   const { notify } = useToast();
-  const { exportCountFor, copyExport, exportFile, copyUsername } = useExport();
+  const { exportCountFor, copyExport, exportFile, copyUsername, copySteamId } =
+    useExport();
   const { available, busy, currentVersion, checkForUpdate, install, dismiss } =
     useUpdater(notify);
   const {
@@ -238,6 +239,7 @@ export function App() {
           onClearSelection={clearSelection}
           onCooldown={startMany}
           onCopyExport={copyExport}
+          onCopySteamId={copySteamId}
           onCopyUsername={copyUsername}
           onCustomCooldown={askBulkCooldown}
           onEditNote={setNoteTarget}
