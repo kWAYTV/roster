@@ -229,7 +229,7 @@ export function App() {
           emptyHint={
             accounts.length > 0
               ? "Try another filter or clear search."
-              : "Use + to import an account and get started."
+              : "Import a refresh token to get started."
           }
           emptyTitle={accounts.length > 0 ? "No matches" : "No accounts yet"}
           exportCountFor={exportCountForFiltered}
@@ -243,6 +243,7 @@ export function App() {
           onEditNote={setNoteTarget}
           onEditOverrides={setOverridesTarget}
           onExportFile={exportFile}
+          onImport={accounts.length === 0 ? openImport : undefined}
           onOpenProfile={openProfile}
           onRemove={askRemove}
           onSelect={selectAccount}

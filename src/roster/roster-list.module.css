@@ -29,3 +29,7 @@
   color: var(--text-muted);
   text-wrap: pretty;
 }
+
+.emptyAction {
+  margin-top: var(--space-2);
+}

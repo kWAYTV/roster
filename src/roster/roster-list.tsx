@@ -1,5 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
+
+import { Button } from "@/ui/primitives/button";
 import type { StatusMap } from "../status/status";
 import type { AccountView } from "./account";
 import { AccountRow } from "./account-row";
@@ -21,6 +23,7 @@ interface RosterListProps {
   onEditNote: (account: AccountView) => void;
   onEditOverrides: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
+  onImport?: () => void;
   onOpenProfile: (steamid: string) => void;
   onRemove: (accounts: AccountView[]) => void;
   onSelect: (account: AccountView, additive: boolean) => void;
@@ -35,7 +38,7 @@ interface RosterListProps {
 export function RosterList({
   accounts,
   emptyTitle = "No accounts yet",
-  emptyHint = "Use + to import an account and get started.",
+  emptyHint = "Import a refresh token to get started.",
   loading,
   streamer,
   pending,
@@ -55,6 +58,7 @@ export function RosterList({
   onTogglePin,
   onEditNote,
   onEditOverrides,
+  onImport,
   exportCountFor,
 }: RosterListProps) {
   const byId = useMemo(
@@ -115,6 +119,11 @@ export function RosterList({
       <div className={styles.empty}>
         <p className={styles.emptyTitle}>{emptyTitle}</p>
         <p className={styles.emptyHint}>{emptyHint}</p>
+        {onImport ? (
+          <Button className={styles.emptyAction} onClick={onImport} size="sm">
+            Import account
+          </Button>
+        ) : null}
       </div>
     );
   }
