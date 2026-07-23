@@ -49,6 +49,17 @@ export function useRoster() {
     );
   }, []);
 
+  const patchAccount = useCallback(
+    (steamid: string, patch: Partial<AccountView>) => {
+      setAccounts((current) =>
+        current.map((account) =>
+          account.steamid === steamid ? { ...account, ...patch } : account
+        )
+      );
+    },
+    []
+  );
+
   useEffect(() => {
     refresh().catch(() => undefined);
     const unlisten = onAccountsChanged(() => {
@@ -63,5 +74,5 @@ export function useRoster() {
     };
   }, [refresh]);
 
-  return { accounts, error, loading, patchProfile };
+  return { accounts, error, loading, patchAccount, patchProfile };
 }

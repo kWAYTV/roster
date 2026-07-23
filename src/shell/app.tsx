@@ -33,7 +33,7 @@ import { useShellShortcuts } from "./use-shell-shortcuts";
 import { useShellUi } from "./use-shell-ui";
 
 export function App() {
-  const { accounts, loading, error, patchProfile } = useRoster();
+  const { accounts, loading, error, patchAccount, patchProfile } = useRoster();
   const statuses = useStatus(!loading, patchProfile);
   const { preferences, setPreference, patchPreferences } = usePreferences();
   const { signIn, pending } = useSignIn();
@@ -127,9 +127,15 @@ export function App() {
 
   const handleTogglePin = useCallback(
     (account: AccountView) => {
-      setPinned(account.steamid, !account.pinned);
+      const next = !account.pinned;
+      patchAccount(account.steamid, { pinned: next });
+      setPinned(account.steamid, next).then((ok) => {
+        if (!ok) {
+          patchAccount(account.steamid, { pinned: account.pinned });
+        }
+      });
     },
-    [setPinned]
+    [patchAccount, setPinned]
   );
 
   const handleSaveNote = useCallback(

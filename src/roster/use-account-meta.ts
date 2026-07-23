@@ -7,11 +7,13 @@ export function useAccountMeta() {
   const { notify } = useToast();
 
   const setPinned = useCallback(
-    async (steamid: string, pinned: boolean) => {
+    async (steamid: string, pinned: boolean): Promise<boolean> => {
       try {
         notify(await commands.setPinned(steamid, pinned));
+        return true;
       } catch (cause) {
         notify(String(cause), "error");
+        return false;
       }
     },
     [notify]
