@@ -6,12 +6,7 @@ import { SettingsDialog } from "../preferences/settings-dialog";
 import type { AccountView } from "../roster/account";
 import { cooldownMessage, removeMessage } from "./confirm-messages";
 
-interface AvailableUpdate {
-  version: string;
-}
-
 interface ShellDialogsProps {
-  available: AvailableUpdate | null;
   bulkCooldownIds: string[];
   cooldownTarget: AccountView | null;
   currentVersion: string | null;
@@ -27,10 +22,8 @@ interface ShellDialogsProps {
   onCloseSettings: () => void;
   onConfirmCooldownSignIn: () => void;
   onConfirmRemove: () => void;
-  onDismissUpdate: () => void;
   onExportMetadata: () => void;
   onImportMetadata: () => void;
-  onInstallUpdate: () => void;
   onPatchPreferences: (patch: Partial<Preferences>) => void;
   onStartBulkCooldown: (seconds: number) => void;
   preferences: Preferences;
@@ -47,7 +40,6 @@ export function ShellDialogs({
   preferences,
   currentVersion,
   updateBusy,
-  available,
   removeTargets,
   cooldownTarget,
   bulkCooldownIds,
@@ -56,8 +48,6 @@ export function ShellDialogs({
   onChangePreference,
   onPatchPreferences,
   onCheckForUpdates,
-  onInstallUpdate,
-  onDismissUpdate,
   onConfirmRemove,
   onCloseRemove,
   onConfirmCooldownSignIn,
@@ -95,20 +85,6 @@ export function ShellDialogs({
         onClose={onCloseBulkCooldown}
         onStart={onStartBulkCooldown}
         open={bulkCooldownIds.length > 0}
-      />
-      <ConfirmDialog
-        closeOnConfirm={false}
-        confirmDisabled={updateBusy}
-        confirmLabel={updateBusy ? "Installing…" : "Install and restart"}
-        message={
-          available
-            ? `Roster ${available.version} is ready. Install now and restart?`
-            : ""
-        }
-        onClose={onDismissUpdate}
-        onConfirm={onInstallUpdate}
-        open={available !== null}
-        title="Update available"
       />
       <ConfirmDialog
         confirmLabel="Remove"

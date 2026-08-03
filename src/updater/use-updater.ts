@@ -5,11 +5,27 @@ import { useCallback, useState } from "react";
 
 import { useMountEffect } from "../ui/use-mount-effect";
 
-/// Check GitHub Releases for a signed update and install it on demand.
-export function useUpdater(notify: (message: string) => void) {
-  const [available, setAvailable] = useState<Update | null>(null);
+/// Check GitHub Releases for a signed update and install it automatically.
+export function useUpdater(
+  notify: (message: string, kind?: "ok" | "error") => void
+) {
   const [busy, setBusy] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
+
+  const installUpdate = useCallback(
+    async (update: Update) => {
+      setBusy(true);
+      notify(`Updating to ${update.version}…`);
+      try {
+        await update.downloadAndInstall();
+        await relaunch();
+      } catch {
+        notify("Update failed", "error");
+        setBusy(false);
+      }
+    },
+    [notify]
+  );
 
   useMountEffect(() => {
     let cancelled = false;
@@ -24,7 +40,7 @@ export function useUpdater(notify: (message: string) => void) {
         if (cancelled || !update) {
           return;
         }
-        setAvailable(update);
+        await installUpdate(update);
       } catch {
         // Startup checks stay silent; Settings still surfaces manual failures.
       }
@@ -39,48 +55,35 @@ export function useUpdater(notify: (message: string) => void) {
 
   const checkForUpdate = useCallback(
     async (manual = false) => {
+      if (busy) {
+        return;
+      }
+      if (manual) {
+        setBusy(true);
+      }
       try {
         const update = await check();
         if (update) {
-          setAvailable(update);
+          await installUpdate(update);
           return;
         }
         if (manual) {
           notify("Up to date");
+          setBusy(false);
         }
       } catch {
         if (manual) {
-          notify("Update check failed");
+          notify("Update check failed", "error");
+          setBusy(false);
         }
       }
     },
-    [notify]
+    [busy, installUpdate, notify]
   );
 
-  const install = useCallback(async () => {
-    if (!available) {
-      return;
-    }
-    setBusy(true);
-    try {
-      await available.downloadAndInstall();
-      await relaunch();
-    } catch {
-      notify("Update failed");
-      setBusy(false);
-    }
-  }, [available, notify]);
-
-  const dismiss = useCallback(() => {
-    setAvailable(null);
-  }, []);
-
   return {
-    available,
     busy,
     checkForUpdate,
     currentVersion,
-    dismiss,
-    install,
   };
 }

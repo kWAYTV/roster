@@ -44,8 +44,7 @@ export function App() {
   const { notify } = useToast();
   const { exportCountFor, copyExport, exportFile, copyUsername, copySteamId } =
     useExport();
-  const { available, busy, currentVersion, checkForUpdate, install, dismiss } =
-    useUpdater(notify);
+  const { busy, currentVersion, checkForUpdate } = useUpdater(notify);
   const {
     selectedIds,
     selectAccount,
@@ -218,10 +217,6 @@ export function App() {
     clearSelection();
   }, [ui.removeTargets, remove, removeMany, clearSelection]);
 
-  const handleInstallUpdate = useCallback(() => {
-    install().catch(() => undefined);
-  }, [install]);
-
   const handleStartBulkCooldown = useCallback(
     (seconds: number) => {
       startMany(ui.bulkCooldownIds, seconds);
@@ -310,7 +305,6 @@ export function App() {
       ) : null}
 
       <ShellDialogs
-        available={available}
         bulkCooldownIds={ui.bulkCooldownIds}
         cooldownTarget={ui.cooldownTarget}
         currentVersion={currentVersion}
@@ -326,10 +320,8 @@ export function App() {
         onCloseSettings={closeSettings}
         onConfirmCooldownSignIn={handleConfirmCooldownSignIn}
         onConfirmRemove={handleConfirmRemove}
-        onDismissUpdate={dismiss}
         onExportMetadata={exportBackup}
         onImportMetadata={importBackup}
-        onInstallUpdate={handleInstallUpdate}
         onPatchPreferences={patchPreferences}
         onStartBulkCooldown={handleStartBulkCooldown}
         preferences={preferences}
