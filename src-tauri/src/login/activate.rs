@@ -47,8 +47,12 @@ pub fn activate(
 ) -> Result<(), String> {
     let loginusers_path = install.join("config").join("loginusers.vdf");
     loginusers::set_active(&loginusers_path, username, steamid)?;
+    // set_active may keep an existing real AccountName; AutoLoginUser must match it.
+    let autologin = loginusers::account_name_for(&loginusers_path, steamid)?
+        .filter(|name| !name.is_empty())
+        .unwrap_or_else(|| username.to_string());
     apply_localconfig(steamid, install, prefs)?;
-    set_autologin_user(username)
+    set_autologin_user(&autologin)
 }
 
 fn apply_localconfig(steamid: &str, install: &Path, prefs: &SignInPrefs) -> Result<(), String> {

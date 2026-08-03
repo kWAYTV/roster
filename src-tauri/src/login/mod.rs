@@ -3,6 +3,7 @@
 mod activate;
 mod launch;
 mod sign_in;
+mod token;
 
 pub use activate::{activate, SignInPrefs};
 pub use launch::relaunch;

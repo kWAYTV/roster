@@ -12,13 +12,17 @@ pub fn parse(entry: &str) -> Result<(String, String), String> {
     }
 
     if let Some((label, token)) = split_delimited(text) {
-        let username = if is_steamid(&label) {
-            label
-        } else {
-            ensure_username(&label)?;
-            label
-        };
-        return Ok((username, token));
+        if is_steamid(&label) {
+            let steamid = jwt::steamid(&token)?;
+            if steamid != label {
+                return Err("SteamID does not match token".to_string());
+            }
+            // ConnectCache / AutoLoginUser key on AccountName, never the SteamID.
+            let username = jwt::username(&token, &steamid)?;
+            return Ok((username, token));
+        }
+        ensure_username(&label)?;
+        return Ok((label, token));
     }
 
     if let Some(token) = jwt::find(text) {
@@ -77,10 +81,16 @@ mod tests {
         "eyJ0eXAiOiJKV1QifQ.eyJzdWIiOiI3NjU2MTE5OTg0MzA4MTgyNSIsIm5hbWUiOiJwbGF5ZXIifQ.AAAA";
 
     #[test]
-    fn parses_steamid_delimited() {
+    fn parses_steamid_delimited_as_jwt_username() {
         let (user, token) = parse(&format!("76561199843081825----{TOKEN}")).unwrap();
-        assert_eq!(user, "76561199843081825");
+        assert_eq!(user, "player");
         assert_eq!(token, TOKEN);
+    }
+
+    #[test]
+    fn rejects_steamid_mismatch() {
+        let err = parse(&format!("76561198000000000----{TOKEN}")).unwrap_err();
+        assert!(err.contains("does not match"));
     }
 
     #[test]
@@ -96,7 +106,7 @@ mod tests {
             "76561199843081825----{TOKEN}----rank:13----vac:clean"
         ))
         .unwrap();
-        assert_eq!(user, "76561199843081825");
+        assert_eq!(user, "player");
     }
 
     #[test]
