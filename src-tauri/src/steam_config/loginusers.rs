@@ -346,7 +346,8 @@ mod tests {
 
     #[test]
     fn demotes_space_separated_most_recent() {
-        let content = "\"users\"\n{\n\t\"76561199843081825\"\n\t{\n\t\t\"MostRecent\" \"1\"\n\t}\n}\n";
+        let content =
+            "\"users\"\n{\n\t\"76561199843081825\"\n\t{\n\t\t\"MostRecent\" \"1\"\n\t}\n}\n";
         let out = demote_most_recent(content);
         assert!(out.contains("\"MostRecent\"\t\t\"0\""));
         assert!(!out.contains("\"MostRecent\" \"1\""));
@@ -365,9 +366,15 @@ mod tests {
 
     #[test]
     fn preserves_real_account_name_against_placeholder() {
-        assert!(should_preserve_account_name("coolname", "76561199843081825"));
+        assert!(should_preserve_account_name(
+            "coolname",
+            "76561199843081825"
+        ));
         assert!(should_preserve_account_name("coolname", "user081825"));
-        assert!(!should_preserve_account_name("76561199843081825", "coolname"));
+        assert!(!should_preserve_account_name(
+            "76561199843081825",
+            "coolname"
+        ));
         assert!(!should_preserve_account_name("user081825", "coolname"));
         assert!(!should_preserve_account_name("", "coolname"));
         assert!(is_generated_username("user081825"));
