@@ -1,8 +1,10 @@
 use crate::roster::Account;
 use crate::steam_client::{
-    cache_dir, clear_autologin_if_matches, install_dir, stop_if_affects_active_login,
+    autologin_user, cache_dir, clear_autologin_if_matches, install_dir, stop,
 };
 use crate::steam_config::{config_vdf, connect_cache, loginusers};
+
+use super::successor;
 
 /// Forget an account: strip it from loginusers, config.vdf, the token cache,
 /// and clear autologin if it pointed here.
@@ -10,10 +12,14 @@ pub fn remove(account: &Account) -> Result<String, String> {
     let _guard = crate::steam_client::mutation_guard();
     let install = install_dir()?;
     let config_dir = install.join("config");
+    let loginusers_path = config_dir.join("loginusers.vdf");
 
-    stop_if_affects_active_login(&[&account.account_name])?;
+    // Steam rewrites loginusers/local.vdf while alive — always stop first.
+    stop()?;
 
-    loginusers::remove(&config_dir.join("loginusers.vdf"), &account.steamid)?;
+    let cleared_active = autologin_matches(&account.account_name);
+
+    loginusers::remove(&loginusers_path, &account.steamid)?;
 
     let config_vdf_path = config_dir.join("config.vdf");
     if config_vdf_path.exists() {
@@ -25,12 +31,13 @@ pub fn remove(account: &Account) -> Result<String, String> {
     }
 
     clear_autologin_if_matches(&account.account_name);
+    successor::handoff_if_needed(&loginusers_path, cleared_active)?;
     crate::metadata::forget(&account.steamid);
 
     Ok(format!("Removed {}", account.display_name()))
 }
 
-/// Remove several accounts without stopping Steam unless the active login is included.
+/// Remove several accounts without leaving AutoLoginUser pointing at a deleted name.
 pub fn remove_many(accounts: &[Account]) -> Result<String, String> {
     if accounts.is_empty() {
         return Err("No accounts selected".to_string());
@@ -39,13 +46,17 @@ pub fn remove_many(accounts: &[Account]) -> Result<String, String> {
     let _guard = crate::steam_client::mutation_guard();
     let install = install_dir()?;
     let config_dir = install.join("config");
+    let loginusers_path = config_dir.join("loginusers.vdf");
 
-    let account_names: Vec<&str> = accounts.iter().map(|a| a.account_name.as_str()).collect();
-    stop_if_affects_active_login(&account_names)?;
+    stop()?;
+
+    let cleared_active = accounts
+        .iter()
+        .any(|account| autologin_matches(&account.account_name));
 
     let mut names: Vec<String> = Vec::with_capacity(accounts.len());
     for account in accounts {
-        loginusers::remove(&config_dir.join("loginusers.vdf"), &account.steamid)?;
+        loginusers::remove(&loginusers_path, &account.steamid)?;
 
         let config_vdf_path = config_dir.join("config.vdf");
         if config_vdf_path.exists() {
@@ -61,8 +72,14 @@ pub fn remove_many(accounts: &[Account]) -> Result<String, String> {
         names.push(account.display_name().to_string());
     }
 
+    successor::handoff_if_needed(&loginusers_path, cleared_active)?;
+
     Ok(match names.len() {
         1 => format!("Removed {}", names[0]),
         n => format!("Removed {n} accounts"),
     })
+}
+
+fn autologin_matches(account_name: &str) -> bool {
+    autologin_user().as_deref() == Some(account_name)
 }

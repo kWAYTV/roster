@@ -2,7 +2,7 @@ use std::ffi::OsStr;
 use std::os::windows::process::CommandExt;
 use std::path::Path;
 use std::process::Command;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use winreg::enums::HKEY_CURRENT_USER;
 use winreg::RegKey;
@@ -13,17 +13,21 @@ const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const DETACHED_PROCESS: u32 = 0x0000_0008;
 
 const PROCESS_NAMES: [&str; 2] = ["steam.exe", "steamwebhelper.exe"];
+const STOP_TIMEOUT: Duration = Duration::from_secs(10);
+const STOP_POLL: Duration = Duration::from_millis(250);
+const FILE_LOCK_SETTLE: Duration = Duration::from_millis(200);
 
-/// Stop Steam: first the tracked pid, then any lingering processes by name.
+/// Stop Steam: kill the tracked pid and lingering processes, then wait until
+/// nothing is left so config writes cannot race a still-running client.
 pub fn stop() -> Result<(), String> {
     kill_tracked_pid();
     kill_by_name();
-    Ok(())
+    wait_until_stopped(STOP_TIMEOUT)
 }
 
-/// Whether Steam currently has a live client process.
+/// Whether any Steam client process is currently alive.
 pub fn is_running() -> bool {
-    tracked_pid().is_some()
+    any_steam_running()
 }
 
 /// Launch `steam.exe` detached, optionally minimized to the tray.
@@ -65,9 +69,7 @@ fn kill_tracked_pid() {
     let Some(pid) = tracked_pid() else {
         return;
     };
-    if taskkill(&["/F", "/PID", &pid.to_string(), "/T"]) {
-        std::thread::sleep(Duration::from_millis(800));
-    }
+    let _ = taskkill(&["/F", "/PID", &pid.to_string(), "/T"]);
 }
 
 fn tracked_pid() -> Option<u32> {
@@ -86,10 +88,43 @@ fn tracked_pid() -> Option<u32> {
 /// Kill each Steam process by image name.
 fn kill_by_name() {
     for name in PROCESS_NAMES {
-        if taskkill(&["/F", "/IM", name, "/T"]) {
-            std::thread::sleep(Duration::from_millis(400));
-        }
+        let _ = taskkill(&["/F", "/IM", name, "/T"]);
     }
+}
+
+fn wait_until_stopped(timeout: Duration) -> Result<(), String> {
+    let started = Instant::now();
+    while started.elapsed() < timeout {
+        if !any_steam_running() {
+            std::thread::sleep(FILE_LOCK_SETTLE);
+            if !any_steam_running() {
+                return Ok(());
+            }
+        }
+        kill_by_name();
+        std::thread::sleep(STOP_POLL);
+    }
+
+    if any_steam_running() {
+        Err("Steam did not fully exit. Close it and try again.".to_string())
+    } else {
+        Ok(())
+    }
+}
+
+fn any_steam_running() -> bool {
+    PROCESS_NAMES.iter().any(|name| image_running(name))
+}
+
+fn image_running(name: &str) -> bool {
+    let Ok(output) = silent("tasklist")
+        .args(["/FI", &format!("IMAGENAME eq {name}"), "/NH"])
+        .output()
+    else {
+        return false;
+    };
+    let text = String::from_utf8_lossy(&output.stdout).to_ascii_lowercase();
+    text.contains(&name.to_ascii_lowercase())
 }
 
 /// Run taskkill silently; returns whether a process was actually terminated.
