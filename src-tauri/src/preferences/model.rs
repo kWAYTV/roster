@@ -1,5 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+/// Appearance preference stored with the rest of app settings.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum ThemePreference {
+    #[default]
+    Dark,
+    Light,
+    System,
+}
+
 /// User-facing toggles that shape each sign-in and app behaviour.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Preferences {
@@ -32,6 +42,9 @@ pub struct Preferences {
     /// When a cooldown ends, sign into that account automatically.
     #[serde(default)]
     pub auto_sign_in_on_cooldown: bool,
+    /// App color scheme. Defaults to dark.
+    #[serde(default)]
+    pub theme: ThemePreference,
 }
 
 impl Default for Preferences {
@@ -50,6 +63,7 @@ impl Default for Preferences {
             import_without_sign_in: false,
             warn_jwt_expiry_days: default_jwt_warn_days(),
             auto_sign_in_on_cooldown: false,
+            theme: ThemePreference::Dark,
         }
     }
 }

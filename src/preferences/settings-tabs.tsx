@@ -2,10 +2,22 @@ import { useCallback, useState } from "react";
 
 import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/primitives/select";
 import { TabsContent } from "@/ui/primitives/tabs";
 
 import { useToast } from "../feedback/toast";
 import { commands } from "../platform/invoke";
+import {
+  normalizeTheme,
+  THEME_MODES,
+  type ThemeMode,
+} from "../theme/theme-mode";
 import type { Preferences } from "./preferences";
 import { SettingList } from "./setting-list";
 import {
@@ -16,6 +28,13 @@ import {
 
 const CS2_OPTIONS_ID = "cs2-launch-options";
 const JWT_WARN_ID = "jwt-warn-days";
+const THEME_ID = "appearance-theme";
+
+const THEME_LABELS: Record<ThemeMode, string> = {
+  dark: "Dark",
+  light: "Light",
+  system: "System",
+};
 
 interface SettingsTabsProps {
   currentVersion: string | null;
@@ -57,6 +76,16 @@ export function SettingsTabs({
           ? Math.max(0, Math.floor(next))
           : 0,
       });
+    },
+    [onPatch]
+  );
+
+  const handleThemeChange = useCallback(
+    (value: string | null) => {
+      if (value === null) {
+        return;
+      }
+      onPatch({ theme: normalizeTheme(value) });
     },
     [onPatch]
   );
@@ -126,6 +155,34 @@ export function SettingsTabs({
       </TabsContent>
 
       <TabsContent className="mt-0 min-h-52 space-y-3 outline-none" value="app">
+        <div className="flex items-center justify-between gap-3 border-border/80 border-b py-2.5">
+          <div className="min-w-0 flex-1">
+            <label
+              className="block font-semibold text-sm leading-snug tracking-tight"
+              htmlFor={THEME_ID}
+            >
+              Appearance
+            </label>
+            <p className="mt-0.5 text-pretty text-muted-foreground text-xs leading-snug">
+              Dark by default. Light or follow the system if you prefer.
+            </p>
+          </div>
+          <Select
+            onValueChange={handleThemeChange}
+            value={normalizeTheme(preferences.theme)}
+          >
+            <SelectTrigger className="w-28" id={THEME_ID} size="sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {THEME_MODES.map((mode) => (
+                <SelectItem key={mode} value={mode}>
+                  {THEME_LABELS[mode]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <SettingList
           items={APP_SETTINGS}
           onChange={onChange}

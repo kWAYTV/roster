@@ -1,3 +1,5 @@
+import type { ThemeMode } from "../theme/theme-mode";
+
 /// Sign-in toggles, mirrored from the Rust `Preferences` model.
 export interface Preferences {
   always_invisible: boolean;
@@ -12,6 +14,7 @@ export interface Preferences {
   mute_notifications_on_login: boolean;
   show_log_panel: boolean;
   streamer_mode: boolean;
+  theme: ThemeMode;
   /** 0 = disabled. */
   warn_jwt_expiry_days: number;
 }
@@ -29,5 +32,6 @@ export const DEFAULT_PREFERENCES: Preferences = {
   mute_notifications_on_login: false,
   show_log_panel: false,
   streamer_mode: false,
+  theme: "dark",
   warn_jwt_expiry_days: 7,
 };
