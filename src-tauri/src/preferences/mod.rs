@@ -3,5 +3,5 @@
 mod model;
 mod store;
 
-pub use model::{Preferences, ThemePreference};
+pub use model::Preferences;
 pub use store::{load, save};
