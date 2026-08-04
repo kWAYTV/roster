@@ -3,7 +3,7 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { useCallback, useState } from "react";
 
-import { useMountEffect } from "../ui/use-mount-effect";
+import { useMountEffect } from "../ui/widgets/use-mount-effect";
 
 /// Check GitHub Releases for a signed update and install it automatically.
 export function useUpdater(

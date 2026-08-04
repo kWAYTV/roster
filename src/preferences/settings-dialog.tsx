@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -11,7 +12,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/ui/primitives/tabs";
 import { ConfirmDialog } from "../feedback/confirm-dialog";
 import { useReset } from "../reset/use-reset";
 import type { Preferences } from "./preferences";
-import { SettingsTabs } from "./settings-tabs";
+import { SettingsApp } from "./settings-app";
+import { SettingsDanger } from "./settings-danger";
+import { SettingsPrivacy } from "./settings-privacy";
+import { SettingsSignIn } from "./settings-sign-in";
+import { SettingsUpdates } from "./settings-updates";
 
 interface SettingsDialogProps {
   currentVersion: string | null;
@@ -62,60 +67,70 @@ export function SettingsDialog({
   return (
     <>
       <Dialog onOpenChange={handleOpenChange} open={open}>
-        <DialogContent className="gap-4 p-5 sm:max-w-md">
-          <DialogHeader className="pr-8">
+        <DialogContent>
+          <DialogHeader>
             <DialogTitle>Settings</DialogTitle>
           </DialogHeader>
 
-          <Tabs className="gap-4" onValueChange={setTab} value={tab}>
-            <TabsList
-              className="h-auto w-full justify-stretch gap-0 border-border border-b bg-transparent pb-0"
-              variant="line"
-            >
-              <TabsTrigger
-                className="flex-1 rounded-none px-2 text-xs"
-                value="sign-in"
+          <DialogBody>
+            <Tabs className="gap-4" onValueChange={setTab} value={tab}>
+              <TabsList
+                className="h-auto w-full justify-stretch gap-0 border-border border-b bg-transparent pb-0"
+                variant="line"
               >
-                Sign-in
-              </TabsTrigger>
-              <TabsTrigger
-                className="flex-1 rounded-none px-2 text-xs"
-                value="privacy"
-              >
-                Privacy
-              </TabsTrigger>
-              <TabsTrigger
-                className="flex-1 rounded-none px-2 text-xs"
-                value="app"
-              >
-                App
-              </TabsTrigger>
-              <TabsTrigger
-                className="flex-1 rounded-none px-2 text-xs"
-                value="updates"
-              >
-                Updates
-              </TabsTrigger>
-              <TabsTrigger
-                className="flex-1 rounded-none px-2 text-destructive text-xs after:bg-destructive hover:text-destructive data-active:text-destructive dark:text-destructive dark:data-active:text-destructive dark:hover:text-destructive"
-                value="danger"
-              >
-                Danger
-              </TabsTrigger>
-            </TabsList>
+                <TabsTrigger
+                  className="flex-1 rounded-none px-1.5 text-xs"
+                  value="sign-in"
+                >
+                  Sign-in
+                </TabsTrigger>
+                <TabsTrigger
+                  className="flex-1 rounded-none px-1.5 text-xs"
+                  value="privacy"
+                >
+                  Privacy
+                </TabsTrigger>
+                <TabsTrigger
+                  className="flex-1 rounded-none px-1.5 text-xs"
+                  value="app"
+                >
+                  App
+                </TabsTrigger>
+                <TabsTrigger
+                  className="flex-1 rounded-none px-1.5 text-xs"
+                  value="updates"
+                >
+                  Updates
+                </TabsTrigger>
+                <TabsTrigger
+                  className="flex-1 rounded-none px-1.5 text-destructive text-xs after:bg-destructive hover:text-destructive data-active:text-destructive dark:text-destructive dark:data-active:text-destructive dark:hover:text-destructive"
+                  value="danger"
+                >
+                  Danger
+                </TabsTrigger>
+              </TabsList>
 
-            <SettingsTabs
-              currentVersion={currentVersion}
-              onChange={onChange}
-              onCheckForUpdates={onCheckForUpdates}
-              onExportMetadata={onExportMetadata}
-              onImportMetadata={onImportMetadata}
-              onPatch={onPatch}
-              onRequestReset={requestReset}
-              preferences={preferences}
-              updateBusy={updateBusy}
-            />
-          </Tabs>
+              <SettingsSignIn
+                onChange={onChange}
+                onPatch={onPatch}
+                preferences={preferences}
+              />
+              <SettingsPrivacy onChange={onChange} preferences={preferences} />
+              <SettingsApp
+                onChange={onChange}
+                onExportMetadata={onExportMetadata}
+                onImportMetadata={onImportMetadata}
+                onPatch={onPatch}
+                preferences={preferences}
+              />
+              <SettingsUpdates
+                currentVersion={currentVersion}
+                onCheckForUpdates={onCheckForUpdates}
+                updateBusy={updateBusy}
+              />
+              <SettingsDanger onRequestReset={requestReset} />
+            </Tabs>
+          </DialogBody>
         </DialogContent>
       </Dialog>
 

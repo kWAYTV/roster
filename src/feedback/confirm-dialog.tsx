@@ -12,6 +12,7 @@ import {
 } from "@/ui/primitives/alert-dialog";
 
 interface ConfirmDialogProps {
+  cancelLabel?: string;
   closeOnConfirm?: boolean;
   confirmDisabled?: boolean;
   confirmLabel: string;
@@ -28,6 +29,7 @@ export function ConfirmDialog({
   title,
   message,
   confirmLabel,
+  cancelLabel = "Cancel",
   danger,
   confirmDisabled,
   closeOnConfirm = true,
@@ -60,8 +62,9 @@ export function ConfirmDialog({
           <AlertDialogDescription>{message}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel size="sm">Cancel</AlertDialogCancel>
+          <AlertDialogCancel size="sm">{cancelLabel}</AlertDialogCancel>
           <AlertDialogAction
+            autoFocus={!danger}
             disabled={confirmDisabled}
             onClick={handleConfirm}
             size="sm"

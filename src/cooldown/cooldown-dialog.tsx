@@ -3,18 +3,27 @@ import { useCallback, useState } from "react";
 import { Button } from "@/ui/primitives/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/ui/primitives/dialog";
 import { Input } from "@/ui/primitives/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/primitives/select";
 
 const UNITS = [
   { label: "minutes", seconds: 60 },
   { label: "hours", seconds: 3600 },
   { label: "days", seconds: 86_400 },
-];
+] as const;
 
 interface CooldownDialogProps {
   onClose: () => void;
@@ -22,15 +31,17 @@ interface CooldownDialogProps {
   open: boolean;
 }
 
+/// Remount with `key` when the selection set changes if defaults should reset.
 export function CooldownDialog({
   open,
   onClose,
   onStart,
 }: CooldownDialogProps) {
   const [amount, setAmount] = useState("1");
-  const [unit, setUnit] = useState(3600);
+  const [unit, setUnit] = useState(String(3600));
 
-  const seconds = Math.round(Number(amount) * unit);
+  const unitSeconds = Number(unit);
+  const seconds = Math.round(Number(amount) * unitSeconds);
   const valid = Number.isFinite(seconds) && seconds > 0;
 
   const submit = useCallback(() => {
@@ -60,48 +71,60 @@ export function CooldownDialog({
   const handleAmountKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
+        event.preventDefault();
         submit();
       }
     },
     [submit]
   );
 
-  const handleUnitChange = useCallback(
-    (event: React.ChangeEvent<HTMLSelectElement>) => {
-      setUnit(Number(event.target.value));
-    },
-    []
-  );
+  const handleUnitChange = useCallback((value: string | null) => {
+    if (value !== null) {
+      setUnit(value);
+    }
+  }, []);
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogContent className="gap-4 p-5 sm:max-w-sm" showCloseButton>
-        <DialogHeader className="pr-8">
+      <DialogContent size="sm">
+        <DialogHeader>
           <DialogTitle>Custom cooldown</DialogTitle>
+          <DialogDescription>
+            How long should the selected accounts stay on cooldown?
+          </DialogDescription>
         </DialogHeader>
-        <div className="flex gap-2">
-          <Input
-            autoFocus
-            className="w-24"
-            min={1}
-            onChange={handleAmountChange}
-            onKeyDown={handleAmountKeyDown}
-            type="number"
-            value={amount}
-          />
-          <select
-            className="h-8 flex-1 rounded-lg border border-input bg-transparent px-2.5 text-sm dark:bg-input/30"
-            onChange={handleUnitChange}
-            value={unit}
-          >
-            {UNITS.map((option) => (
-              <option key={option.seconds} value={option.seconds}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <DialogFooter className="mx-0 mb-0 border-0 bg-transparent p-0 sm:justify-end">
+        <DialogBody>
+          <div className="flex gap-2">
+            <Input
+              autoFocus
+              className="w-24 tabular-nums"
+              min={1}
+              onChange={handleAmountChange}
+              onKeyDown={handleAmountKeyDown}
+              type="number"
+              value={amount}
+            />
+            <Select onValueChange={handleUnitChange} value={unit}>
+              <SelectTrigger className="h-8 flex-1" size="sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false}>
+                {UNITS.map((option) => (
+                  <SelectItem
+                    key={option.seconds}
+                    value={String(option.seconds)}
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </DialogBody>
+        <DialogFooter>
+          <Button onClick={onClose} size="sm" variant="outline">
+            Cancel
+          </Button>
           <Button disabled={!valid} onClick={submit} size="sm">
             Start cooldown
           </Button>

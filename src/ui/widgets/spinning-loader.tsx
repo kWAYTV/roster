@@ -4,7 +4,7 @@ import {
   LoaderCircleIcon,
   type LoaderCircleIconHandle,
 } from "@/ui/icons/loader-circle";
-import { useMountEffect } from "@/ui/use-mount-effect";
+import { useMountEffect } from "@/ui/widgets/use-mount-effect";
 
 /** Loader that spins continuously (lucide-animated only animates on hover by default). */
 export function SpinningLoader({ size = 16 }: { size?: number }) {

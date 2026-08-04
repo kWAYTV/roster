@@ -3,8 +3,10 @@ import { useCallback, useState } from "react";
 import { Button } from "@/ui/primitives/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/ui/primitives/dialog";
@@ -49,27 +51,41 @@ export function NoteDialog({
     onClose();
   }, [note, onClose, onSave]);
 
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        handleSave();
+      }
+    },
+    [handleSave]
+  );
+
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogContent className="gap-4 p-5 sm:max-w-md" showCloseButton>
-        <DialogHeader className="pr-8">
+      <DialogContent>
+        <DialogHeader>
           <DialogTitle>Note</DialogTitle>
           <DialogDescription>{name}</DialogDescription>
         </DialogHeader>
-        <Textarea
-          className="min-h-24"
-          onChange={handleChange}
-          placeholder="Label, smurf, banned…"
-          value={note}
-        />
-        <div className="flex justify-end gap-2">
+        <DialogBody>
+          <Textarea
+            autoFocus
+            className="min-h-24 resize-none"
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Label, smurf, banned…"
+            value={note}
+          />
+        </DialogBody>
+        <DialogFooter>
           <Button onClick={onClose} size="sm" variant="outline">
             Cancel
           </Button>
           <Button onClick={handleSave} size="sm">
             Save
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

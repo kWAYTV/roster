@@ -3,8 +3,10 @@ import { useCallback, useState } from "react";
 import { Button } from "@/ui/primitives/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/ui/primitives/dialog";
@@ -56,28 +58,42 @@ export function TagsDialog({
     onClose();
   }, [value, onClose, onSave]);
 
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleSave();
+      }
+    },
+    [handleSave]
+  );
+
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogContent className="gap-4 p-5 sm:max-w-md" showCloseButton>
-        <DialogHeader className="pr-8">
+      <DialogContent>
+        <DialogHeader>
           <DialogTitle>Tags</DialogTitle>
           <DialogDescription>
             {name} — comma-separated. Search with #tag.
           </DialogDescription>
         </DialogHeader>
-        <Input
-          onChange={handleChange}
-          placeholder="smurf, main, banned"
-          value={value}
-        />
-        <div className="flex justify-end gap-2">
+        <DialogBody>
+          <Input
+            autoFocus
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder="smurf, main, banned"
+            value={value}
+          />
+        </DialogBody>
+        <DialogFooter>
           <Button onClick={onClose} size="sm" variant="outline">
             Cancel
           </Button>
           <Button onClick={handleSave} size="sm">
             Save
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
