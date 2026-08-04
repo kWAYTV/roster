@@ -35,7 +35,7 @@ export function Footer({ currentVersion }: FooterProps) {
           className={steamRunning ? styles.steamOn : styles.steamOff}
           title={steamRunning ? "Steam is running" : "Steam is not running"}
         >
-          {steamRunning ? "Steam · live" : "Steam · idle"}
+          {steamRunning ? "Steam / live" : "Steam / idle"}
         </span>
       </div>
       <span className={styles.version}>v{currentVersion ?? "…"}</span>
