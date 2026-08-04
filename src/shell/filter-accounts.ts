@@ -9,9 +9,10 @@ export type RosterFilter =
   | "expired"
   | "expiring"
   | "online"
-  | "offline";
+  | "offline"
+  | "tagged";
 
-export type RosterSort = "default" | "last_used" | "name" | "jwt";
+export type RosterSort = "default" | "last_used" | "name" | "jwt" | "cooldown";
 
 export function filterAccounts(
   accounts: AccountView[],
@@ -22,6 +23,7 @@ export function filterAccounts(
   warnJwtDays = 0
 ): AccountView[] {
   const needle = query.trim().toLowerCase();
+  const tagNeedle = needle.startsWith("#") ? needle.slice(1) : "";
   return accounts.filter((account) => {
     if (!matchesFilter(account, filter, statuses, nowSeconds, warnJwtDays)) {
       return false;
@@ -29,7 +31,10 @@ export function filterAccounts(
     if (!needle) {
       return true;
     }
-    return `${account.display_name} ${account.account_name} ${account.note}`
+    if (tagNeedle) {
+      return account.tags.some((tag) => tag.toLowerCase().includes(tagNeedle));
+    }
+    return `${account.display_name} ${account.account_name} ${account.note} ${account.steamid} ${account.tags.join(" ")}`
       .toLowerCase()
       .includes(needle);
   });
@@ -37,7 +42,8 @@ export function filterAccounts(
 
 export function sortAccounts(
   accounts: AccountView[],
-  sort: RosterSort
+  sort: RosterSort,
+  nowSeconds: number
 ): AccountView[] {
   if (sort === "default") {
     return accounts;
@@ -55,6 +61,11 @@ export function sortAccounts(
         return nameCmp(a, b);
       case "jwt":
         return jwtRank(a) - jwtRank(b) || nameCmp(a, b);
+      case "cooldown":
+        return (
+          cooldownRank(a, nowSeconds) - cooldownRank(b, nowSeconds) ||
+          nameCmp(a, b)
+        );
       default:
         return 0;
     }
@@ -88,6 +99,8 @@ function matchesFilter(
       const state = statuses[account.steamid]?.state;
       return !state || state === "offline";
     }
+    case "tagged":
+      return account.tags.length > 0;
     default:
       return true;
   }
@@ -115,4 +128,12 @@ function jwtRank(account: AccountView): number {
     return Number.MAX_SAFE_INTEGER;
   }
   return account.jwt_expires_in;
+}
+
+/** Active cooldowns first (soonest end), then no cooldown. */
+function cooldownRank(account: AccountView, nowSeconds: number): number {
+  if (!isCooldownActive(account.cooldown_until, nowSeconds)) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+  return account.cooldown_until;
 }

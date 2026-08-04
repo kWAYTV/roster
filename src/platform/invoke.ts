@@ -5,6 +5,8 @@ import type { AccountView } from "../roster/account";
 export interface ClassifyResult {
   expired: string[];
   importable: string[];
+  new_count: number;
+  update_count: number;
 }
 
 export interface OverridePatch {
@@ -14,8 +16,16 @@ export interface OverridePatch {
   mute_notifications: boolean | null;
 }
 
+export interface TokenHealth {
+  account_name: string;
+  jwt_expires_in: number;
+  status: "ok" | "expired" | "missing" | "invalid";
+  steamid: string;
+}
+
 /// The single, typed surface for every backend command.
 export const commands = {
+  checkTokens: () => invoke<TokenHealth[]>("check_tokens"),
   classifyImport: (payload: string) =>
     invoke<ClassifyResult>("classify_import", { payload }),
   clearCache: () => invoke<string>("clear_cache"),
@@ -24,6 +34,8 @@ export const commands = {
   clearCooldownMany: (steamids: string[]) =>
     invoke<void>("clear_cooldown_many", { steamids }),
   clearLogs: () => invoke<void>("clear_logs"),
+  clearNotesMany: (steamids: string[]) =>
+    invoke<string>("clear_notes_many", { steamids }),
   exportMetadata: () => invoke<string>("export_metadata"),
   exportTokenEntries: (steamids: string[]) =>
     invoke<string[]>("export_token_entries", { steamids }),
@@ -33,6 +45,7 @@ export const commands = {
     invoke<string>("import_accounts", { payload }),
   importMetadata: (payload: string) =>
     invoke<string>("import_metadata", { payload }),
+  isSteamRunning: () => invoke<boolean>("is_steam_running"),
   listAccounts: () => invoke<AccountView[]>("list_accounts"),
   openExternalUrl: (url: string) => invoke<void>("open_external_url", { url }),
   openSteamProfile: (steamid: string) =>
@@ -55,6 +68,10 @@ export const commands = {
     invoke<string>("set_note", { note, steamid }),
   setPinned: (steamid: string, pinned: boolean) =>
     invoke<string>("set_pinned", { pinned, steamid }),
+  setPinnedMany: (steamids: string[], pinned: boolean) =>
+    invoke<string>("set_pinned_many", { pinned, steamids }),
+  setTags: (steamid: string, tags: string[]) =>
+    invoke<string>("set_tags", { steamid, tags }),
   signIn: (steamid: string, forceInvisible = false) =>
     invoke<string>("sign_in", {
       forceInvisible: forceInvisible ? true : null,

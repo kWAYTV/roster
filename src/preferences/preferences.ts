@@ -1,6 +1,7 @@
 /// Sign-in toggles, mirrored from the Rust `Preferences` model.
 export interface Preferences {
   always_invisible: boolean;
+  auto_sign_in_on_cooldown: boolean;
   cancel_downloads_on_login: boolean;
   cs2_launch_options: string;
   hide_from_capture: boolean;
@@ -17,6 +18,7 @@ export interface Preferences {
 
 export const DEFAULT_PREFERENCES: Preferences = {
   always_invisible: true,
+  auto_sign_in_on_cooldown: false,
   cancel_downloads_on_login: false,
   cs2_launch_options: "",
   hide_from_capture: true,

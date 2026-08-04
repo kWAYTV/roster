@@ -29,6 +29,9 @@ pub struct Preferences {
     /// Toast when a JWT expires within this many days (0 = off).
     #[serde(default = "default_jwt_warn_days")]
     pub warn_jwt_expiry_days: u32,
+    /// When a cooldown ends, sign into that account automatically.
+    #[serde(default)]
+    pub auto_sign_in_on_cooldown: bool,
 }
 
 impl Default for Preferences {
@@ -46,6 +49,7 @@ impl Default for Preferences {
             cs2_launch_options: String::new(),
             import_without_sign_in: false,
             warn_jwt_expiry_days: default_jwt_warn_days(),
+            auto_sign_in_on_cooldown: false,
         }
     }
 }

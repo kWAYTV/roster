@@ -17,6 +17,8 @@ pub struct AccountMetadata {
     #[serde(default)]
     pub note: String,
     #[serde(default)]
+    pub tags: Vec<String>,
+    #[serde(default)]
     pub always_invisible: Option<bool>,
     #[serde(default)]
     pub mute_notifications: Option<bool>,
@@ -34,6 +36,7 @@ impl AccountMetadata {
             && self.cooldown_duration == 0
             && !self.pinned
             && self.note.is_empty()
+            && self.tags.is_empty()
             && self.always_invisible.is_none()
             && self.mute_notifications.is_none()
             && self.launch_cs2.is_none()

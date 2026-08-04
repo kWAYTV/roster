@@ -76,6 +76,24 @@
   border-top: 1px solid var(--border);
 }
 
+.footLeft {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.steamOn,
+.steamOff {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+
+.steamOn {
+  color: var(--presence-ingame);
+}
+
 .version {
   font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;

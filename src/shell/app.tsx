@@ -4,6 +4,7 @@ import { isCooldownActive, nowSeconds } from "../cooldown/cooldown";
 import { useCooldown } from "../cooldown/use-cooldown";
 import { useNow } from "../cooldown/use-now";
 import { useExport } from "../export/use-export";
+import { ConfirmDialog } from "../feedback/confirm-dialog";
 import { LogPanel } from "../feedback/log-panel";
 import { useToast } from "../feedback/toast";
 import { useForget } from "../forget/use-forget";
@@ -15,6 +16,7 @@ import type { AccountView } from "../roster/account";
 import { NoteDialog } from "../roster/note-dialog";
 import { OverridesDialog } from "../roster/overrides-dialog";
 import { RosterList } from "../roster/roster-list";
+import { TagsDialog } from "../roster/tags-dialog";
 import { useAccountMeta } from "../roster/use-account-meta";
 import { useRoster } from "../roster/use-roster";
 import { useStatus } from "../status/use-status";
@@ -39,11 +41,26 @@ export function App() {
   const { signIn, pending } = useSignIn();
   const { remove, removeMany } = useForget();
   const { startMany, clearMany } = useCooldown();
-  const { setPinned, setNote, setOverrides } = useAccountMeta();
+  const {
+    setPinned,
+    setPinnedMany,
+    setNote,
+    setTags,
+    setOverrides,
+    clearNotesMany,
+  } = useAccountMeta();
   const { exportBackup, importBackup } = useMetadataBackup();
   const { notify } = useToast();
-  const { exportCountFor, copyExport, exportFile, copyUsername, copySteamId } =
-    useExport();
+  const {
+    exportCountFor,
+    copyExport,
+    exportFile,
+    copyUsername,
+    copySteamId,
+    pendingExport,
+    confirmExport,
+    cancelExport,
+  } = useExport(!preferences.streamer_mode);
   const { busy, currentVersion, checkForUpdate } = useUpdater(notify);
   const {
     selectedIds,
@@ -71,9 +88,12 @@ export function App() {
     closeBulkCooldown,
   } = useShellUi();
   const [noteTarget, setNoteTarget] = useState<AccountView | null>(null);
+  const [tagsTarget, setTagsTarget] = useState<AccountView | null>(null);
   const [overridesTarget, setOverridesTarget] = useState<AccountView | null>(
     null
   );
+
+  const clock = now || nowSeconds();
 
   const filtered = useMemo(() => {
     const matched = filterAccounts(
@@ -81,19 +101,30 @@ export function App() {
       ui.query,
       filter,
       statuses,
-      now || nowSeconds(),
+      clock,
       preferences.warn_jwt_expiry_days
     );
-    return sortAccounts(matched, sort);
+    return sortAccounts(matched, sort, clock);
   }, [
     accounts,
+    clock,
     filter,
-    now,
     preferences.warn_jwt_expiry_days,
     sort,
     statuses,
     ui.query,
   ]);
+
+  const visibleSelectedIds = useMemo(() => {
+    const visible = new Set(filtered.map((account) => account.steamid));
+    const next = new Set<string>();
+    for (const id of selectedIds) {
+      if (visible.has(id)) {
+        next.add(id);
+      }
+    }
+    return next;
+  }, [filtered, selectedIds]);
 
   const requestSignIn = useCallback(
     (steamid: string, forceInvisible = false) => {
@@ -155,6 +186,16 @@ export function App() {
     [noteTarget, setNote]
   );
 
+  const handleSaveTags = useCallback(
+    (tags: string[]) => {
+      if (!tagsTarget) {
+        return;
+      }
+      setTags(tagsTarget.steamid, tags);
+    },
+    [tagsTarget, setTags]
+  );
+
   const handleSelectAll = useCallback(() => {
     selectAll(filtered);
   }, [filtered, selectAll]);
@@ -164,14 +205,14 @@ export function App() {
   }, [filtered, invertSelection]);
 
   const requestRemoveSelection = useCallback(() => {
-    const selected = accounts.filter((account) =>
-      selectedIds.has(account.steamid)
+    const selected = filtered.filter((account) =>
+      visibleSelectedIds.has(account.steamid)
     );
     if (selected.length === 0) {
       return;
     }
     askRemove(selected);
-  }, [accounts, askRemove, selectedIds]);
+  }, [askRemove, filtered, visibleSelectedIds]);
 
   useShellEvents({ notify, openImport });
   useShellShortcuts({
@@ -183,7 +224,7 @@ export function App() {
     requestRemoveSelection,
     requestSignIn,
     searchOpen: ui.searchOpen,
-    selectedIds,
+    selectedIds: visibleSelectedIds,
   });
 
   const countLabel =
@@ -229,9 +270,24 @@ export function App() {
     setNoteTarget(null);
   }, []);
 
+  const closeTags = useCallback(() => {
+    setTagsTarget(null);
+  }, []);
+
   const closeOverrides = useCallback(() => {
     setOverridesTarget(null);
   }, []);
+
+  const handleConfirmExport = useCallback(() => {
+    confirmExport().catch(() => undefined);
+  }, [confirmExport]);
+
+  let exportConfirmMessage = "";
+  if (pendingExport?.kind === "copy") {
+    exportConfirmMessage = `Copy ${pendingExport.steamids.length} refresh token(s) to the clipboard?`;
+  } else if (pendingExport?.kind === "file") {
+    exportConfirmMessage = `Save ${pendingExport.steamids.length} refresh token(s) to a file?`;
+  }
 
   return (
     <div className={styles.app}>
@@ -265,6 +321,7 @@ export function App() {
           exportCountFor={exportCountForFiltered}
           loading={loading}
           onClearCooldown={clearMany}
+          onClearNotes={clearNotesMany}
           onClearSelection={clearSelection}
           onCooldown={startMany}
           onCopyExport={copyExport}
@@ -273,16 +330,18 @@ export function App() {
           onCustomCooldown={askBulkCooldown}
           onEditNote={setNoteTarget}
           onEditOverrides={setOverridesTarget}
+          onEditTags={setTagsTarget}
           onExportFile={exportFile}
           onImport={accounts.length === 0 ? openImport : undefined}
           onOpenProfile={openProfile}
+          onPinMany={setPinnedMany}
           onReimport={handleReimport}
           onRemove={askRemove}
           onSelect={selectAccount}
           onSignIn={requestSignIn}
           onTogglePin={handleTogglePin}
           pending={pending}
-          selectedIds={selectedIds}
+          selectedIds={visibleSelectedIds}
           statuses={statuses}
           streamer={preferences.streamer_mode}
         />
@@ -330,13 +389,33 @@ export function App() {
         updateBusy={busy}
       />
 
+      <ConfirmDialog
+        confirmLabel={pendingExport?.kind === "file" ? "Save" : "Copy"}
+        danger
+        message={exportConfirmMessage}
+        onClose={cancelExport}
+        onConfirm={handleConfirmExport}
+        open={pendingExport !== null}
+        title="Export tokens"
+      />
+
       {noteTarget ? (
         <NoteDialog
           initial={noteTarget.note}
-          key={noteTarget.steamid}
+          key={`note-${noteTarget.steamid}`}
           name={noteTarget.display_name}
           onClose={closeNote}
           onSave={handleSaveNote}
+          open
+        />
+      ) : null}
+      {tagsTarget ? (
+        <TagsDialog
+          initial={tagsTarget.tags}
+          key={`tags-${tagsTarget.steamid}`}
+          name={tagsTarget.display_name}
+          onClose={closeTags}
+          onSave={handleSaveTags}
           open
         />
       ) : null}

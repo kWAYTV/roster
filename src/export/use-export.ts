@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { useToast } from "../feedback/toast";
 import { commands } from "../platform/invoke";
@@ -9,8 +9,14 @@ export function isExportable(account: AccountView): boolean {
   return account.has_token && account.jwt_expires_in >= 0;
 }
 
-export function useExport() {
+type PendingExport =
+  | { kind: "copy"; steamids: string[] }
+  | { kind: "file"; steamids: string[] }
+  | null;
+
+export function useExport(requireConfirm: boolean) {
   const { notify } = useToast();
+  const [pendingExport, setPendingExport] = useState<PendingExport>(null);
 
   const exportCountFor = useCallback(
     (accounts: AccountView[], steamids: string[]) => {
@@ -25,7 +31,7 @@ export function useExport() {
     []
   );
 
-  const copyExport = useCallback(
+  const runCopy = useCallback(
     async (steamids: string[]) => {
       try {
         const lines = await commands.exportTokenEntries(steamids);
@@ -47,7 +53,7 @@ export function useExport() {
     [notify]
   );
 
-  const exportFile = useCallback(
+  const runFile = useCallback(
     async (steamids: string[]) => {
       try {
         const lines = await commands.exportTokenEntries(steamids);
@@ -71,6 +77,45 @@ export function useExport() {
     },
     [notify]
   );
+
+  const copyExport = useCallback(
+    async (steamids: string[]) => {
+      if (requireConfirm) {
+        setPendingExport({ kind: "copy", steamids });
+        return;
+      }
+      await runCopy(steamids);
+    },
+    [requireConfirm, runCopy]
+  );
+
+  const exportFile = useCallback(
+    async (steamids: string[]) => {
+      if (requireConfirm) {
+        setPendingExport({ kind: "file", steamids });
+        return;
+      }
+      await runFile(steamids);
+    },
+    [requireConfirm, runFile]
+  );
+
+  const confirmExport = useCallback(async () => {
+    if (!pendingExport) {
+      return;
+    }
+    const next = pendingExport;
+    setPendingExport(null);
+    if (next.kind === "copy") {
+      await runCopy(next.steamids);
+      return;
+    }
+    await runFile(next.steamids);
+  }, [pendingExport, runCopy, runFile]);
+
+  const cancelExport = useCallback(() => {
+    setPendingExport(null);
+  }, []);
 
   const copyUsername = useCallback(
     async (account: AccountView) => {
@@ -103,10 +148,13 @@ export function useExport() {
   );
 
   return {
+    cancelExport,
+    confirmExport,
     copyExport,
     copySteamId,
     copyUsername,
     exportCountFor,
     exportFile,
+    pendingExport,
   };
 }

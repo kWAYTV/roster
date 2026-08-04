@@ -122,7 +122,7 @@ export function SettingsDialog({
       <ConfirmDialog
         confirmLabel="Reset"
         danger
-        message="This clears every saved Steam login on this PC. Continue?"
+        message="This clears every saved Steam login on this PC, plus Roster pins, notes, cooldowns, and tags. Continue?"
         onClose={closeReset}
         onConfirm={reset}
         open={resetOpen}

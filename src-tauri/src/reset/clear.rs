@@ -2,7 +2,8 @@ use std::fs;
 
 use crate::steam_client::{cache_dir, install_dir, stop};
 
-/// Remove the config files and cache directory that hold Steam logins.
+/// Remove the config files and cache directory that hold Steam logins,
+/// plus Roster's per-account metadata so pins/notes/cooldowns do not orphan.
 pub fn clear() -> Result<String, String> {
     let _guard = crate::steam_client::mutation_guard();
     let install = install_dir()?;
@@ -17,6 +18,8 @@ pub fn clear() -> Result<String, String> {
     if cache.exists() {
         fs::remove_dir_all(&cache).map_err(|e| format!("Failed to clear the Steam cache: {e}"))?;
     }
+
+    crate::metadata::clear_all()?;
 
     Ok("Login data cleared".to_string())
 }

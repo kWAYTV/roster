@@ -1,9 +1,10 @@
 /// Relative "last signed in" label for the account row. `timestamp` is Unix seconds.
-export function formatLastUsed(timestamp: number): string {
+export function formatLastUsed(timestamp: number, nowSeconds?: number): string {
   if (timestamp <= 0) {
     return "";
   }
-  const elapsed = Math.floor(Date.now() / 1000) - timestamp;
+  const now = nowSeconds ?? Math.floor(Date.now() / 1000);
+  const elapsed = now - timestamp;
   if (elapsed < 60) {
     return "just now";
   }

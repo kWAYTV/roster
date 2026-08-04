@@ -12,14 +12,16 @@ import { Button } from "@/ui/primitives/button";
 import { ContextMenu, ContextMenuTrigger } from "@/ui/primitives/context-menu";
 import { Hint } from "@/ui/widgets/hint";
 import { SpinningLoader } from "@/ui/widgets/spinning-loader";
+import { nowSeconds } from "../cooldown/cooldown";
 import { CooldownBadge } from "../cooldown/cooldown-badge";
 import { CooldownMenu } from "../cooldown/cooldown-menu";
+import { useNow } from "../cooldown/use-now";
 import type { AccountStatus } from "../status/status";
 import { StatusDot } from "../status/status-dot";
 import type { AccountView } from "./account";
 import { AccountContextMenu } from "./account-context-menu";
 import styles from "./account-row.module.css";
-import { formatJwtExpiry } from "./jwt-label";
+import { formatJwtExpiry, jwtExpiryTooltip } from "./jwt-label";
 import { formatLastUsed } from "./last-used";
 
 const AVATAR_SIZE = 36;
@@ -38,6 +40,7 @@ interface AccountRowProps {
   onCustomCooldown: (steamids: string[]) => void;
   onEditNote: (account: AccountView) => void;
   onEditOverrides: (account: AccountView) => void;
+  onEditTags: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
   onOpenProfile: (steamid: string) => void;
   onReimport: (account: AccountView) => void;
@@ -74,15 +77,19 @@ export function AccountRow({
   onTogglePin,
   onEditNote,
   onEditOverrides,
+  onEditTags,
 }: AccountRowProps) {
+  const now = useNow(30_000);
   const name = streamer ? `Account ${index + 1}` : account.display_name;
   const login = streamer
     ? "\u2022\u2022\u2022\u2022\u2022"
     : account.account_name;
-  const lastUsed = formatLastUsed(account.last_used);
+  const lastUsed = formatLastUsed(account.last_used, now || nowSeconds());
   const game = status?.state === "in-game" ? status.game : "";
   const jwtLabel = formatJwtExpiry(account.jwt_expires_in);
+  const jwtTip = jwtExpiryTooltip(account.jwt_expires_in);
   const note = streamer ? "" : account.note.trim();
+  const tags = streamer ? [] : account.tags;
   const rowClass = useMemo(() => {
     const parts = [styles.row];
     if (selected) {
@@ -127,9 +134,43 @@ export function AccountRow({
     onRemove([account]);
   }, [account, onRemove]);
 
+  const handleOpenProfile = useCallback(
+    (event: MouseEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onOpenProfile(account.steamid);
+    },
+    [account.steamid, onOpenProfile]
+  );
+
+  const handleAvatarKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLAnchorElement>) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      onOpenProfile(account.steamid);
+    },
+    [account.steamid, onOpenProfile]
+  );
+
   return (
     <ContextMenu>
       <ContextMenuTrigger render={<div className={rowClass} />}>
+        <div className={styles.avatarWrap}>
+          <Hint label="Open Steam profile">
+            <a
+              className={styles.avatar}
+              href={`https://steamcommunity.com/profiles/${account.steamid}`}
+              onClick={handleOpenProfile}
+              onKeyDown={handleAvatarKeyDown}
+            >
+              {avatarContent(streamer, index, account)}
+            </a>
+          </Hint>
+          <StatusDot status={status} />
+        </div>
         <button
           className={styles.selectHit}
           onClick={handleSelect}
@@ -138,12 +179,6 @@ export function AccountRow({
           onKeyDown={handleKeyDown}
           type="button"
         >
-          <div className={styles.avatarWrap}>
-            <div className={styles.avatar}>
-              {avatarContent(streamer, index, account)}
-            </div>
-            <StatusDot status={status} />
-          </div>
           <div className={styles.info}>
             <div className={styles.name}>
               {account.pinned ? (
@@ -156,20 +191,27 @@ export function AccountRow({
                 <span className={styles.badge}>last used</span>
               ) : null}
               {jwtLabel ? (
-                <span
-                  className={
-                    account.jwt_expires_in < 0
-                      ? `${styles.badge} ${styles.jwtExpired}`
-                      : styles.badge
-                  }
-                >
-                  {jwtLabel}
-                </span>
+                <Hint label={jwtTip || jwtLabel}>
+                  <span
+                    className={
+                      account.jwt_expires_in < 0
+                        ? `${styles.badge} ${styles.jwtExpired}`
+                        : styles.badge
+                    }
+                  >
+                    {jwtLabel}
+                  </span>
+                </Hint>
               ) : null}
               <CooldownBadge
                 duration={account.cooldown_duration}
                 until={account.cooldown_until}
               />
+              {tags.map((tag) => (
+                <span className={styles.tag} key={tag}>
+                  #{tag}
+                </span>
+              ))}
             </div>
             <div className={styles.login}>
               {login}
@@ -231,6 +273,7 @@ export function AccountRow({
         onCustomCooldown={onCustomCooldown}
         onEditNote={onEditNote}
         onEditOverrides={onEditOverrides}
+        onEditTags={onEditTags}
         onExportFile={onExportFile}
         onOpenProfile={onOpenProfile}
         onReimport={onReimport}

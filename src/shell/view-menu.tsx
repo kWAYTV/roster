@@ -19,6 +19,7 @@ import type { RosterFilter, RosterSort } from "./filter-accounts";
 const FILTERS: { id: RosterFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "pinned", label: "Pinned" },
+  { id: "tagged", label: "Tagged" },
   { id: "cooldown", label: "Cooldown" },
   { id: "expiring", label: "Expiring soon" },
   { id: "expired", label: "Expired" },
@@ -31,6 +32,7 @@ const SORTS: { id: RosterSort; label: string }[] = [
   { id: "last_used", label: "Last used" },
   { id: "name", label: "Name" },
   { id: "jwt", label: "JWT expiry" },
+  { id: "cooldown", label: "Cooldown" },
 ];
 
 interface ViewMenuProps {

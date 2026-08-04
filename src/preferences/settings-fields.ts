@@ -68,4 +68,10 @@ export const APP_SETTINGS: BoolSetting[] = [
     key: "minimize_to_tray_on_close",
     label: "Minimize to tray on close",
   },
+  {
+    description:
+      "When a cooldown ends, sign into that account automatically (picks the most recently used if several finish together).",
+    key: "auto_sign_in_on_cooldown",
+    label: "Auto sign-in when cooldown ends",
+  },
 ];

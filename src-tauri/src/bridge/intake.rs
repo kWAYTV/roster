@@ -7,6 +7,8 @@ use super::after_account_change;
 pub struct ClassifyResult {
     pub importable: Vec<String>,
     pub expired: Vec<String>,
+    pub new_count: usize,
+    pub update_count: usize,
 }
 
 #[tauri::command]
@@ -16,10 +18,12 @@ pub fn read_clipboard() -> Result<String, String> {
 
 #[tauri::command]
 pub fn classify_import(payload: String) -> ClassifyResult {
-    let (importable, expired) = crate::intake::classify(&payload);
+    let outcome = crate::intake::classify(&payload);
     ClassifyResult {
-        importable,
-        expired,
+        importable: outcome.importable,
+        expired: outcome.expired,
+        new_count: outcome.new_count,
+        update_count: outcome.update_count,
     }
 }
 

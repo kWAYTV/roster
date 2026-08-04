@@ -4,18 +4,23 @@
 //! (`roster`, `intake`, `login`, `forget`, `export`, `reset`, `preferences`,
 //! `presence`, `status`, `cooldown` via `metadata`). Steam/Windows integration
 //! stays behind capability edges (`vdf`, `steam_config`, `steam_client`,
-//! `secret`). `bridge`, `tray`, and `window` are delivery edges — not domain.
+//! `secret`). `bridge`, `tray`, `window`, `protocol`, and `hotkey` are delivery
+//! edges — not domain.
 
 mod app_data;
 mod bridge;
 mod export;
 mod forget;
+#[cfg(windows)]
+mod hotkey;
 mod intake;
 mod log;
 mod login;
 mod metadata;
 mod preferences;
 mod presence;
+#[cfg(windows)]
+mod protocol;
 mod reset;
 mod roster;
 mod secret;
@@ -35,8 +40,9 @@ pub fn run() {
     #[cfg(windows)]
     let builder = builder
         .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             tray::focus_window(app);
+            protocol::handle_args(app, &args);
         }))
         // Position only — size/maximize are fixed in tauri.conf.json.
         .plugin(
@@ -46,13 +52,18 @@ pub fn run() {
                         | tauri_plugin_window_state::StateFlags::VISIBLE,
                 )
                 .build(),
-        );
+        )
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build());
 
     builder
         .setup(|app| {
             app_data::init(app.handle()).map_err(std::io::Error::other)?;
             #[cfg(windows)]
-            tray::setup(app.handle())?;
+            {
+                tray::setup(app.handle())?;
+                protocol::setup(app.handle());
+                hotkey::setup(app.handle())?;
+            }
             metadata::start_cooldown_watch(app.handle().clone());
             window::apply_capture_preferences(app.handle());
             Ok(())
@@ -70,16 +81,21 @@ pub fn run() {
             bridge::cooldown::set_cooldown_many,
             bridge::cooldown::clear_cooldown_many,
             bridge::metadata::set_pinned,
+            bridge::metadata::set_pinned_many,
             bridge::metadata::set_note,
+            bridge::metadata::clear_notes_many,
+            bridge::metadata::set_tags,
             bridge::metadata::set_account_overrides,
             bridge::metadata::export_metadata,
             bridge::metadata::import_metadata,
             bridge::status::refresh_statuses,
+            bridge::tokens::check_tokens,
             bridge::reset::clear_cache,
             bridge::preferences::get_preferences,
             bridge::preferences::save_preferences,
             bridge::export::export_token_entries,
             bridge::util::write_clipboard,
+            bridge::util::is_steam_running,
             bridge::util::open_steam_profile,
             bridge::util::open_external_url,
             bridge::logs::get_logs,
