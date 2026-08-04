@@ -7,7 +7,7 @@ mod process;
 use std::path::Path;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
-pub use autologin::{autologin_user, clear_autologin_if_matches, is_autologin, set_autologin_user};
+pub use autologin::{autologin_user, clear_autologin_if_matches, set_autologin_user};
 pub use location::{cache_dir, install_dir, localconfig_path, steamid3_from_steamid64};
 pub use process::{is_running, launch, launch_cs2, stop};
 
