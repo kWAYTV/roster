@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/primitives/dialog";
-import { Separator } from "@/ui/primitives/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/primitives/tabs";
 import { ImportBulk } from "./import-bulk";
 import { looksLikeBulk, seedFields } from "./import-seed";
 import { ImportSingle } from "./import-single";
@@ -16,6 +16,8 @@ import { useClassifyImport } from "./use-classify-import";
 import { useImport } from "./use-intake";
 
 const TEXT_FILE = /\.(txt|csv|log|jwt)$/i;
+
+type ImportTab = "single" | "bulk";
 
 interface ImportDialogProps {
   onClose: () => void;
@@ -30,9 +32,10 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
   const seeded = seedFields(prefill);
   const [single, setSingle] = useState(seeded.single);
   const [bulk, setBulk] = useState(seeded.bulk);
+  const [tab, setTab] = useState<ImportTab>(seeded.bulk ? "bulk" : "single");
   const [dragging, setDragging] = useState(false);
-  const singleClassified = useClassifyImport(single, open);
-  const bulkClassified = useClassifyImport(bulk, open);
+  const singleClassified = useClassifyImport(single, open && tab === "single");
+  const bulkClassified = useClassifyImport(bulk, open && tab === "bulk");
 
   const submit = useCallback(
     async (payload: string) => {
@@ -48,16 +51,18 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
   );
 
   const pasteInto = useCallback(
-    async (target: "single" | "bulk") => {
+    async (target: ImportTab) => {
       const text = (await paste()).trim();
       if (!text) {
         return;
       }
       if (target !== "bulk" && !looksLikeBulk(text)) {
         setSingle(text);
+        setTab("single");
         return;
       }
       setBulk(text);
+      setTab("bulk");
       if (target === "single") {
         setSingle("");
       }
@@ -73,6 +78,12 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
     },
     [onClose]
   );
+
+  const handleTabChange = useCallback((value: string | number | null) => {
+    if (value === "single" || value === "bulk") {
+      setTab(value);
+    }
+  }, []);
 
   const pasteSingle = useCallback(() => {
     pasteInto("single").catch(() => undefined);
@@ -98,9 +109,11 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
     if (looksLikeBulk(next)) {
       setBulk(next);
       setSingle("");
+      setTab("bulk");
       return;
     }
     setSingle(next);
+    setTab("single");
   }, []);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
@@ -152,26 +165,41 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <DialogBody className="gap-4">
-          <ImportSingle
-            busy={busy}
-            classified={singleClassified}
-            onChange={setSingle}
-            onPaste={pasteSingle}
-            onSubmit={submitSingle}
-            value={single}
-          />
+        <DialogBody>
+          <Tabs className="gap-4" onValueChange={handleTabChange} value={tab}>
+            <TabsList className="w-full">
+              <TabsTrigger className="flex-1" value="single">
+                Single
+              </TabsTrigger>
+              <TabsTrigger className="flex-1" value="bulk">
+                Bulk
+              </TabsTrigger>
+            </TabsList>
 
-          <Separator />
+            <TabsContent className="mt-0 outline-none" value="single">
+              <ImportSingle
+                autoFocus={tab === "single"}
+                busy={busy}
+                classified={singleClassified}
+                onChange={setSingle}
+                onPaste={pasteSingle}
+                onSubmit={submitSingle}
+                value={single}
+              />
+            </TabsContent>
 
-          <ImportBulk
-            busy={busy}
-            classified={bulkClassified}
-            onChange={setBulk}
-            onPaste={pasteBulk}
-            onSubmit={submitBulk}
-            value={bulk}
-          />
+            <TabsContent className="mt-0 outline-none" value="bulk">
+              <ImportBulk
+                autoFocus={tab === "bulk"}
+                busy={busy}
+                classified={bulkClassified}
+                onChange={setBulk}
+                onPaste={pasteBulk}
+                onSubmit={submitBulk}
+                value={bulk}
+              />
+            </TabsContent>
+          </Tabs>
         </DialogBody>
       </DialogContent>
     </Dialog>

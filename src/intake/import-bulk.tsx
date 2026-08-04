@@ -6,6 +6,7 @@ import { importLabel } from "./import-seed";
 import type { ClassifyHint } from "./use-classify-import";
 
 interface ImportBulkProps {
+  autoFocus?: boolean;
   busy: boolean;
   classified: ClassifyHint;
   onChange: (value: string) => void;
@@ -18,6 +19,7 @@ export function ImportBulk({
   value,
   classified,
   busy,
+  autoFocus = false,
   onChange,
   onPaste,
   onSubmit,
@@ -44,8 +46,8 @@ export function ImportBulk({
 
   return (
     <section className="flex flex-col gap-2">
-      <div className="font-medium text-sm">Multiple accounts</div>
       <Textarea
+        autoFocus={autoFocus}
         className="min-h-28 resize-none font-mono text-xs"
         disabled={busy}
         onChange={handleChange}
