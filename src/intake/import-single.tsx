@@ -6,6 +6,7 @@ import { importLabel } from "./import-seed";
 import type { ClassifyHint } from "./use-classify-import";
 
 interface ImportSingleProps {
+  autoFocus?: boolean;
   busy: boolean;
   classified: ClassifyHint;
   onChange: (value: string) => void;
@@ -18,6 +19,7 @@ export function ImportSingle({
   value,
   classified,
   busy,
+  autoFocus = false,
   onChange,
   onPaste,
   onSubmit,
@@ -45,9 +47,8 @@ export function ImportSingle({
 
   return (
     <section className="flex flex-col gap-2">
-      <div className="font-medium text-sm">Single account</div>
       <Input
-        autoFocus
+        autoFocus={autoFocus}
         disabled={busy}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
