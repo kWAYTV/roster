@@ -19,10 +19,49 @@ export function useAccountMeta() {
     [notify]
   );
 
+  const setPinnedMany = useCallback(
+    async (steamids: string[], pinned: boolean) => {
+      if (steamids.length === 0) {
+        return;
+      }
+      try {
+        notify(await commands.setPinnedMany(steamids, pinned));
+      } catch (cause) {
+        notify(String(cause), "error");
+      }
+    },
+    [notify]
+  );
+
   const setNote = useCallback(
     async (steamid: string, note: string) => {
       try {
         notify(await commands.setNote(steamid, note));
+      } catch (cause) {
+        notify(String(cause), "error");
+      }
+    },
+    [notify]
+  );
+
+  const clearNotesMany = useCallback(
+    async (steamids: string[]) => {
+      if (steamids.length === 0) {
+        return;
+      }
+      try {
+        notify(await commands.clearNotesMany(steamids));
+      } catch (cause) {
+        notify(String(cause), "error");
+      }
+    },
+    [notify]
+  );
+
+  const setTags = useCallback(
+    async (steamid: string, tags: string[]) => {
+      try {
+        notify(await commands.setTags(steamid, tags));
       } catch (cause) {
         notify(String(cause), "error");
       }
@@ -41,5 +80,12 @@ export function useAccountMeta() {
     [notify]
   );
 
-  return { setNote, setOverrides, setPinned };
+  return {
+    clearNotesMany,
+    setNote,
+    setOverrides,
+    setPinned,
+    setPinnedMany,
+    setTags,
+  };
 }

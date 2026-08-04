@@ -11,6 +11,7 @@ pub mod preferences;
 pub mod reset;
 pub mod roster;
 pub mod status;
+pub mod tokens;
 pub mod util;
 
 use tauri::{AppHandle, Emitter};

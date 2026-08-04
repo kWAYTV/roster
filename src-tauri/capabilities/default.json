@@ -16,6 +16,7 @@
     "updater:default",
     "process:allow-restart",
     "window-state:default",
-    "opener:allow-default-urls"
+    "opener:allow-default-urls",
+    "global-shortcut:default"
   ]
 }

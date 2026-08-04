@@ -1,4 +1,4 @@
-//! Background poll for cooldowns that just expired; tray notification.
+//! Background poll for cooldowns that just expired; tray notification / auto sign-in.
 
 use std::collections::HashMap;
 use std::thread;
@@ -49,8 +49,42 @@ pub fn start(app: AppHandle) {
             }
             let _ = app.emit("accounts-changed", ());
             notify_finished(&app, &names);
+
+            if crate::preferences::load().auto_sign_in_on_cooldown {
+                auto_sign_in(&app, &finished);
+            }
         }
     });
+}
+
+fn auto_sign_in(app: &AppHandle, finished: &[String]) {
+    let Some(steamid) = pick_auto_sign_in(finished) else {
+        return;
+    };
+    let Ok(account) = crate::bridge::find_account(&steamid) else {
+        return;
+    };
+    match crate::login::sign_in(&account, false) {
+        Ok(message) => {
+            crate::log::append(&message);
+            let _ = crate::tray::rebuild(app);
+            let _ = app.emit("accounts-changed", ());
+            let _ = app.emit("status", message);
+        }
+        Err(error) => {
+            crate::log::append(format!("Error: {error}"));
+            let _ = app.emit("status-error", error);
+        }
+    }
+}
+
+/// Prefer the finished account with the latest last_used; ties keep first.
+fn pick_auto_sign_in(finished: &[String]) -> Option<String> {
+    let store = all();
+    finished
+        .iter()
+        .max_by_key(|steamid| store.get(*steamid).map(|r| r.last_used).unwrap_or(0))
+        .cloned()
 }
 
 fn display_names(steamids: &[String]) -> Vec<String> {

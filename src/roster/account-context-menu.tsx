@@ -6,6 +6,7 @@ import { ClockIcon } from "@/ui/icons/clock";
 import { CopyIcon } from "@/ui/icons/copy";
 import { DeleteIcon } from "@/ui/icons/delete";
 import { DownloadIcon } from "@/ui/icons/download";
+import { ListFilterIcon } from "@/ui/icons/list-filter";
 import { PinIcon } from "@/ui/icons/pin";
 import { SettingsIcon } from "@/ui/icons/settings";
 import { UserIcon } from "@/ui/icons/user";
@@ -36,6 +37,7 @@ interface AccountContextMenuProps {
   onCustomCooldown: (steamids: string[]) => void;
   onEditNote: (account: AccountView) => void;
   onEditOverrides: (account: AccountView) => void;
+  onEditTags: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
   onOpenProfile: (steamid: string) => void;
   onReimport: (account: AccountView) => void;
@@ -66,6 +68,7 @@ export function AccountContextMenu({
   onTogglePin,
   onEditNote,
   onEditOverrides,
+  onEditTags,
 }: AccountContextMenuProps) {
   const multi = targets.length > 1;
   const hasCooldown = targets.some((item) => item.cooldown_until > 0);
@@ -133,6 +136,10 @@ export function AccountContextMenu({
   const handleEditOverrides = useCallback(() => {
     onEditOverrides(account);
   }, [account, onEditOverrides]);
+
+  const handleEditTags = useCallback(() => {
+    onEditTags(account);
+  }, [account, onEditTags]);
 
   const handlePresetClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -212,6 +219,9 @@ export function AccountContextMenu({
           </IconItem>
           <IconItem icon={<CopyIcon />} onClick={handleEditNote}>
             {account.note ? "Edit note…" : "Add note…"}
+          </IconItem>
+          <IconItem icon={<ListFilterIcon />} onClick={handleEditTags}>
+            {account.tags.length ? "Edit tags…" : "Add tags…"}
           </IconItem>
           <IconItem icon={<SettingsIcon />} onClick={handleEditOverrides}>
             Sign-in overrides…

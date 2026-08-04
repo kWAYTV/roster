@@ -40,7 +40,9 @@ export function useClassifyImport(
             count: classified.importable.length,
             hint: hintFor(
               classified.importable.length,
-              classified.expired.length
+              classified.expired.length,
+              classified.new_count,
+              classified.update_count
             ),
           });
         })
@@ -61,15 +63,25 @@ export function useClassifyImport(
   return result;
 }
 
-function hintFor(importable: number, expired: number): string {
-  if (importable && expired) {
-    return `${importable} ready · ${expired} expired`;
-  }
-  if (expired) {
-    return `${expired} expired`;
-  }
-  if (!importable) {
+function hintFor(
+  importable: number,
+  expired: number,
+  newCount: number,
+  updateCount: number
+): string {
+  if (!(importable || expired)) {
     return "No valid tokens";
   }
-  return "";
+  const parts: string[] = [];
+  if (importable) {
+    const breakdown =
+      newCount || updateCount
+        ? `${newCount} new · ${updateCount} update`
+        : `${importable} ready`;
+    parts.push(breakdown);
+  }
+  if (expired) {
+    parts.push(`${expired} expired`);
+  }
+  return parts.join(" · ");
 }

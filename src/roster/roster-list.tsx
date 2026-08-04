@@ -15,6 +15,7 @@ interface RosterListProps {
   exportCountFor: (steamids: string[]) => number;
   loading: boolean;
   onClearCooldown: (steamids: string[]) => void;
+  onClearNotes: (steamids: string[]) => void;
   onClearSelection: () => void;
   onCooldown: (steamids: string[], seconds: number) => void;
   onCopyExport: (steamids: string[]) => void;
@@ -23,9 +24,11 @@ interface RosterListProps {
   onCustomCooldown: (steamids: string[]) => void;
   onEditNote: (account: AccountView) => void;
   onEditOverrides: (account: AccountView) => void;
+  onEditTags: (account: AccountView) => void;
   onExportFile: (steamids: string[]) => void;
   onImport?: () => void;
   onOpenProfile: (steamid: string) => void;
+  onPinMany: (steamids: string[], pinned: boolean) => void;
   onReimport: (account: AccountView) => void;
   onRemove: (accounts: AccountView[]) => void;
   onSelect: (account: AccountView, additive: boolean) => void;
@@ -59,9 +62,12 @@ export function RosterList({
   onCooldown,
   onClearCooldown,
   onCustomCooldown,
+  onClearNotes,
+  onPinMany,
   onTogglePin,
   onEditNote,
   onEditOverrides,
+  onEditTags,
   onImport,
   exportCountFor,
 }: RosterListProps) {
@@ -107,9 +113,28 @@ export function RosterList({
     [onCooldown, selectedSteamids]
   );
 
+  const handleCustomCooldown = useCallback(() => {
+    onCustomCooldown(selectedSteamids);
+  }, [onCustomCooldown, selectedSteamids]);
+
   const handleCopyExport = useCallback(() => {
     onCopyExport(selectedSteamids);
   }, [onCopyExport, selectedSteamids]);
+
+  const handleExportFile = useCallback(() => {
+    onExportFile(selectedSteamids);
+  }, [onExportFile, selectedSteamids]);
+
+  const handleClearNotes = useCallback(() => {
+    onClearNotes(selectedSteamids);
+  }, [onClearNotes, selectedSteamids]);
+
+  const handlePin = useCallback(
+    (pinned: boolean) => {
+      onPinMany(selectedSteamids, pinned);
+    },
+    [onPinMany, selectedSteamids]
+  );
 
   const handleRemove = useCallback(() => {
     onRemove(selectedAccounts);
@@ -153,6 +178,7 @@ export function RosterList({
               onCustomCooldown={onCustomCooldown}
               onEditNote={onEditNote}
               onEditOverrides={onEditOverrides}
+              onEditTags={onEditTags}
               onExportFile={onExportFile}
               onOpenProfile={onOpenProfile}
               onReimport={onReimport}
@@ -173,8 +199,12 @@ export function RosterList({
           exportCount={exportCountFor(selectedSteamids)}
           onClear={onClearSelection}
           onClearCooldown={handleClearCooldown}
+          onClearNotes={handleClearNotes}
           onCooldown={handleCooldown}
           onCopyExport={handleCopyExport}
+          onCustomCooldown={handleCustomCooldown}
+          onExportFile={handleExportFile}
+          onPin={handlePin}
           onRemove={handleRemove}
         />,
         document.body

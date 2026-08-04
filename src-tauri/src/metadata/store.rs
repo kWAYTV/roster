@@ -67,6 +67,34 @@ pub fn set_note(steamid: &str, note: String) -> Result<(), String> {
     update(steamid, |record| record.note = note.trim().to_string())
 }
 
+/// Replace structured tags (trimmed, de-duplicated, empty dropped).
+pub fn set_tags(steamid: &str, tags: Vec<String>) -> Result<(), String> {
+    update(steamid, |record| record.tags = normalize_tags(tags))
+}
+
+/// Wipe every account metadata record (pins, notes, cooldowns, tags, overrides).
+pub fn clear_all() -> Result<(), String> {
+    save(&Store::new())
+}
+
+fn normalize_tags(tags: Vec<String>) -> Vec<String> {
+    let mut out = Vec::new();
+    for tag in tags {
+        let next = tag.trim().to_string();
+        if next.is_empty() {
+            continue;
+        }
+        if out
+            .iter()
+            .any(|existing: &String| existing.eq_ignore_ascii_case(&next))
+        {
+            continue;
+        }
+        out.push(next);
+    }
+    out
+}
+
 /// Patch optional per-account sign-in overrides. `None` fields are left alone;
 /// pass `Some(None)` via dedicated clear helpers when needed.
 pub fn set_overrides(

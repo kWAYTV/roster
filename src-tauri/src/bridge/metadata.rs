@@ -21,6 +21,40 @@ pub fn set_note(app: AppHandle, steamid: String, note: String) -> Result<String,
     after_account_change(&app, Ok("Note saved".to_string()))
 }
 
+#[tauri::command]
+pub fn set_tags(app: AppHandle, steamid: String, tags: Vec<String>) -> Result<String, String> {
+    crate::metadata::set_tags(&steamid, tags)?;
+    after_account_change(&app, Ok("Tags saved".to_string()))
+}
+
+#[tauri::command]
+pub fn set_pinned_many(
+    app: AppHandle,
+    steamids: Vec<String>,
+    pinned: bool,
+) -> Result<String, String> {
+    for steamid in &steamids {
+        crate::metadata::set_pinned(steamid, pinned)?;
+    }
+    let count = steamids.len();
+    after_account_change(
+        &app,
+        Ok(if pinned {
+            format!("Pinned {count}")
+        } else {
+            format!("Unpinned {count}")
+        }),
+    )
+}
+
+#[tauri::command]
+pub fn clear_notes_many(app: AppHandle, steamids: Vec<String>) -> Result<String, String> {
+    for steamid in &steamids {
+        crate::metadata::set_note(steamid, String::new())?;
+    }
+    after_account_change(&app, Ok(format!("Cleared notes on {}", steamids.len())))
+}
+
 /// Full replacement of per-account sign-in overrides (`null` = inherit global).
 #[derive(serde::Deserialize)]
 pub struct OverridePatch {

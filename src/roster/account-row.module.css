@@ -36,13 +36,21 @@
   justify-content: center;
   width: 28px;
   height: 28px;
+  padding: 0;
   overflow: hidden;
   font-size: 10px;
   font-weight: 600;
   color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
   background: var(--panel-raised);
   border: 1px solid var(--border);
   border-radius: var(--r-xs);
+}
+
+.avatar:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--primary) 55%, transparent);
+  outline-offset: 2px;
 }
 
 .avatar img {
@@ -106,6 +114,18 @@
   color: var(--warn);
   background: var(--warn-soft);
   border-color: rgba(201, 162, 39, 0.35);
+}
+
+.tag {
+  flex-shrink: 0;
+  padding: 0 5px;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 16px;
+  color: var(--text-secondary);
+  background: color-mix(in oklch, var(--primary) 8%, transparent);
+  border: 1px solid color-mix(in oklch, var(--primary) 22%, transparent);
+  border-radius: var(--r-xs);
 }
 
 .pin {

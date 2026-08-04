@@ -22,4 +22,5 @@ export interface AccountView {
   persona_name: string;
   pinned: boolean;
   steamid: string;
+  tags: string[];
 }

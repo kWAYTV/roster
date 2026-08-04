@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/primitives/dropdown-menu";
 import { Hint } from "@/ui/widgets/hint";
@@ -17,8 +18,12 @@ interface BulkBarProps {
   exportCount: number;
   onClear: () => void;
   onClearCooldown: () => void;
+  onClearNotes: () => void;
   onCooldown: (seconds: number) => void;
   onCopyExport: () => void;
+  onCustomCooldown: () => void;
+  onExportFile: () => void;
+  onPin: (pinned: boolean) => void;
   onRemove: () => void;
 }
 
@@ -28,7 +33,11 @@ export function BulkBar({
   onClear,
   onCooldown,
   onClearCooldown,
+  onCustomCooldown,
   onCopyExport,
+  onExportFile,
+  onClearNotes,
+  onPin,
   onRemove,
 }: BulkBarProps) {
   const handlePresetClick = useCallback(
@@ -40,6 +49,14 @@ export function BulkBar({
     },
     [onCooldown]
   );
+
+  const pinAll = useCallback(() => {
+    onPin(true);
+  }, [onPin]);
+
+  const unpinAll = useCallback(() => {
+    onPin(false);
+  }, [onPin]);
 
   if (count < 2) {
     return null;
@@ -78,10 +95,23 @@ export function BulkBar({
                 {preset.label}
               </DropdownMenuItem>
             ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onCustomCooldown}>
+              Custom…
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onClearCooldown}>
+              Clear cooldown
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button onClick={onClearCooldown} size="xs" variant="ghost">
-          Clear CD
+        <Button onClick={pinAll} size="xs" variant="ghost">
+          Pin
+        </Button>
+        <Button onClick={unpinAll} size="xs" variant="ghost">
+          Unpin
+        </Button>
+        <Button onClick={onClearNotes} size="xs" variant="ghost">
+          Clear notes
         </Button>
         {exportCount < count ? (
           <Hint label={copyHint}>
@@ -99,6 +129,14 @@ export function BulkBar({
             {copyLabel}
           </Button>
         )}
+        <Button
+          disabled={exportCount === 0}
+          onClick={onExportFile}
+          size="xs"
+          variant="ghost"
+        >
+          Save…
+        </Button>
         <Button
           className="text-destructive hover:bg-destructive/15 hover:text-destructive"
           onClick={onRemove}

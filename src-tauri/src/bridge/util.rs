@@ -7,6 +7,11 @@ pub fn write_clipboard(text: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn is_steam_running() -> bool {
+    crate::steam_client::is_running()
+}
+
+#[tauri::command]
 pub fn open_steam_profile(app: AppHandle, steamid: String) -> Result<(), String> {
     if steamid.len() < 15 || !steamid.chars().all(|c| c.is_ascii_digit()) {
         return Err("Invalid SteamID.".to_string());

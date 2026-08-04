@@ -1,9 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
 import { TabsContent } from "@/ui/primitives/tabs";
 
+import { useToast } from "../feedback/toast";
+import { commands } from "../platform/invoke";
 import type { Preferences } from "./preferences";
 import { SettingList } from "./setting-list";
 import {
@@ -38,6 +40,8 @@ export function SettingsTabs({
   onImportMetadata,
   onRequestReset,
 }: SettingsTabsProps) {
+  const { notify } = useToast();
+  const [tokenBusy, setTokenBusy] = useState(false);
   const handleCs2OptionsChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       onPatch({ cs2_launch_options: event.target.value });
@@ -56,6 +60,38 @@ export function SettingsTabs({
     },
     [onPatch]
   );
+
+  const checkTokens = useCallback(() => {
+    setTokenBusy(true);
+    commands
+      .checkTokens()
+      .then((rows) => {
+        const ok = rows.filter((row) => row.status === "ok").length;
+        const expired = rows.filter((row) => row.status === "expired").length;
+        const missing = rows.filter((row) => row.status === "missing").length;
+        const invalid = rows.filter((row) => row.status === "invalid").length;
+        const parts = [`${ok} ok`];
+        if (expired) {
+          parts.push(`${expired} expired`);
+        }
+        if (missing) {
+          parts.push(`${missing} missing`);
+        }
+        if (invalid) {
+          parts.push(`${invalid} invalid`);
+        }
+        notify(
+          parts.join(" · "),
+          expired || missing || invalid ? "error" : "ok"
+        );
+      })
+      .catch((cause) => {
+        notify(String(cause), "error");
+      })
+      .finally(() => {
+        setTokenBusy(false);
+      });
+  }, [notify]);
 
   return (
     <>
@@ -129,7 +165,10 @@ export function SettingsTabs({
         </div>
       </TabsContent>
 
-      <TabsContent className="mt-0 min-h-52 outline-none" value="updates">
+      <TabsContent
+        className="mt-0 min-h-52 space-y-3 outline-none"
+        value="updates"
+      >
         <div className="flex items-center justify-between gap-3 py-2">
           <div>
             <div className="font-medium text-sm">Version</div>
@@ -146,6 +185,27 @@ export function SettingsTabs({
             {updateBusy ? "Updating…" : "Check for updates"}
           </Button>
         </div>
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-border p-3">
+          <div>
+            <div className="font-medium text-sm">Token health</div>
+            <p className="mt-1 text-pretty text-muted-foreground text-xs leading-snug">
+              Decrypt and check refresh tokens without signing in.
+            </p>
+          </div>
+          <Button
+            disabled={tokenBusy}
+            onClick={checkTokens}
+            size="sm"
+            variant="outline"
+          >
+            {tokenBusy ? "Checking…" : "Check tokens"}
+          </Button>
+        </div>
+        <p className="text-muted-foreground text-xs">
+          {
+            "Global hotkeys: Ctrl+Shift+R show/hide · Ctrl+Shift+L sign in last used. Deep link: roster://signin/<steamid>"
+          }
+        </p>
       </TabsContent>
 
       <TabsContent className="mt-0 min-h-52 outline-none" value="danger">
@@ -155,8 +215,9 @@ export function SettingsTabs({
               Reset local login data
             </div>
             <p className="mt-1 text-pretty text-muted-foreground text-xs leading-snug">
-              Clears every saved Steam login on this PC — config files and the
-              token cache. This cannot be undone.
+              Clears every saved Steam login on this PC — config files, the
+              token cache, and Roster pins/notes/cooldowns/tags. This cannot be
+              undone.
             </p>
           </div>
           <Button
