@@ -15,6 +15,7 @@ pub struct AccountView {
     pub display_name: String,
     pub initials: String,
     pub most_recent: bool,
+    pub is_autologin: bool,
     pub avatar: Option<String>,
     pub last_used: u64,
     pub cooldown_until: u64,
@@ -31,8 +32,8 @@ pub struct AccountView {
     pub cs2_launch_options: Option<String>,
 }
 
-impl From<&Account> for AccountView {
-    fn from(account: &Account) -> Self {
+impl AccountView {
+    pub fn from_account(account: &Account, autologin: Option<&str>) -> Self {
         AccountView {
             steamid: account.steamid.clone(),
             account_name: account.account_name.clone(),
@@ -40,6 +41,8 @@ impl From<&Account> for AccountView {
             display_name: account.display_name().to_string(),
             initials: account.initials(),
             most_recent: account.most_recent,
+            is_autologin: autologin
+                .is_some_and(|name| name.eq_ignore_ascii_case(&account.account_name)),
             avatar: account.avatar_path.as_deref().and_then(avatar_data_url),
             last_used: account.metadata.last_used,
             cooldown_until: account.metadata.cooldown_until,
@@ -54,6 +57,12 @@ impl From<&Account> for AccountView {
             launch_cs2: account.metadata.launch_cs2,
             cs2_launch_options: account.metadata.cs2_launch_options.clone(),
         }
+    }
+}
+
+impl From<&Account> for AccountView {
+    fn from(account: &Account) -> Self {
+        Self::from_account(account, None)
     }
 }
 

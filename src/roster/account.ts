@@ -11,6 +11,8 @@ export interface AccountView {
   /** Whether a decryptable JWT is present in ConnectCache. */
   has_token: boolean;
   initials: string;
+  /** Registry AutoLoginUser match — the account Steam is signed into. */
+  is_autologin: boolean;
   /** Seconds until JWT expiry; 0 = unknown/none; -1 = expired. */
   jwt_expires_in: number;
   /** Unix seconds; 0 when never used through this app. */

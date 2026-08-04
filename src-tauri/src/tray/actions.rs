@@ -41,16 +41,21 @@ fn import(app: &AppHandle) {
 }
 
 fn sign_in(app: &AppHandle, steamid: &str, force_invisible: bool) {
-    let Ok(account) = crate::bridge::find_account(steamid) else {
-        return;
-    };
-    match crate::login::sign_in(&account, force_invisible) {
-        Ok(message) => announce(app, message),
-        Err(error) => {
-            crate::log::append(format!("Error: {error}"));
-            let _ = app.emit("status-error", error);
+    let app = app.clone();
+    let steamid = steamid.to_string();
+    std::thread::spawn(move || {
+        let Ok(account) = crate::bridge::find_account(&steamid) else {
+            let _ = app.emit("status-error", "Account unavailable".to_string());
+            return;
+        };
+        match crate::login::sign_in(&account, force_invisible) {
+            Ok(message) => announce(&app, message),
+            Err(error) => {
+                crate::log::append(format!("Error: {error}"));
+                let _ = app.emit("status-error", error);
+            }
         }
-    }
+    });
 }
 
 fn announce(app: &AppHandle, message: String) {

@@ -15,7 +15,8 @@ export function SettingsDanger({ onRequestReset }: SettingsDangerProps) {
           </div>
           <p className="mt-1 text-pretty text-muted-foreground text-xs leading-snug">
             Clears every saved Steam login on this PC — config files, the token
-            cache, and Roster pins/notes/cooldowns/tags. This cannot be undone.
+            cache, and Roster pins/notes/cooldowns/tags. Closes Steam and leaves
+            it closed. This cannot be undone.
           </p>
         </div>
         <Button

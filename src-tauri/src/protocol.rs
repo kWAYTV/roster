@@ -49,22 +49,26 @@ fn parse_sign_in(raw: &str) -> Option<String> {
 }
 
 fn sign_in(app: &AppHandle, steamid: &str) {
-    let Ok(account) = crate::bridge::find_account(steamid) else {
-        let _ = app.emit("status-error", "Account unavailable".to_string());
-        return;
-    };
-    match crate::login::sign_in(&account, false) {
-        Ok(message) => {
-            crate::log::append(&message);
-            let _ = crate::tray::rebuild(app);
-            let _ = app.emit("accounts-changed", ());
-            let _ = app.emit("status", message);
+    let app = app.clone();
+    let steamid = steamid.to_string();
+    std::thread::spawn(move || {
+        let Ok(account) = crate::bridge::find_account(&steamid) else {
+            let _ = app.emit("status-error", "Account unavailable".to_string());
+            return;
+        };
+        match crate::login::sign_in(&account, false) {
+            Ok(message) => {
+                crate::log::append(&message);
+                let _ = crate::tray::rebuild(&app);
+                let _ = app.emit("accounts-changed", ());
+                let _ = app.emit("status", message);
+            }
+            Err(error) => {
+                crate::log::append(format!("Error: {error}"));
+                let _ = app.emit("status-error", error);
+            }
         }
-        Err(error) => {
-            crate::log::append(format!("Error: {error}"));
-            let _ = app.emit("status-error", error);
-        }
-    }
+    });
 }
 
 /// Toggle main window visibility (global hotkey).
@@ -89,10 +93,11 @@ pub fn sign_in_last_used(app: &AppHandle) {
         return;
     };
     crate::tray::focus_window(app);
-    match crate::login::sign_in(&account, false) {
+    let app = app.clone();
+    std::thread::spawn(move || match crate::login::sign_in(&account, false) {
         Ok(message) => {
             crate::log::append(&message);
-            let _ = crate::tray::rebuild(app);
+            let _ = crate::tray::rebuild(&app);
             let _ = app.emit("accounts-changed", ());
             let _ = app.emit("status", message);
         }
@@ -100,7 +105,7 @@ pub fn sign_in_last_used(app: &AppHandle) {
             crate::log::append(format!("Error: {error}"));
             let _ = app.emit("status-error", error);
         }
-    }
+    });
 }
 
 /// HKCU\Software\Classes\roster → current exe "%1"

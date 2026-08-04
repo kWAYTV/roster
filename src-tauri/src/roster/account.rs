@@ -14,7 +14,6 @@ pub struct Account {
     pub metadata: AccountMetadata,
     /// Seconds until JWT expiry; `-1` expired, `0` unknown/none.
     pub jwt_expires_in: i64,
-    /// Whether a decryptable JWT is present in ConnectCache.
     pub has_token: bool,
 }
 

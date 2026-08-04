@@ -2,10 +2,10 @@
 //!
 //! Screaming architecture: modules are named for what the app *does*
 //! (`roster`, `intake`, `login`, `forget`, `export`, `reset`, `preferences`,
-//! `presence`, `status`, `cooldown` via `metadata`). Steam/Windows integration
-//! stays behind capability edges (`vdf`, `steam_config`, `steam_client`,
-//! `secret`). `bridge`, `tray`, `window`, `protocol`, and `hotkey` are delivery
-//! edges — not domain.
+//! `presence`, `status`, `tokens`, `cooldown` via `metadata`). Steam/Windows
+//! integration stays behind capability edges (`vdf`, `steam_config`,
+//! `steam_client`, `secret`). `bridge`, `tray`, `window`, `protocol`, and
+//! `hotkey` are delivery edges — not domain.
 
 mod app_data;
 mod bridge;
@@ -27,6 +27,7 @@ mod secret;
 mod status;
 mod steam_client;
 mod steam_config;
+mod tokens;
 mod tray;
 mod vdf;
 mod window;

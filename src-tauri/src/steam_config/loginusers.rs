@@ -65,23 +65,6 @@ pub fn account_name_for(path: &Path, steamid: &str) -> Result<Option<String>, St
     Ok(entry_for(&content, steamid).map(|entry| entry.account_name))
 }
 
-/// Best remaining account to inherit autologin after the active one was removed.
-/// Prefers the highest Timestamp, then AccountName.
-pub fn pick_successor(path: &Path) -> Result<Option<(String, String)>, String> {
-    let content = fs::read_to_string(path).map_err(|_| "Failed to read loginusers.vdf.")?;
-    let mut entries = list_entries(&content);
-    entries.retain(|entry| !entry.account_name.is_empty());
-    entries.sort_by(|a, b| {
-        b.timestamp
-            .cmp(&a.timestamp)
-            .then_with(|| a.account_name.cmp(&b.account_name))
-    });
-    Ok(entries
-        .into_iter()
-        .next()
-        .map(|entry| (entry.account_name, entry.steamid)))
-}
-
 /// Demote every MostRecent=1 field, tolerant of space vs tab separators.
 fn demote_most_recent(content: &str) -> String {
     let mut out = String::new();
