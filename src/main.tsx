@@ -1,7 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-import { Toaster } from "@/ui/primitives/sonner";
 import { TooltipProvider } from "@/ui/primitives/tooltip";
 import { App } from "./shell/app";
 import "./index.css";
@@ -17,7 +16,6 @@ createRoot(container).render(
   <React.StrictMode>
     <TooltipProvider delay={400}>
       <App />
-      <Toaster closeButton position="bottom-right" richColors />
     </TooltipProvider>
   </React.StrictMode>
 );

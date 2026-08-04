@@ -3,29 +3,25 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { useCallback, useState } from "react";
 
+import { notify } from "../feedback/status";
 import { useMountEffect } from "../ui/widgets/use-mount-effect";
 
 /// Check GitHub Releases for a signed update and install it automatically.
-export function useUpdater(
-  notify: (message: string, kind?: "ok" | "error") => void
-) {
+export function useUpdater() {
   const [busy, setBusy] = useState(false);
   const [currentVersion, setCurrentVersion] = useState<string | null>(null);
 
-  const installUpdate = useCallback(
-    async (update: Update) => {
-      setBusy(true);
-      notify(`Updating to ${update.version}…`);
-      try {
-        await update.downloadAndInstall();
-        await relaunch();
-      } catch {
-        notify("Update failed", "error");
-        setBusy(false);
-      }
-    },
-    [notify]
-  );
+  const installUpdate = useCallback(async (update: Update) => {
+    setBusy(true);
+    notify(`Updating to ${update.version}…`);
+    try {
+      await update.downloadAndInstall();
+      await relaunch();
+    } catch {
+      notify("Update failed", "error");
+      setBusy(false);
+    }
+  }, []);
 
   useMountEffect(() => {
     let cancelled = false;
@@ -78,7 +74,7 @@ export function useUpdater(
         }
       }
     },
-    [busy, installUpdate, notify]
+    [busy, installUpdate]
   );
 
   return {

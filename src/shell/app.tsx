@@ -5,7 +5,7 @@ import { useCooldown } from "../cooldown/use-cooldown";
 import { useNow } from "../cooldown/use-now";
 import { useExport } from "../export/use-export";
 import { LogPanel } from "../feedback/log-panel";
-import { useToast } from "../feedback/toast";
+import { notify } from "../feedback/status";
 import { useForget } from "../forget/use-forget";
 import { useSignIn } from "../login/use-login";
 import { commands } from "../platform/invoke";
@@ -20,7 +20,7 @@ import { useStatus } from "../status/use-status";
 import { useTheme } from "../theme/use-theme";
 import { useUpdater } from "../updater/use-updater";
 import { ShellDialogs } from "./dialogs";
-import { ErrorToastGate } from "./error-toast-gate";
+import { ErrorStatusGate } from "./error-status-gate";
 import { filterAccounts, sortAccounts } from "./filter-accounts";
 import { Footer } from "./footer";
 import { JwtWarningGate } from "./jwt-warning-gate";
@@ -49,7 +49,6 @@ export function App() {
     clearNotesMany,
   } = useAccountMeta();
   const { exportBackup, importBackup } = useMetadataBackup();
-  const { notify } = useToast();
   const {
     exportCountFor,
     copyExport,
@@ -60,7 +59,7 @@ export function App() {
     confirmExport,
     cancelExport,
   } = useExport(!preferences.streamer_mode);
-  const { busy, currentVersion, checkForUpdate } = useUpdater(notify);
+  const { busy, currentVersion, checkForUpdate } = useUpdater();
   const {
     selectedIds,
     selectAccount,
@@ -149,16 +148,13 @@ export function App() {
     [accounts, askCooldownSignIn, signIn]
   );
 
-  const openProfile = useCallback(
-    async (steamid: string) => {
-      try {
-        await commands.openSteamProfile(steamid);
-      } catch (cause) {
-        notify(String(cause), "error");
-      }
-    },
-    [notify]
-  );
+  const openProfile = useCallback(async (steamid: string) => {
+    try {
+      await commands.openSteamProfile(steamid);
+    } catch (cause) {
+      notify(String(cause), "error");
+    }
+  }, []);
 
   const handleReimport = useCallback(
     (account: AccountView) => {
@@ -219,7 +215,7 @@ export function App() {
     askRemove(selected);
   }, [askRemove, filtered, visibleSelectedIds]);
 
-  useShellEvents({ notify, openImport });
+  useShellEvents({ openImport });
   useShellShortcuts({
     clearSelection,
     closeSearch,
@@ -336,15 +332,12 @@ export function App() {
       <LogPanel visible={preferences.show_log_panel} />
       <Footer currentVersion={currentVersion} />
 
-      {error ? (
-        <ErrorToastGate key={error} message={error} notify={notify} />
-      ) : null}
+      {error ? <ErrorStatusGate key={error} message={error} /> : null}
       {!loading &&
       accounts.length > 0 &&
       preferences.warn_jwt_expiry_days > 0 ? (
         <JwtWarningGate
           accounts={accounts}
-          notify={notify}
           warnDays={preferences.warn_jwt_expiry_days}
         />
       ) : null}

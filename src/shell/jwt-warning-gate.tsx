@@ -1,3 +1,4 @@
+import { notify } from "../feedback/status";
 import type { AccountView } from "../roster/account";
 import { useMountEffect } from "../ui/widgets/use-mount-effect";
 
@@ -5,16 +6,11 @@ const DAY_SECONDS = 86_400;
 
 interface JwtWarningGateProps {
   accounts: AccountView[];
-  notify: (message: string, kind?: "ok" | "error") => void;
   warnDays: number;
 }
 
-/// Mounts once the roster is ready; toasts JWT expiry once then unmounts stay silent.
-export function JwtWarningGate({
-  accounts,
-  warnDays,
-  notify,
-}: JwtWarningGateProps) {
+/** Mounts once the roster is ready; posts JWT expiry to the footer once. */
+export function JwtWarningGate({ accounts, warnDays }: JwtWarningGateProps) {
   useMountEffect(() => {
     if (warnDays <= 0 || accounts.length === 0) {
       return;

@@ -1,11 +1,10 @@
 import { useCallback, useState } from "react";
 
-import { useToast } from "@/feedback/toast";
+import { notify } from "@/feedback/status";
 import { commands } from "@/platform/invoke";
 
 /// Import accounts from pasted text and read the clipboard on demand.
 export function useImport() {
-  const { notify } = useToast();
   const [busy, setBusy] = useState(false);
 
   const importText = useCallback(
@@ -21,7 +20,7 @@ export function useImport() {
         setBusy(false);
       }
     },
-    [notify]
+    []
   );
 
   const paste = useCallback(async (): Promise<string> => {
@@ -31,7 +30,7 @@ export function useImport() {
       notify(String(cause), "error");
       return "";
     }
-  }, [notify]);
+  }, []);
 
   return { busy, importText, paste };
 }

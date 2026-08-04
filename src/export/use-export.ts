@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-import { useToast } from "../feedback/toast";
+import { notify } from "../feedback/status";
 import { commands } from "../platform/invoke";
 import type { AccountView } from "../roster/account";
 import type { PendingExport } from "./pending-export";
@@ -11,7 +11,6 @@ export function isExportable(account: AccountView): boolean {
 }
 
 export function useExport(requireConfirm: boolean) {
-  const { notify } = useToast();
   const [pendingExport, setPendingExport] = useState<PendingExport>(null);
 
   const exportCountFor = useCallback(
@@ -27,52 +26,46 @@ export function useExport(requireConfirm: boolean) {
     []
   );
 
-  const runCopy = useCallback(
-    async (steamids: string[]) => {
-      try {
-        const lines = await commands.exportTokenEntries(steamids);
-        if (!lines.length) {
-          notify("No tokens to export", "error");
-          return;
-        }
-        await commands.writeClipboard(lines.join("\n"));
-        const skipped = steamids.length - lines.length;
-        notify(
-          skipped
-            ? `Copied ${lines.length} · ${skipped} missing`
-            : `Copied ${lines.length}`
-        );
-      } catch (cause) {
-        notify(String(cause), "error");
+  const runCopy = useCallback(async (steamids: string[]) => {
+    try {
+      const lines = await commands.exportTokenEntries(steamids);
+      if (!lines.length) {
+        notify("No tokens to export", "error");
+        return;
       }
-    },
-    [notify]
-  );
+      await commands.writeClipboard(lines.join("\n"));
+      const skipped = steamids.length - lines.length;
+      notify(
+        skipped
+          ? `Copied ${lines.length} · ${skipped} missing`
+          : `Copied ${lines.length}`
+      );
+    } catch (cause) {
+      notify(String(cause), "error");
+    }
+  }, []);
 
-  const runFile = useCallback(
-    async (steamids: string[]) => {
-      try {
-        const lines = await commands.exportTokenEntries(steamids);
-        if (!lines.length) {
-          notify("No tokens to export", "error");
-          return;
-        }
-        const blob = new Blob([`${lines.join("\n")}\n`], {
-          type: "text/plain",
-        });
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = "tokens.txt";
-        anchor.click();
-        URL.revokeObjectURL(url);
-        notify(`Exported ${lines.length}`);
-      } catch (cause) {
-        notify(String(cause), "error");
+  const runFile = useCallback(async (steamids: string[]) => {
+    try {
+      const lines = await commands.exportTokenEntries(steamids);
+      if (!lines.length) {
+        notify("No tokens to export", "error");
+        return;
       }
-    },
-    [notify]
-  );
+      const blob = new Blob([`${lines.join("\n")}\n`], {
+        type: "text/plain",
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "tokens.txt";
+      anchor.click();
+      URL.revokeObjectURL(url);
+      notify(`Exported ${lines.length}`);
+    } catch (cause) {
+      notify(String(cause), "error");
+    }
+  }, []);
 
   const copyExport = useCallback(
     async (steamids: string[]) => {
@@ -113,35 +106,29 @@ export function useExport(requireConfirm: boolean) {
     setPendingExport(null);
   }, []);
 
-  const copyUsername = useCallback(
-    async (account: AccountView) => {
-      if (!account.account_name) {
-        return;
-      }
-      try {
-        await commands.writeClipboard(account.account_name);
-        notify("Copied");
-      } catch (cause) {
-        notify(String(cause), "error");
-      }
-    },
-    [notify]
-  );
+  const copyUsername = useCallback(async (account: AccountView) => {
+    if (!account.account_name) {
+      return;
+    }
+    try {
+      await commands.writeClipboard(account.account_name);
+      notify("Copied");
+    } catch (cause) {
+      notify(String(cause), "error");
+    }
+  }, []);
 
-  const copySteamId = useCallback(
-    async (account: AccountView) => {
-      if (!account.steamid) {
-        return;
-      }
-      try {
-        await commands.writeClipboard(account.steamid);
-        notify("Copied SteamID");
-      } catch (cause) {
-        notify(String(cause), "error");
-      }
-    },
-    [notify]
-  );
+  const copySteamId = useCallback(async (account: AccountView) => {
+    if (!account.steamid) {
+      return;
+    }
+    try {
+      await commands.writeClipboard(account.steamid);
+      notify("Copied SteamID");
+    } catch (cause) {
+      notify(String(cause), "error");
+    }
+  }, []);
 
   return {
     cancelExport,

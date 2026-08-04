@@ -1,19 +1,17 @@
 import { useCallback } from "react";
 
-import { useToast } from "../feedback/toast";
+import { notify } from "../feedback/status";
 import { commands } from "../platform/invoke";
 
 /// Clear all local Steam login data on this machine.
 export function useReset() {
-  const { notify } = useToast();
-
   const reset = useCallback(async () => {
     try {
       notify(await commands.clearCache());
     } catch (cause) {
       notify(String(cause), "error");
     }
-  }, [notify]);
+  }, []);
 
   return { reset };
 }

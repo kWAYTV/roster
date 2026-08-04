@@ -1,11 +1,10 @@
 import { useCallback, useState } from "react";
 
-import { useToast } from "../feedback/toast";
+import { notify } from "../feedback/status";
 import { commands } from "../platform/invoke";
 
 /// Sign in to an account, tracking which SteamID is mid-flight.
 export function useSignIn() {
-  const { notify } = useToast();
   const [pending, setPending] = useState<string | null>(null);
 
   const signIn = useCallback(
@@ -19,7 +18,7 @@ export function useSignIn() {
         setPending(null);
       }
     },
-    [notify]
+    []
   );
 
   return { pending, signIn };

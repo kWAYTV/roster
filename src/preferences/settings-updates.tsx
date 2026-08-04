@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 import { Button } from "@/ui/primitives/button";
 import { TabsContent } from "@/ui/primitives/tabs";
 
-import { useToast } from "../feedback/toast";
+import { notify } from "../feedback/status";
 import { commands } from "../platform/invoke";
 
 interface SettingsUpdatesProps {
@@ -17,7 +17,6 @@ export function SettingsUpdates({
   updateBusy,
   onCheckForUpdates,
 }: SettingsUpdatesProps) {
-  const { notify } = useToast();
   const [tokenBusy, setTokenBusy] = useState(false);
 
   const checkTokens = useCallback(() => {
@@ -50,7 +49,7 @@ export function SettingsUpdates({
       .finally(() => {
         setTokenBusy(false);
       });
-  }, [notify]);
+  }, []);
 
   return (
     <TabsContent

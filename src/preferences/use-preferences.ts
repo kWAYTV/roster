@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { useToast } from "@/feedback/toast";
+import { notify } from "@/feedback/status";
 import { onPreferencesChanged } from "@/platform/events";
 import { commands } from "@/platform/invoke";
 import {
@@ -23,7 +23,6 @@ function coercePreferences(raw: Preferences): Preferences {
 
 /// Load preferences and persist single-toggle changes optimistically.
 export function usePreferences() {
-  const { notify } = useToast();
   const [preferences, setPreferences] =
     useState<Preferences>(DEFAULT_PREFERENCES);
 
@@ -33,7 +32,7 @@ export function usePreferences() {
     } catch (cause) {
       notify(String(cause), "error");
     }
-  }, [notify]);
+  }, []);
 
   useEffect(() => {
     load();
@@ -53,7 +52,7 @@ export function usePreferences() {
         load();
       }
     },
-    [notify, load]
+    [load]
   );
 
   const setPreference = useCallback(
