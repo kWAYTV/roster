@@ -1,12 +1,11 @@
 .dot {
   position: absolute;
-  right: -1px;
-  bottom: -1px;
-  width: 7px;
-  height: 7px;
-  border: 1.5px solid var(--card);
-  border-radius: 1.5px;
-  box-shadow: 0 0 0 1px color-mix(in oklch, var(--foreground) 8%, transparent);
+  right: -2px;
+  bottom: -2px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
 }
 
 .online {

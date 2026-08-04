@@ -164,7 +164,7 @@ export function SettingsTabs({
               Appearance
             </label>
             <p className="mt-0.5 text-pretty text-muted-foreground text-xs leading-snug">
-              Dark by default. Light or follow the system if you prefer.
+              Default is dark. Choose light or system if you prefer.
             </p>
           </div>
           <Select

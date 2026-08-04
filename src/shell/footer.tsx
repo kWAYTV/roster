@@ -23,7 +23,7 @@ export function Footer({ currentVersion }: FooterProps) {
     <footer className={styles.foot}>
       <div className={styles.footLeft}>
         <Button
-          className="h-auto px-0 font-mono text-[10px] uppercase tracking-wider"
+          className="h-auto px-0 text-xs"
           onClick={openGitHub}
           size="sm"
           type="button"
@@ -35,7 +35,7 @@ export function Footer({ currentVersion }: FooterProps) {
           className={steamRunning ? styles.steamOn : styles.steamOff}
           title={steamRunning ? "Steam is running" : "Steam is not running"}
         >
-          {steamRunning ? "Steam / live" : "Steam / idle"}
+          {steamRunning ? "Steam running" : "Steam stopped"}
         </span>
       </div>
       <span className={styles.version}>v{currentVersion ?? "…"}</span>

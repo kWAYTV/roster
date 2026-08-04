@@ -13,10 +13,8 @@ interface CooldownBadgeProps {
   until: number;
 }
 
-/// A live countdown marker whose fill drains as the cooldown runs out.
+/// A live countdown badge whose fill drains as the cooldown runs out.
 export function CooldownBadge({ until, duration }: CooldownBadgeProps) {
-  // The label shows whole seconds under a minute, so tick every second once
-  // the countdown gets close; a 30s cadence is enough before that.
   const now = useNow(until - nowSeconds() < 90 ? 1000 : 30_000);
 
   if (!isCooldownActive(until, now)) {
@@ -27,8 +25,12 @@ export function CooldownBadge({ until, duration }: CooldownBadgeProps) {
 
   return (
     <Hint label={`Cooldown ends ${new Date(until * 1000).toLocaleString()}`}>
-      <span className={styles.badge}>
-        <span className={styles.fill} style={{ width: `${percent}%` }} />
+      <span
+        className={styles.badge}
+        style={{
+          background: `linear-gradient(to right, var(--danger-soft) ${percent}%, transparent ${percent}%)`,
+        }}
+      >
         CD {formatRemaining(until, now)}
       </span>
     </Hint>

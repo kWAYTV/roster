@@ -155,63 +155,9 @@ export function AccountRow({
     [account.steamid, onOpenProfile]
   );
 
-  const metaParts: ReactNode[] = [];
-  metaParts.push(
-    <span className={styles.login} key="login">
-      {login}
-    </span>
-  );
-  if (note) {
-    metaParts.push(
-      <span className={styles.sep} key="sep-note">
-        /
-      </span>,
-      <span className={styles.note} key="note">
-        {note}
-      </span>
-    );
-  }
-  if (game) {
-    metaParts.push(
-      <span className={styles.sep} key="sep-game">
-        /
-      </span>,
-      <span className={styles.game} key="game">
-        {game}
-      </span>
-    );
-  }
-  if (lastUsed) {
-    metaParts.push(
-      <span className={styles.sep} key="sep-meta">
-        /
-      </span>,
-      <span className={styles.meta} key="meta">
-        {lastUsed}
-      </span>
-    );
-  }
-
   return (
     <ContextMenu>
       <ContextMenuTrigger render={<div className={rowClass} />}>
-        <div className={styles.lead}>
-          <Hint label="Sign in">
-            <Button
-              aria-label="Sign in"
-              className={styles.signIn}
-              disabled={busy}
-              onClick={handleSignIn}
-              size="icon-sm"
-            >
-              {busy ? (
-                <SpinningLoader size={15} />
-              ) : (
-                <ArrowRightIcon size={15} />
-              )}
-            </Button>
-          </Hint>
-        </div>
         <div className={styles.avatarWrap}>
           <Hint label="Open Steam profile">
             <a
@@ -234,47 +180,64 @@ export function AccountRow({
           type="button"
         >
           <div className={styles.info}>
-            <div className={styles.primary}>
-              <div className={styles.name}>
-                {account.pinned ? (
-                  <span className={styles.pin} role="img" title="Pinned">
-                    <span className="sr-only">Pinned</span>
+            <div className={styles.name}>
+              {account.pinned ? (
+                <span className={styles.pin} title="Pinned">
+                  ★
+                </span>
+              ) : null}
+              {name}
+              {account.most_recent ? (
+                <span className={styles.badge}>last used</span>
+              ) : null}
+              {jwtLabel ? (
+                <Hint label={jwtTip || jwtLabel}>
+                  <span
+                    className={
+                      account.jwt_expires_in < 0
+                        ? `${styles.badge} ${styles.jwtExpired}`
+                        : styles.badge
+                    }
+                  >
+                    {jwtLabel}
                   </span>
-                ) : null}
-                {name}
-              </div>
-              <div className={styles.markers}>
-                {account.most_recent ? (
-                  <span className={styles.badge}>recent</span>
-                ) : null}
-                {jwtLabel ? (
-                  <Hint label={jwtTip || jwtLabel}>
-                    <span
-                      className={
-                        account.jwt_expires_in < 0
-                          ? `${styles.badge} ${styles.jwtExpired}`
-                          : styles.badge
-                      }
-                    >
-                      {jwtLabel}
-                    </span>
-                  </Hint>
-                ) : null}
-                <CooldownBadge
-                  duration={account.cooldown_duration}
-                  until={account.cooldown_until}
-                />
-                {tags.map((tag) => (
-                  <span className={styles.tag} key={tag}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
+                </Hint>
+              ) : null}
+              <CooldownBadge
+                duration={account.cooldown_duration}
+                until={account.cooldown_until}
+              />
+              {tags.map((tag) => (
+                <span className={styles.tag} key={tag}>
+                  #{tag}
+                </span>
+              ))}
             </div>
-            <div className={styles.metaLine}>{metaParts}</div>
+            <div className={styles.login}>
+              {login}
+              {note ? <span className={styles.note}> · {note}</span> : null}
+              {game ? <span className={styles.game}> · {game}</span> : null}
+              {lastUsed ? (
+                <span className={styles.meta}> · {lastUsed}</span>
+              ) : null}
+            </div>
           </div>
         </button>
-        <div className={styles.trail}>
+        <div className={styles.actions}>
+          <Hint label="Sign in">
+            <Button
+              aria-label="Sign in"
+              disabled={busy}
+              onClick={handleSignIn}
+              size="icon-sm"
+            >
+              {busy ? (
+                <SpinningLoader size={15} />
+              ) : (
+                <ArrowRightIcon size={15} />
+              )}
+            </Button>
+          </Hint>
           <CooldownMenu
             disabled={busy}
             steamid={account.steamid}
