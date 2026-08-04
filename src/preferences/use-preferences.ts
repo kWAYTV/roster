@@ -3,7 +3,16 @@ import { useCallback, useEffect, useState } from "react";
 import { useToast } from "../feedback/toast";
 import { onPreferencesChanged } from "../platform/events";
 import { commands } from "../platform/invoke";
+import { normalizeTheme } from "../theme/theme-mode";
 import { DEFAULT_PREFERENCES, type Preferences } from "./preferences";
+
+function coercePreferences(raw: Preferences): Preferences {
+  return {
+    ...DEFAULT_PREFERENCES,
+    ...raw,
+    theme: normalizeTheme(raw.theme),
+  };
+}
 
 /// Load preferences and persist single-toggle changes optimistically.
 export function usePreferences() {
@@ -13,7 +22,7 @@ export function usePreferences() {
 
   const load = useCallback(async () => {
     try {
-      setPreferences(await commands.getPreferences());
+      setPreferences(coercePreferences(await commands.getPreferences()));
     } catch (cause) {
       notify(String(cause), "error");
     }

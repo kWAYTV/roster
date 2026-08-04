@@ -48,11 +48,11 @@ function SettingRow({ setting, checked, onChange }: SettingRowProps) {
 
   return (
     <label
-      className="flex cursor-pointer items-start justify-between gap-3 border-border border-b py-2 last:border-0"
+      className="flex cursor-pointer items-start justify-between gap-3 border-border/80 border-b py-2.5 last:border-0"
       htmlFor={id}
     >
       <span className="min-w-0 flex-1">
-        <span className="block font-medium text-sm leading-snug">
+        <span className="block font-semibold text-sm leading-snug tracking-tight">
           {setting.label}
         </span>
         <span className="mt-0.5 block text-pretty text-muted-foreground text-xs leading-snug">

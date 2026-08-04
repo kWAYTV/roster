@@ -20,6 +20,7 @@ import { TagsDialog } from "../roster/tags-dialog";
 import { useAccountMeta } from "../roster/use-account-meta";
 import { useRoster } from "../roster/use-roster";
 import { useStatus } from "../status/use-status";
+import { useTheme } from "../theme/use-theme";
 import { useUpdater } from "../updater/use-updater";
 import { ShellDialogs } from "./dialogs";
 import { ErrorToastGate } from "./error-toast-gate";
@@ -38,6 +39,7 @@ export function App() {
   const { accounts, loading, error, patchAccount, patchProfile } = useRoster();
   const statuses = useStatus(!loading, patchProfile);
   const { preferences, setPreference, patchPreferences } = usePreferences();
+  useTheme(preferences.theme);
   const { signIn, pending } = useSignIn();
   const { remove, removeMany } = useForget();
   const { startMany, clearMany } = useCooldown();
