@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 
 import { useToast } from "../feedback/toast";
+import { openTextFile, saveTextFile } from "../platform/files";
 import { commands } from "../platform/invoke";
 
 export function useMetadataBackup() {
@@ -9,13 +10,15 @@ export function useMetadataBackup() {
   const exportBackup = useCallback(async () => {
     try {
       const json = await commands.exportMetadata();
-      const blob = new Blob([`${json}\n`], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "roster-metadata.json";
-      anchor.click();
-      URL.revokeObjectURL(url);
+      const saved = await saveTextFile({
+        contents: `${json}\n`,
+        defaultPath: "roster-metadata.json",
+        filters: [{ extensions: ["json"], name: "JSON" }],
+        title: "Export metadata",
+      });
+      if (!saved) {
+        return;
+      }
       notify("Metadata exported");
     } catch (cause) {
       notify(String(cause), "error");
@@ -24,7 +27,10 @@ export function useMetadataBackup() {
 
   const importBackup = useCallback(async () => {
     try {
-      const text = await pickTextFile();
+      const text = await openTextFile({
+        filters: [{ extensions: ["json"], name: "JSON" }],
+        title: "Import metadata",
+      });
       if (text === null) {
         return;
       }
@@ -35,21 +41,4 @@ export function useMetadataBackup() {
   }, [notify]);
 
   return { exportBackup, importBackup };
-}
-
-function pickTextFile(): Promise<string | null> {
-  return new Promise((resolve, reject) => {
-    const input = document.createElement("input");
-    input.accept = ".json,application/json,text/plain";
-    input.type = "file";
-    input.addEventListener("change", () => {
-      const file = input.files?.[0];
-      if (!file) {
-        resolve(null);
-        return;
-      }
-      file.text().then(resolve).catch(reject);
-    });
-    input.click();
-  });
 }

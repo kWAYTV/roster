@@ -34,6 +34,7 @@ mod window;
 
 pub fn run() {
     let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_opener::init());
@@ -96,6 +97,8 @@ pub fn run() {
             bridge::preferences::save_preferences,
             bridge::export::export_token_entries,
             bridge::util::write_clipboard,
+            bridge::util::write_text_file,
+            bridge::util::read_text_file,
             bridge::util::is_steam_running,
             bridge::util::open_steam_profile,
             bridge::util::open_external_url,

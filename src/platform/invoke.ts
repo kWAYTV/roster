@@ -51,6 +51,7 @@ export const commands = {
   openSteamProfile: (steamid: string) =>
     invoke<void>("open_steam_profile", { steamid }),
   readClipboard: () => invoke<string>("read_clipboard"),
+  readTextFile: (path: string) => invoke<string>("read_text_file", { path }),
   refreshStatuses: () => invoke<void>("refresh_statuses"),
   removeAccount: (steamid: string) =>
     invoke<string>("remove_account", { steamid }),
@@ -78,4 +79,6 @@ export const commands = {
       steamid,
     }),
   writeClipboard: (text: string) => invoke<void>("write_clipboard", { text }),
+  writeTextFile: (path: string, contents: string) =>
+    invoke<void>("write_text_file", { contents, path }),
 };
