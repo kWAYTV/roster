@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { commands } from "../platform/invoke";
+import { commands } from "@/platform/invoke";
 
 export interface ClassifyHint {
   count: number;

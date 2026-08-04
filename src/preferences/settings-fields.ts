@@ -1,4 +1,4 @@
-import type { Preferences } from "./preferences";
+import type { Preferences } from "@/preferences/preferences";
 
 type BoolPreferenceKey = {
   [K in keyof Preferences]: Preferences[K] extends boolean ? K : never;
@@ -35,11 +35,6 @@ export const SIGN_IN_SETTINGS: BoolSetting[] = [
     description: "Start Counter-Strike 2 after Steam opens.",
     key: "launch_cs2_on_login",
     label: "Launch CS2 on sign-in",
-  },
-  {
-    description: "Store tokens only — do not stop Steam or switch account.",
-    key: "import_without_sign_in",
-    label: "Import without signing in",
   },
 ];
 

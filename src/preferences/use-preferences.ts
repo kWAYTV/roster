@@ -1,15 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { useToast } from "../feedback/toast";
-import { onPreferencesChanged } from "../platform/events";
-import { commands } from "../platform/invoke";
-import { normalizeTheme } from "../theme/theme-mode";
-import { DEFAULT_PREFERENCES, type Preferences } from "./preferences";
+import { useToast } from "@/feedback/toast";
+import { onPreferencesChanged } from "@/platform/events";
+import { commands } from "@/platform/invoke";
+import {
+  DEFAULT_PREFERENCES,
+  normalizeImportWithoutSignIn,
+  type Preferences,
+} from "@/preferences/preferences";
+import { normalizeTheme } from "@/theme/theme-mode";
 
 function coercePreferences(raw: Preferences): Preferences {
   return {
     ...DEFAULT_PREFERENCES,
     ...raw,
+    import_without_sign_in: normalizeImportWithoutSignIn(
+      raw.import_without_sign_in
+    ),
     theme: normalizeTheme(raw.theme),
   };
 }

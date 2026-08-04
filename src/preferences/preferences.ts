@@ -1,4 +1,25 @@
-import type { ThemeMode } from "../theme/theme-mode";
+import type { ThemeMode } from "@/theme/theme-mode";
+
+export type ImportWithoutSignIn = "off" | "ask" | "on";
+
+export const IMPORT_WITHOUT_SIGN_IN_MODES: readonly ImportWithoutSignIn[] = [
+  "off",
+  "ask",
+  "on",
+];
+
+/// Coerce legacy booleans and unknown values to off/ask/on (default off).
+export function normalizeImportWithoutSignIn(
+  value: unknown
+): ImportWithoutSignIn {
+  if (value === true || value === "on") {
+    return "on";
+  }
+  if (value === "ask") {
+    return "ask";
+  }
+  return "off";
+}
 
 /// Sign-in toggles, mirrored from the Rust `Preferences` model.
 export interface Preferences {
@@ -7,7 +28,7 @@ export interface Preferences {
   cancel_downloads_on_login: boolean;
   cs2_launch_options: string;
   hide_from_capture: boolean;
-  import_without_sign_in: boolean;
+  import_without_sign_in: ImportWithoutSignIn;
   launch_cs2_on_login: boolean;
   launch_steam_minimized: boolean;
   minimize_to_tray_on_close: boolean;
@@ -25,7 +46,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   cancel_downloads_on_login: false,
   cs2_launch_options: "",
   hide_from_capture: true,
-  import_without_sign_in: false,
+  import_without_sign_in: "off",
   launch_cs2_on_login: false,
   launch_steam_minimized: false,
   minimize_to_tray_on_close: true,
