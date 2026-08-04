@@ -3,8 +3,10 @@ import { useCallback, useState } from "react";
 import { Button } from "@/ui/primitives/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/ui/primitives/dialog";
@@ -12,8 +14,12 @@ import { Input } from "@/ui/primitives/input";
 import { Label } from "@/ui/primitives/label";
 import type { OverridePatch } from "../platform/invoke";
 import type { AccountView } from "./account";
-
-type Tri = "inherit" | "on" | "off";
+import {
+  fromTri,
+  OverrideTriField,
+  type TriState,
+  toTri,
+} from "./override-tri-field";
 
 interface OverridesDialogProps {
   account: AccountView;
@@ -29,11 +35,13 @@ export function OverridesDialog({
   onSave,
   onClose,
 }: OverridesDialogProps) {
-  const [invisible, setInvisible] = useState(() =>
+  const [invisible, setInvisible] = useState<TriState>(() =>
     toTri(account.always_invisible)
   );
-  const [mute, setMute] = useState(() => toTri(account.mute_notifications));
-  const [cs2, setCs2] = useState(() => toTri(account.launch_cs2));
+  const [mute, setMute] = useState<TriState>(() =>
+    toTri(account.mute_notifications)
+  );
+  const [cs2, setCs2] = useState<TriState>(() => toTri(account.launch_cs2));
   const [cs2Options, setCs2Options] = useState(
     () => account.cs2_launch_options ?? ""
   );
@@ -86,8 +94,8 @@ export function OverridesDialog({
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogContent className="gap-4 p-5 sm:max-w-md" showCloseButton>
-        <DialogHeader className="pr-8">
+      <DialogContent>
+        <DialogHeader>
           <DialogTitle>Sign-in overrides</DialogTitle>
           <DialogDescription>
             Per-account overrides for {account.display_name}. Inherit uses
@@ -95,113 +103,61 @@ export function OverridesDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <TriField
-          label="Always invisible"
-          onChange={setInvisible}
-          value={invisible}
-        />
-        <TriField label="Mute notifications" onChange={setMute} value={mute} />
-        <TriField label="Launch CS2" onChange={setCs2} value={cs2} />
+        <DialogBody className="gap-3.5">
+          <OverrideTriField
+            label="Always invisible"
+            onChange={setInvisible}
+            value={invisible}
+          />
+          <OverrideTriField
+            label="Mute notifications"
+            onChange={setMute}
+            value={mute}
+          />
+          <OverrideTriField label="Launch CS2" onChange={setCs2} value={cs2} />
 
-        <div className="flex flex-col gap-1.5">
-          <Label>CS2 launch options</Label>
-          <div className="flex gap-2">
-            <Button
-              onClick={inheritCs2Options}
-              size="xs"
-              variant={cs2OptionsInherit ? "default" : "outline"}
-            >
-              Inherit
-            </Button>
-            <Button
-              onClick={customCs2Options}
-              size="xs"
-              variant={cs2OptionsInherit ? "outline" : "default"}
-            >
-              Custom
-            </Button>
+          <div className="flex flex-col gap-1.5">
+            <Label>CS2 launch options</Label>
+            <div className="flex gap-1.5">
+              <Button
+                className="flex-1"
+                onClick={inheritCs2Options}
+                size="xs"
+                type="button"
+                variant={cs2OptionsInherit ? "default" : "outline"}
+              >
+                Inherit
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={customCs2Options}
+                size="xs"
+                type="button"
+                variant={cs2OptionsInherit ? "outline" : "default"}
+              >
+                Custom
+              </Button>
+            </div>
+            {cs2OptionsInherit ? null : (
+              <Input
+                autoFocus
+                onChange={handleCs2OptionsChange}
+                placeholder="-nojoy -high"
+                value={cs2Options}
+              />
+            )}
           </div>
-          {cs2OptionsInherit ? null : (
-            <Input
-              onChange={handleCs2OptionsChange}
-              placeholder="-nojoy -high"
-              value={cs2Options}
-            />
-          )}
-        </div>
+        </DialogBody>
 
-        <div className="flex justify-end gap-2">
+        <DialogFooter>
           <Button onClick={onClose} size="sm" variant="outline">
             Cancel
           </Button>
           <Button onClick={handleSave} size="sm">
             Save
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-}
-
-function TriField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  onChange: (value: Tri) => void;
-  value: Tri;
-}) {
-  const selectInherit = useCallback(() => {
-    onChange("inherit");
-  }, [onChange]);
-  const selectOn = useCallback(() => {
-    onChange("on");
-  }, [onChange]);
-  const selectOff = useCallback(() => {
-    onChange("off");
-  }, [onChange]);
-
-  return (
-    <div className="flex flex-col gap-1.5">
-      <Label>{label}</Label>
-      <div className="flex gap-2">
-        <Button
-          onClick={selectInherit}
-          size="xs"
-          variant={value === "inherit" ? "default" : "outline"}
-        >
-          Inherit
-        </Button>
-        <Button
-          onClick={selectOn}
-          size="xs"
-          variant={value === "on" ? "default" : "outline"}
-        >
-          On
-        </Button>
-        <Button
-          onClick={selectOff}
-          size="xs"
-          variant={value === "off" ? "default" : "outline"}
-        >
-          Off
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function toTri(value: boolean | null): Tri {
-  if (value === null) {
-    return "inherit";
-  }
-  return value ? "on" : "off";
-}
-
-function fromTri(value: Tri): boolean | null {
-  if (value === "inherit") {
-    return null;
-  }
-  return value === "on";
 }

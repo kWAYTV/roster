@@ -1,5 +1,5 @@
 import type { AccountView } from "../roster/account";
-import { useMountEffect } from "../ui/use-mount-effect";
+import { useMountEffect } from "../ui/widgets/use-mount-effect";
 
 const DAY_SECONDS = 86_400;
 

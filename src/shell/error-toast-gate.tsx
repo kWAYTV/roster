@@ -1,4 +1,4 @@
-import { useMountEffect } from "../ui/use-mount-effect";
+import { useMountEffect } from "../ui/widgets/use-mount-effect";
 
 interface ErrorToastGateProps {
   message: string;

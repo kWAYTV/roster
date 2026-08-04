@@ -3,16 +3,12 @@ import { useCallback, useState } from "react";
 import { useToast } from "../feedback/toast";
 import { commands } from "../platform/invoke";
 import type { AccountView } from "../roster/account";
+import type { PendingExport } from "./pending-export";
 
 /** True when a non-expired JWT is present (unknown expiry still counts). */
 export function isExportable(account: AccountView): boolean {
   return account.has_token && account.jwt_expires_in >= 0;
 }
-
-type PendingExport =
-  | { kind: "copy"; steamids: string[] }
-  | { kind: "file"; steamids: string[] }
-  | null;
 
 export function useExport(requireConfirm: boolean) {
   const { notify } = useToast();

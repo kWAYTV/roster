@@ -1,10 +1,9 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 import { isCooldownActive, nowSeconds } from "../cooldown/cooldown";
 import { useCooldown } from "../cooldown/use-cooldown";
 import { useNow } from "../cooldown/use-now";
 import { useExport } from "../export/use-export";
-import { ConfirmDialog } from "../feedback/confirm-dialog";
 import { LogPanel } from "../feedback/log-panel";
 import { useToast } from "../feedback/toast";
 import { useForget } from "../forget/use-forget";
@@ -13,10 +12,8 @@ import { commands } from "../platform/invoke";
 import { useMetadataBackup } from "../preferences/use-metadata-backup";
 import { usePreferences } from "../preferences/use-preferences";
 import type { AccountView } from "../roster/account";
-import { NoteDialog } from "../roster/note-dialog";
-import { OverridesDialog } from "../roster/overrides-dialog";
 import { RosterList } from "../roster/roster-list";
-import { TagsDialog } from "../roster/tags-dialog";
+import { useAccountEditors } from "../roster/use-account-editors";
 import { useAccountMeta } from "../roster/use-account-meta";
 import { useRoster } from "../roster/use-roster";
 import { useStatus } from "../status/use-status";
@@ -89,11 +86,17 @@ export function App() {
     askBulkCooldown,
     closeBulkCooldown,
   } = useShellUi();
-  const [noteTarget, setNoteTarget] = useState<AccountView | null>(null);
-  const [tagsTarget, setTagsTarget] = useState<AccountView | null>(null);
-  const [overridesTarget, setOverridesTarget] = useState<AccountView | null>(
-    null
-  );
+  const {
+    noteTarget,
+    tagsTarget,
+    overridesTarget,
+    openNote,
+    openTags,
+    openOverrides,
+    closeNote,
+    closeTags,
+    closeOverrides,
+  } = useAccountEditors();
 
   const clock = now || nowSeconds();
 
@@ -268,28 +271,9 @@ export function App() {
     [startMany, ui.bulkCooldownIds, closeBulkCooldown]
   );
 
-  const closeNote = useCallback(() => {
-    setNoteTarget(null);
-  }, []);
-
-  const closeTags = useCallback(() => {
-    setTagsTarget(null);
-  }, []);
-
-  const closeOverrides = useCallback(() => {
-    setOverridesTarget(null);
-  }, []);
-
   const handleConfirmExport = useCallback(() => {
     confirmExport().catch(() => undefined);
   }, [confirmExport]);
-
-  let exportConfirmMessage = "";
-  if (pendingExport?.kind === "copy") {
-    exportConfirmMessage = `Copy ${pendingExport.steamids.length} refresh token(s) to the clipboard?`;
-  } else if (pendingExport?.kind === "file") {
-    exportConfirmMessage = `Save ${pendingExport.steamids.length} refresh token(s) to a file?`;
-  }
 
   return (
     <div className={styles.app}>
@@ -330,9 +314,9 @@ export function App() {
           onCopySteamId={copySteamId}
           onCopyUsername={copyUsername}
           onCustomCooldown={askBulkCooldown}
-          onEditNote={setNoteTarget}
-          onEditOverrides={setOverridesTarget}
-          onEditTags={setTagsTarget}
+          onEditNote={openNote}
+          onEditOverrides={openOverrides}
+          onEditTags={openTags}
           onExportFile={exportFile}
           onImport={accounts.length === 0 ? openImport : undefined}
           onOpenProfile={openProfile}
@@ -372,64 +356,36 @@ export function App() {
         importOpen={ui.importOpen}
         importPrefill={ui.importPrefill}
         importSession={ui.importSession}
+        noteTarget={noteTarget}
+        onCancelExport={cancelExport}
         onChangePreference={setPreference}
         onCheckForUpdates={handleCheckForUpdates}
         onCloseBulkCooldown={closeBulkCooldown}
         onCloseCooldown={closeCooldown}
         onCloseImport={closeImport}
+        onCloseNote={closeNote}
+        onCloseOverrides={closeOverrides}
         onCloseRemove={closeRemove}
         onCloseSettings={closeSettings}
+        onCloseTags={closeTags}
         onConfirmCooldownSignIn={handleConfirmCooldownSignIn}
+        onConfirmExport={handleConfirmExport}
         onConfirmRemove={handleConfirmRemove}
         onExportMetadata={exportBackup}
         onImportMetadata={importBackup}
         onPatchPreferences={patchPreferences}
+        onSaveNote={handleSaveNote}
+        onSaveOverrides={setOverrides}
+        onSaveTags={handleSaveTags}
         onStartBulkCooldown={handleStartBulkCooldown}
+        overridesTarget={overridesTarget}
+        pendingExport={pendingExport}
         preferences={preferences}
         removeTargets={ui.removeTargets}
         settingsOpen={ui.settingsOpen}
+        tagsTarget={tagsTarget}
         updateBusy={busy}
       />
-
-      <ConfirmDialog
-        confirmLabel={pendingExport?.kind === "file" ? "Save" : "Copy"}
-        danger
-        message={exportConfirmMessage}
-        onClose={cancelExport}
-        onConfirm={handleConfirmExport}
-        open={pendingExport !== null}
-        title="Export tokens"
-      />
-
-      {noteTarget ? (
-        <NoteDialog
-          initial={noteTarget.note}
-          key={`note-${noteTarget.steamid}`}
-          name={noteTarget.display_name}
-          onClose={closeNote}
-          onSave={handleSaveNote}
-          open
-        />
-      ) : null}
-      {tagsTarget ? (
-        <TagsDialog
-          initial={tagsTarget.tags}
-          key={`tags-${tagsTarget.steamid}`}
-          name={tagsTarget.display_name}
-          onClose={closeTags}
-          onSave={handleSaveTags}
-          open
-        />
-      ) : null}
-      {overridesTarget ? (
-        <OverridesDialog
-          account={overridesTarget}
-          key={overridesTarget.steamid}
-          onClose={closeOverrides}
-          onSave={setOverrides}
-          open
-        />
-      ) : null}
     </div>
   );
 }

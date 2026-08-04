@@ -1,9 +1,15 @@
 import { CooldownDialog } from "../cooldown/cooldown-dialog";
+import { ExportConfirm } from "../export/export-confirm";
+import type { PendingExport } from "../export/pending-export";
 import { ConfirmDialog } from "../feedback/confirm-dialog";
 import { ImportDialog } from "../intake/import-dialog";
+import type { OverridePatch } from "../platform/invoke";
 import type { Preferences } from "../preferences/preferences";
 import { SettingsDialog } from "../preferences/settings-dialog";
 import type { AccountView } from "../roster/account";
+import { NoteDialog } from "../roster/note-dialog";
+import { OverridesDialog } from "../roster/overrides-dialog";
+import { TagsDialog } from "../roster/tags-dialog";
 import { cooldownMessage, removeMessage } from "./confirm-messages";
 
 interface ShellDialogsProps {
@@ -13,22 +19,34 @@ interface ShellDialogsProps {
   importOpen: boolean;
   importPrefill: string;
   importSession: number;
+  noteTarget: AccountView | null;
+  onCancelExport: () => void;
   onChangePreference: (key: keyof Preferences, value: boolean) => void;
   onCheckForUpdates: () => void;
   onCloseBulkCooldown: () => void;
   onCloseCooldown: () => void;
   onCloseImport: () => void;
+  onCloseNote: () => void;
+  onCloseOverrides: () => void;
   onCloseRemove: () => void;
   onCloseSettings: () => void;
+  onCloseTags: () => void;
   onConfirmCooldownSignIn: () => void;
+  onConfirmExport: () => void;
   onConfirmRemove: () => void;
   onExportMetadata: () => void;
   onImportMetadata: () => void;
   onPatchPreferences: (patch: Partial<Preferences>) => void;
+  onSaveNote: (note: string) => void;
+  onSaveOverrides: (steamid: string, patch: OverridePatch) => void;
+  onSaveTags: (tags: string[]) => void;
   onStartBulkCooldown: (seconds: number) => void;
+  overridesTarget: AccountView | null;
+  pendingExport: PendingExport;
   preferences: Preferences;
   removeTargets: AccountView[];
   settingsOpen: boolean;
+  tagsTarget: AccountView | null;
   updateBusy: boolean;
 }
 
@@ -43,6 +61,10 @@ export function ShellDialogs({
   removeTargets,
   cooldownTarget,
   bulkCooldownIds,
+  pendingExport,
+  noteTarget,
+  tagsTarget,
+  overridesTarget,
   onCloseImport,
   onCloseSettings,
   onChangePreference,
@@ -56,6 +78,14 @@ export function ShellDialogs({
   onCloseBulkCooldown,
   onExportMetadata,
   onImportMetadata,
+  onConfirmExport,
+  onCancelExport,
+  onCloseNote,
+  onSaveNote,
+  onCloseTags,
+  onSaveTags,
+  onCloseOverrides,
+  onSaveOverrides,
 }: ShellDialogsProps) {
   return (
     <>
@@ -82,6 +112,7 @@ export function ShellDialogs({
         updateBusy={updateBusy}
       />
       <CooldownDialog
+        key={bulkCooldownIds.join(",") || "cooldown"}
         onClose={onCloseBulkCooldown}
         onStart={onStartBulkCooldown}
         open={bulkCooldownIds.length > 0}
@@ -104,6 +135,41 @@ export function ShellDialogs({
         open={cooldownTarget !== null}
         title="Account on cooldown"
       />
+      <ExportConfirm
+        onCancel={onCancelExport}
+        onConfirm={onConfirmExport}
+        pending={pendingExport}
+      />
+
+      {noteTarget ? (
+        <NoteDialog
+          initial={noteTarget.note}
+          key={`note-${noteTarget.steamid}`}
+          name={noteTarget.display_name}
+          onClose={onCloseNote}
+          onSave={onSaveNote}
+          open
+        />
+      ) : null}
+      {tagsTarget ? (
+        <TagsDialog
+          initial={tagsTarget.tags}
+          key={`tags-${tagsTarget.steamid}`}
+          name={tagsTarget.display_name}
+          onClose={onCloseTags}
+          onSave={onSaveTags}
+          open
+        />
+      ) : null}
+      {overridesTarget ? (
+        <OverridesDialog
+          account={overridesTarget}
+          key={overridesTarget.steamid}
+          onClose={onCloseOverrides}
+          onSave={onSaveOverrides}
+          open
+        />
+      ) : null}
     </>
   );
 }
