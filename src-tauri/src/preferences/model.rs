@@ -119,23 +119,19 @@ mod tests {
 
     #[test]
     fn import_without_sign_in_migrates_bool() {
-        let on: Preferences =
-            serde_json::from_str(r#"{"import_without_sign_in":true}"#).unwrap();
+        let on: Preferences = serde_json::from_str(r#"{"import_without_sign_in":true}"#).unwrap();
         assert_eq!(on.import_without_sign_in, ImportWithoutSignIn::On);
 
-        let off: Preferences =
-            serde_json::from_str(r#"{"import_without_sign_in":false}"#).unwrap();
+        let off: Preferences = serde_json::from_str(r#"{"import_without_sign_in":false}"#).unwrap();
         assert_eq!(off.import_without_sign_in, ImportWithoutSignIn::Off);
     }
 
     #[test]
     fn import_without_sign_in_reads_modes() {
-        let ask: Preferences =
-            serde_json::from_str(r#"{"import_without_sign_in":"ask"}"#).unwrap();
+        let ask: Preferences = serde_json::from_str(r#"{"import_without_sign_in":"ask"}"#).unwrap();
         assert_eq!(ask.import_without_sign_in, ImportWithoutSignIn::Ask);
 
-        let on: Preferences =
-            serde_json::from_str(r#"{"import_without_sign_in":"on"}"#).unwrap();
+        let on: Preferences = serde_json::from_str(r#"{"import_without_sign_in":"on"}"#).unwrap();
         assert_eq!(on.import_without_sign_in, ImportWithoutSignIn::On);
     }
 }
