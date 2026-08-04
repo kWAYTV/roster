@@ -1,7 +1,6 @@
 /*
   Legacy app tokens → shadcn/theme variables.
   Keep presence/status colors as fixed semantics.
-  CSS modules can keep using --bg/--panel/etc; they now follow the active theme.
 */
 :root,
 .dark {
@@ -17,16 +16,16 @@
   --brand: var(--primary);
   --brand-fg: var(--primary-foreground);
   --brand-hover: color-mix(in oklch, var(--primary) 88%, var(--foreground));
-  --brand-soft: color-mix(in oklch, var(--primary) 14%, transparent);
+  --brand-soft: color-mix(in oklch, var(--foreground) 8%, transparent);
 
   --danger: var(--destructive);
-  --danger-soft: color-mix(in oklch, var(--destructive) 16%, transparent);
-  --warn: oklch(0.72 0.13 75);
-  --warn-soft: color-mix(in oklch, var(--warn) 16%, transparent);
-  --success: oklch(0.62 0.14 155);
+  --danger-soft: color-mix(in oklch, var(--destructive) 14%, transparent);
+  --warn: oklch(0.78 0.12 85);
+  --warn-soft: color-mix(in oklch, var(--warn) 14%, transparent);
+  --success: oklch(0.68 0.12 155);
 
-  --presence-online: #1a8cff;
-  --presence-ingame: #18b86a;
+  --presence-online: #3b82f6;
+  --presence-ingame: #22c55e;
   --presence-away: #c9a227;
   --presence-offline: #6b7280;
 

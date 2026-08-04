@@ -1,43 +1,34 @@
 .bar {
   position: fixed;
-  right: 0;
-  bottom: 32px;
-  left: 0;
+  bottom: 36px;
+  left: 50%;
   z-index: var(--z-menu);
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: center;
-  width: 100%;
-  max-width: none;
-  padding: 7px 12px;
-  background: color-mix(in oklch, var(--card) 94%, transparent);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
-  box-shadow: none;
-  backdrop-filter: blur(10px);
-  transform: none;
-  animation: rise 160ms var(--ease-out);
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  padding: 6px 8px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-menu);
+  transform: translateX(-50%);
 }
 
 .label {
-  padding: 0 2px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
+  padding: 0 4px;
+  font-size: var(--text-sm);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--text);
   white-space: nowrap;
 }
 
 .actions {
   display: flex;
-  flex: 1;
   gap: 2px;
   align-items: center;
-  min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -48,22 +39,4 @@
 
 .cooldownBtn {
   gap: 2px;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bar {
-    animation: none;
-  }
 }

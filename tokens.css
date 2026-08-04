@@ -1,0 +1,41 @@
+/* Hallmark export — mirrors src/index.css dark austere system. */
+:root {
+  --color-paper: oklch(0.97 0.004 260);
+  --color-paper-2: oklch(0.99 0.002 260);
+  --color-ink: oklch(0.22 0.01 260);
+  --color-ink-2: oklch(0.5 0.012 260);
+  --color-rule: oklch(0.88 0.008 260);
+  --color-accent: oklch(0.28 0.012 260);
+  --color-accent-ink: oklch(0.98 0.002 260);
+  --color-focus: oklch(0.55 0.08 250);
+
+  --font-display: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-short: 150ms;
+  --radius: 0.375rem;
+}
+
+.dark {
+  --color-paper: oklch(0.17 0.008 260);
+  --color-paper-2: oklch(0.21 0.008 260);
+  --color-ink: oklch(0.93 0.006 260);
+  --color-ink-2: oklch(0.62 0.01 260);
+  --color-rule: oklch(0.3 0.01 260);
+  --color-accent: oklch(0.88 0.01 260);
+  --color-accent-ink: oklch(0.18 0.01 260);
+  --color-focus: oklch(0.72 0.08 250);
+}

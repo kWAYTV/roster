@@ -73,31 +73,31 @@ export function SettingsDialog({
               variant="line"
             >
               <TabsTrigger
-                className="flex-1 rounded-none px-2 font-mono text-[10px] uppercase tracking-wider"
+                className="flex-1 rounded-none px-2 text-xs"
                 value="sign-in"
               >
                 Sign-in
               </TabsTrigger>
               <TabsTrigger
-                className="flex-1 rounded-none px-2 font-mono text-[10px] uppercase tracking-wider"
+                className="flex-1 rounded-none px-2 text-xs"
                 value="privacy"
               >
                 Privacy
               </TabsTrigger>
               <TabsTrigger
-                className="flex-1 rounded-none px-2 font-mono text-[10px] uppercase tracking-wider"
+                className="flex-1 rounded-none px-2 text-xs"
                 value="app"
               >
                 App
               </TabsTrigger>
               <TabsTrigger
-                className="flex-1 rounded-none px-2 font-mono text-[10px] uppercase tracking-wider"
+                className="flex-1 rounded-none px-2 text-xs"
                 value="updates"
               >
                 Updates
               </TabsTrigger>
               <TabsTrigger
-                className="flex-1 rounded-none px-2 font-mono text-[10px] text-destructive uppercase tracking-wider after:bg-destructive hover:text-destructive data-active:text-destructive dark:text-destructive dark:data-active:text-destructive dark:hover:text-destructive"
+                className="flex-1 rounded-none px-2 text-destructive text-xs after:bg-destructive hover:text-destructive data-active:text-destructive dark:text-destructive dark:data-active:text-destructive dark:hover:text-destructive"
                 value="danger"
               >
                 Danger

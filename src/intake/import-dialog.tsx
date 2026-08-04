@@ -181,10 +181,8 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <section className="flex flex-col gap-2 rounded-md border border-border bg-secondary/40 p-3">
-          <div className="font-mono font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-            Single account
-          </div>
+        <section className="flex flex-col gap-2">
+          <div className="font-medium text-sm">Single account</div>
           <Input
             autoFocus
             disabled={busy}
@@ -220,10 +218,8 @@ export function ImportDialog({ open, prefill, onClose }: ImportDialogProps) {
 
         <Separator />
 
-        <section className="flex flex-col gap-2 rounded-md border border-border bg-secondary/40 p-3">
-          <div className="font-mono font-semibold text-[10px] text-muted-foreground uppercase tracking-wider">
-            Multiple accounts
-          </div>
+        <section className="flex flex-col gap-2">
+          <div className="font-medium text-sm">Multiple accounts</div>
           <Textarea
             className="min-h-28 resize-none font-mono text-xs"
             disabled={busy}
