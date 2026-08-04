@@ -40,5 +40,5 @@ features = [
 
 [profile.release]
 opt-level = "s"
-lto = true
+lto = "thin"
 strip = true
