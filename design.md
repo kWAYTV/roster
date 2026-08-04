@@ -38,7 +38,7 @@ System stacks only (Tauri CSP — no remote fonts).
 - Reduced-motion: opacity only ≤150ms
 
 ## Microinteractions stance
-- Silent success (toasts only for errors / explicit copy confirmations)
+- Silent chrome: feedback lives in the footer status line (errors linger; click to dismiss)
 - Scale on press `0.97` for buttons
 - No glow, no glass blur stacks, no background patterns
 

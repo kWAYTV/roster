@@ -69,19 +69,19 @@
 .foot {
   display: flex;
   flex-shrink: 0;
+  gap: 12px;
   align-items: center;
-  justify-content: space-between;
   min-height: 30px;
   padding: 5px 10px;
   background: var(--background);
   border-top: 1px solid var(--border);
 }
 
-.footLeft {
+.footMeta {
   display: flex;
-  gap: 12px;
+  flex-shrink: 0;
+  gap: 10px;
   align-items: center;
-  min-width: 0;
 }
 
 .steamOn,

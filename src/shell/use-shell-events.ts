@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { notify } from "../feedback/status";
 import {
   onCooldownFinished,
   onImportRequest,
@@ -8,12 +9,11 @@ import {
 } from "../platform/events";
 
 interface ShellEventsOptions {
-  notify: (message: string, kind?: "ok" | "error") => void;
   openImport: (prefill?: string) => void;
 }
 
 /// Subscribe to tray/backend events for the shell lifetime.
-export function useShellEvents({ notify, openImport }: ShellEventsOptions) {
+export function useShellEvents({ openImport }: ShellEventsOptions) {
   useEffect(() => {
     const subscriptions = [
       onStatus(notify),
@@ -36,5 +36,5 @@ export function useShellEvents({ notify, openImport }: ShellEventsOptions) {
           .catch(() => undefined);
       }
     };
-  }, [notify, openImport]);
+  }, [openImport]);
 }

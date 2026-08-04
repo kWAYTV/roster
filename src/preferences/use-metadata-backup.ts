@@ -1,12 +1,10 @@
 import { useCallback } from "react";
 
-import { useToast } from "../feedback/toast";
+import { notify } from "../feedback/status";
 import { openTextFile, saveTextFile } from "../platform/files";
 import { commands } from "../platform/invoke";
 
 export function useMetadataBackup() {
-  const { notify } = useToast();
-
   const exportBackup = useCallback(async () => {
     try {
       const json = await commands.exportMetadata();
@@ -23,7 +21,7 @@ export function useMetadataBackup() {
     } catch (cause) {
       notify(String(cause), "error");
     }
-  }, [notify]);
+  }, []);
 
   const importBackup = useCallback(async () => {
     try {
@@ -38,7 +36,7 @@ export function useMetadataBackup() {
     } catch (cause) {
       notify(String(cause), "error");
     }
-  }, [notify]);
+  }, []);
 
   return { exportBackup, importBackup };
 }

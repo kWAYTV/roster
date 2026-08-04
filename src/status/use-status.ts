@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useToast } from "../feedback/toast";
+import { notify } from "../feedback/status";
 import { onAccountStatus, onAccountsChanged } from "../platform/events";
 import { commands } from "../platform/invoke";
 import type { ProfilePatch } from "../roster/use-roster";
@@ -17,7 +17,6 @@ export function useStatus(
   rosterReady: boolean,
   onProfile?: (patch: ProfilePatch) => void
 ): StatusMap {
-  const { notify } = useToast();
   const [statuses, setStatuses] = useState<StatusMap>({});
 
   useEffect(() => {
@@ -76,7 +75,7 @@ export function useStatus(
       }
       clearInterval(timer);
     };
-  }, [notify, onProfile, rosterReady]);
+  }, [onProfile, rosterReady]);
 
   return statuses;
 }
