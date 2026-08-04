@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Preferences } from "../preferences/preferences";
-import type { AccountView } from "../roster/account";
+import type { Preferences } from "@/preferences/preferences";
+import type { AccountView } from "@/roster/account";
 
 export interface ClassifyResult {
   expired: string[];
@@ -41,8 +41,8 @@ export const commands = {
     invoke<string[]>("export_token_entries", { steamids }),
   getLogs: () => invoke<string[]>("get_logs"),
   getPreferences: () => invoke<Preferences>("get_preferences"),
-  importAccounts: (payload: string) =>
-    invoke<string>("import_accounts", { payload }),
+  importAccounts: (payload: string, withoutSignIn: boolean) =>
+    invoke<string>("import_accounts", { payload, withoutSignIn }),
   importMetadata: (payload: string) =>
     invoke<string>("import_metadata", { payload }),
   isSteamRunning: () => invoke<boolean>("is_steam_running"),

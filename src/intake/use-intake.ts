@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 
-import { useToast } from "../feedback/toast";
-import { commands } from "../platform/invoke";
+import { useToast } from "@/feedback/toast";
+import { commands } from "@/platform/invoke";
 
 /// Import accounts from pasted text and read the clipboard on demand.
 export function useImport() {
@@ -9,10 +9,10 @@ export function useImport() {
   const [busy, setBusy] = useState(false);
 
   const importText = useCallback(
-    async (payload: string): Promise<boolean> => {
+    async (payload: string, withoutSignIn: boolean): Promise<boolean> => {
       setBusy(true);
       try {
-        notify(await commands.importAccounts(payload));
+        notify(await commands.importAccounts(payload, withoutSignIn));
         return true;
       } catch (cause) {
         notify(String(cause), "error");

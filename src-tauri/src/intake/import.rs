@@ -10,9 +10,9 @@ use crate::steam_config::{config_vdf, connect_cache, loginusers};
 
 /// Import one or more accounts from pasted `text`.
 ///
-/// When `import_without_sign_in` is set, tokens are stored only — Steam is
+/// When `without_sign_in` is set, tokens are stored only — Steam is
 /// restarted onto the previous session if we had to stop it for safe writes.
-pub fn import_text(text: &str) -> Result<String, String> {
+pub fn import_text(text: &str, without_sign_in: bool) -> Result<String, String> {
     let entries = batch::split(text);
     if entries.is_empty() {
         return Err("Nothing to import".to_string());
@@ -28,7 +28,7 @@ pub fn import_text(text: &str) -> Result<String, String> {
     let steam_was_running = is_running();
 
     // Stop before any VDF/token writes so a live client cannot clobber them.
-    if steam_was_running || !prefs.import_without_sign_in {
+    if steam_was_running || !without_sign_in {
         stop()?;
     }
 
@@ -50,7 +50,7 @@ pub fn import_text(text: &str) -> Result<String, String> {
         return Err(failures.join(" | "));
     };
 
-    if prefs.import_without_sign_in {
+    if without_sign_in {
         if steam_was_running {
             launch(&install, prefs.launch_steam_minimized)?;
         }

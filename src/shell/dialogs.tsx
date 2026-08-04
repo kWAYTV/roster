@@ -1,16 +1,16 @@
-import { CooldownDialog } from "../cooldown/cooldown-dialog";
-import { ExportConfirm } from "../export/export-confirm";
-import type { PendingExport } from "../export/pending-export";
-import { ConfirmDialog } from "../feedback/confirm-dialog";
-import { ImportDialog } from "../intake/import-dialog";
-import type { OverridePatch } from "../platform/invoke";
-import type { Preferences } from "../preferences/preferences";
-import { SettingsDialog } from "../preferences/settings-dialog";
-import type { AccountView } from "../roster/account";
-import { NoteDialog } from "../roster/note-dialog";
-import { OverridesDialog } from "../roster/overrides-dialog";
-import { TagsDialog } from "../roster/tags-dialog";
-import { cooldownMessage, removeMessage } from "./confirm-messages";
+import { CooldownDialog } from "@/cooldown/cooldown-dialog";
+import { ExportConfirm } from "@/export/export-confirm";
+import type { PendingExport } from "@/export/pending-export";
+import { ConfirmDialog } from "@/feedback/confirm-dialog";
+import { ImportDialog } from "@/intake/import-dialog";
+import type { OverridePatch } from "@/platform/invoke";
+import type { Preferences } from "@/preferences/preferences";
+import { SettingsDialog } from "@/preferences/settings-dialog";
+import type { AccountView } from "@/roster/account";
+import { NoteDialog } from "@/roster/note-dialog";
+import { OverridesDialog } from "@/roster/overrides-dialog";
+import { TagsDialog } from "@/roster/tags-dialog";
+import { cooldownMessage, removeMessage } from "@/shell/confirm-messages";
 
 interface ShellDialogsProps {
   bulkCooldownIds: string[];
@@ -94,6 +94,7 @@ export function ShellDialogs({
         window; unmounting while open left a stuck Base UI backdrop.
       */}
       <ImportDialog
+        importWithoutSignIn={preferences.import_without_sign_in}
         key={importSession || "import"}
         onClose={onCloseImport}
         open={importOpen}

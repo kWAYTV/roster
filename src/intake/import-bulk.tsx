@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 
+import { importLabel } from "@/intake/import-seed";
+import type { ClassifyHint } from "@/intake/use-classify-import";
 import { Button } from "@/ui/primitives/button";
 import { Textarea } from "@/ui/primitives/textarea";
-import { importLabel } from "./import-seed";
-import type { ClassifyHint } from "./use-classify-import";
 
 interface ImportBulkProps {
   autoFocus?: boolean;

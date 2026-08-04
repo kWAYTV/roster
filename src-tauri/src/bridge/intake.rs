@@ -28,6 +28,10 @@ pub fn classify_import(payload: String) -> ClassifyResult {
 }
 
 #[tauri::command]
-pub fn import_accounts(app: AppHandle, payload: String) -> Result<String, String> {
-    after_account_change(&app, crate::intake::import_text(&payload))
+pub fn import_accounts(
+    app: AppHandle,
+    payload: String,
+    without_sign_in: bool,
+) -> Result<String, String> {
+    after_account_change(&app, crate::intake::import_text(&payload, without_sign_in))
 }
