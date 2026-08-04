@@ -18,15 +18,19 @@ pub struct TokenHealth {
 #[tauri::command]
 pub fn check_tokens() -> Result<Vec<TokenHealth>, String> {
     let accounts = crate::roster::list()?;
-    let cache = cache_dir()?;
-    let map = connect_cache::read_encrypted_map(&cache);
+    let connect_map = cache_dir()
+        .ok()
+        .map(|dir| connect_cache::read_encrypted_map(&dir));
     let mut out = Vec::with_capacity(accounts.len());
 
     for account in accounts {
-        let token = [&account.account_name, &account.steamid]
-            .into_iter()
-            .filter(|name| !name.is_empty())
-            .find_map(|name| connect_cache::decrypt_cached(&map, name));
+        let token = crate::tokens::token_for(&account.steamid).or_else(|| {
+            let map = connect_map.as_ref()?;
+            [&account.account_name, &account.steamid]
+                .into_iter()
+                .filter(|name| !name.is_empty())
+                .find_map(|name| connect_cache::decrypt_cached(map, name))
+        });
 
         let (status, jwt_expires_in) = match token {
             None => ("missing", 0_i64),

@@ -42,7 +42,7 @@ function ensurePolling() {
   timer = window.setInterval(poll, POLL_MS);
 }
 
-/// Whether Steam.exe / steamwebhelper is currently running.
+/// Whether the Steam client (`steam.exe`) is currently running.
 export function useSteamRunning(): boolean {
   return useSyncExternalStore(
     subscribe,

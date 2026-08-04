@@ -5,9 +5,10 @@ use super::{after_account_change, find_account};
 
 #[tauri::command]
 pub fn list_accounts() -> Result<Vec<AccountView>, String> {
+    let autologin = crate::steam_client::autologin_user();
     Ok(crate::roster::list()?
         .iter()
-        .map(AccountView::from)
+        .map(|account| AccountView::from_account(account, autologin.as_deref()))
         .collect())
 }
 

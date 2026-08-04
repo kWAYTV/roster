@@ -20,6 +20,7 @@ pub fn clear() -> Result<String, String> {
     }
 
     crate::metadata::clear_all()?;
+    crate::tokens::clear_all()?;
 
     Ok("Login data cleared".to_string())
 }

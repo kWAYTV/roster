@@ -19,7 +19,7 @@ pub fn init(app: &AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-/// Directory for Roster-owned JSON (preferences, metadata).
+/// Directory for Roster-owned JSON (preferences, metadata, tokens).
 pub fn dir() -> PathBuf {
     DIR.get().cloned().unwrap_or_else(fallback_dir)
 }

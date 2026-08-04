@@ -3,7 +3,6 @@ use winreg::RegKey;
 
 const STEAM_KEY: &str = "SOFTWARE\\Valve\\Steam";
 
-/// The account Steam will auto-login as, if set.
 pub fn autologin_user() -> Option<String> {
     let key = RegKey::predef(HKEY_CURRENT_USER)
         .open_subkey_with_flags(STEAM_KEY, KEY_QUERY_VALUE)
@@ -16,7 +15,10 @@ pub fn autologin_user() -> Option<String> {
     }
 }
 
-/// Point Steam's autologin at `account_name` and enable password recall.
+pub fn is_autologin(account_name: &str) -> bool {
+    autologin_user().is_some_and(|current| current.eq_ignore_ascii_case(account_name))
+}
+
 pub fn set_autologin_user(account_name: &str) -> Result<(), String> {
     let key = RegKey::predef(HKEY_CURRENT_USER)
         .open_subkey_with_flags(STEAM_KEY, KEY_SET_VALUE)
@@ -28,8 +30,6 @@ pub fn set_autologin_user(account_name: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Clear autologin only when it currently points at `account_name`, so removing
-/// one account never disturbs a different active login.
 pub fn clear_autologin_if_matches(account_name: &str) {
     let Ok(key) = RegKey::predef(HKEY_CURRENT_USER)
         .open_subkey_with_flags(STEAM_KEY, KEY_QUERY_VALUE | KEY_SET_VALUE)
@@ -37,7 +37,7 @@ pub fn clear_autologin_if_matches(account_name: &str) {
         return;
     };
     let current: String = key.get_value("AutoLoginUser").unwrap_or_default();
-    if current == account_name {
+    if current.eq_ignore_ascii_case(account_name) {
         let _ = key.set_value("AutoLoginUser", &"");
     }
 }

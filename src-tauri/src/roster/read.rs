@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 
 use super::account::Account;
@@ -20,11 +20,7 @@ pub fn list_tray() -> Result<Vec<Account>, String> {
 
 /// SteamIDs only — for background status sweeps.
 pub fn steamids() -> Result<Vec<String>, String> {
-    let install = install_dir()?;
-    let path = install.join("config").join("loginusers.vdf");
-    let content = fs::read_to_string(&path)
-        .map_err(|_| "Open Steam once to create login data".to_string())?;
-    Ok(parse(&content)
+    Ok(load_accounts(false)?
         .into_iter()
         .map(|account| account.steamid)
         .collect())
@@ -33,10 +29,38 @@ pub fn steamids() -> Result<Vec<String>, String> {
 fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
     let install = install_dir()?;
     let path = install.join("config").join("loginusers.vdf");
-    let content = fs::read_to_string(&path)
-        .map_err(|_| "Open Steam once to create login data".to_string())?;
+    let content = fs::read_to_string(&path).unwrap_or_default();
 
     let mut accounts = parse(&content);
+    let records = crate::tokens::all();
+    let mut seen: HashSet<String> = accounts.iter().map(|a| a.steamid.clone()).collect();
+
+    for account in &mut accounts {
+        if let Some(rec) = records.get(&account.steamid) {
+            if account.account_name.is_empty() {
+                account.account_name = rec.account_name.clone();
+            }
+            if account.persona_name.is_empty() {
+                account.persona_name = rec.persona_name.clone();
+            }
+        }
+    }
+
+    for (steamid, rec) in &records {
+        if seen.insert(steamid.clone()) {
+            accounts.push(Account {
+                steamid: steamid.clone(),
+                account_name: rec.account_name.clone(),
+                persona_name: rec.persona_name.clone(),
+                ..Account::default()
+            });
+        }
+    }
+
+    if accounts.is_empty() && content.is_empty() && records.is_empty() {
+        return Err("Open Steam once to create login data".to_string());
+    }
+
     let metadata = crate::metadata::all();
     let token_cache = if enrich_jwt {
         cache_dir()
@@ -49,10 +73,10 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
     for account in &mut accounts {
         account.avatar_path = avatar::resolve(&install, account);
         account.metadata = metadata.get(&account.steamid).cloned().unwrap_or_default();
-        if let Some(map) = token_cache.as_ref() {
-            let (has_token, expires_in) = token_state(map, account);
+        if enrich_jwt {
+            let (has_token, expires) = token_state(account, token_cache.as_ref());
             account.has_token = has_token;
-            account.jwt_expires_in = expires_in;
+            account.jwt_expires_in = expires;
         }
     }
 
@@ -66,7 +90,16 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
     Ok(accounts)
 }
 
-fn token_state(map: &HashMap<String, String>, account: &Account) -> (bool, i64) {
+fn token_state(account: &Account, connect_map: Option<&HashMap<String, String>>) -> (bool, i64) {
+    if let Some(token) = crate::tokens::token_for(&account.steamid) {
+        if is_jwt(&token) {
+            return (true, expires_in(&token));
+        }
+    }
+
+    let Some(map) = connect_map else {
+        return (false, 0);
+    };
     for name in [&account.account_name, &account.steamid] {
         if name.is_empty() {
             continue;

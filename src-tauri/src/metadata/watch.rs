@@ -64,10 +64,11 @@ fn auto_sign_in(app: &AppHandle, finished: &[String]) {
     let Ok(account) = crate::bridge::find_account(&steamid) else {
         return;
     };
-    match crate::login::sign_in(&account, false) {
+    let app = app.clone();
+    std::thread::spawn(move || match crate::login::sign_in(&account, false) {
         Ok(message) => {
             crate::log::append(&message);
-            let _ = crate::tray::rebuild(app);
+            let _ = crate::tray::rebuild(&app);
             let _ = app.emit("accounts-changed", ());
             let _ = app.emit("status", message);
         }
@@ -75,7 +76,7 @@ fn auto_sign_in(app: &AppHandle, finished: &[String]) {
             crate::log::append(format!("Error: {error}"));
             let _ = app.emit("status-error", error);
         }
-    }
+    });
 }
 
 /// Prefer the finished account with the latest last_used; ties keep first.

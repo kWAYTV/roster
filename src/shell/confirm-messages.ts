@@ -9,10 +9,10 @@ export function removeMessage(
     return "";
   }
   if (accounts.length > 1) {
-    return `Remove ${accounts.length} accounts?`;
+    return `Remove ${accounts.length} accounts? Steam will close.`;
   }
   const name = streamer ? "this account" : accounts[0].display_name;
-  return `Remove ${name}?`;
+  return `Remove ${name}? Steam will close.`;
 }
 
 export function cooldownMessage(
