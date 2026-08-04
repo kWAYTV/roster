@@ -1,10 +1,27 @@
 .badge {
+  position: relative;
+  z-index: 0;
   flex-shrink: 0;
-  padding: 1px 7px;
-  font-size: 10px;
-  font-weight: 600;
+  padding: 0 5px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 15px;
   color: var(--danger);
+  letter-spacing: 0.03em;
   white-space: nowrap;
-  border: 1px solid var(--danger);
-  border-radius: 999px;
+  background: var(--danger-soft);
+  border: 1px solid color-mix(in oklch, var(--danger) 45%, transparent);
+  border-radius: 2px;
+}
+
+.fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: color-mix(in oklch, var(--danger) 18%, transparent);
 }

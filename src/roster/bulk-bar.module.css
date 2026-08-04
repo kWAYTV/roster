@@ -1,34 +1,43 @@
 .bar {
   position: fixed;
-  bottom: 44px;
-  left: 50%;
+  right: 0;
+  bottom: 32px;
+  left: 0;
   z-index: var(--z-menu);
   display: flex;
-  gap: var(--space-2);
+  gap: 10px;
   align-items: center;
-  width: max-content;
-  max-width: calc(100vw - 24px);
-  padding: 6px 8px;
-  background: var(--panel);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r);
-  box-shadow: var(--shadow-menu);
-  transform: translateX(-50%);
+  width: 100%;
+  max-width: none;
+  padding: 7px 12px;
+  background: color-mix(in oklch, var(--card) 94%, transparent);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+  transform: none;
+  animation: rise 160ms var(--ease-out);
 }
 
 .label {
-  padding: 0 4px;
-  font-size: var(--text-sm);
-  font-weight: 600;
+  padding: 0 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--text);
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   white-space: nowrap;
 }
 
 .actions {
   display: flex;
+  flex: 1;
   gap: 2px;
   align-items: center;
+  min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -39,4 +48,22 @@
 
 .cooldownBtn {
   gap: 2px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+  }
 }

@@ -154,20 +154,20 @@ export function AccountContextMenu({
   return (
     <ContextMenuContent className="w-56">
       {multi ? (
-        <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
+        <div className="px-2 py-1.5 font-mono font-semibold text-[10px] text-primary uppercase tracking-wider">
           {targets.length} selected
         </div>
       ) : (
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted font-medium text-[10px] text-muted-foreground">
+          <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-[3px] bg-muted font-bold font-mono text-[10px] text-muted-foreground outline outline-1 outline-foreground/12 -outline-offset-1">
             {avatarContent(streamer, index, account)}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="truncate font-medium text-sm leading-tight">
+            <div className="truncate font-semibold text-sm leading-tight tracking-tight">
               {title}
             </div>
             {streamer ? null : (
-              <div className="truncate text-muted-foreground text-xs leading-tight">
+              <div className="truncate font-mono text-[10px] text-muted-foreground leading-tight">
                 {account.account_name}
               </div>
             )}

@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100dvh;
   color: var(--foreground);
-  background: var(--background);
+  background: transparent;
 }
 
 .toolbar {
@@ -11,34 +11,55 @@
   flex-shrink: 0;
   gap: var(--space-2);
   align-items: center;
-  min-height: 48px;
-  padding: var(--space-2) var(--space-3);
-  background: var(--card);
+  min-height: 44px;
+  padding: 8px 12px;
+  background: color-mix(in oklch, var(--card) 92%, transparent);
   border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(10px);
 }
 
 .brand {
   display: flex;
-  gap: var(--space-2);
+  gap: 8px;
   align-items: center;
   min-width: 0;
 }
 
+.mark {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 2px;
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
 .title {
-  font-size: var(--text-md);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
 }
 
 .count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  border-radius: 2px;
 }
 
 .actions {
   display: flex;
-  gap: 2px;
+  gap: 1px;
   align-items: center;
+  padding: 2px;
   margin-left: auto;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
 }
 
 .searchGlyph {
@@ -51,9 +72,11 @@
 .searchInput {
   flex: 1;
   min-width: 0;
-  height: 32px;
+  height: 30px;
   padding-right: 0;
   padding-left: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -62,7 +85,7 @@
 .main {
   flex: 1;
   min-height: 0;
-  padding: var(--space-2) var(--space-3) var(--space-3);
+  padding: 10px 12px 12px;
   overflow-y: auto;
 }
 
@@ -71,23 +94,29 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2) var(--space-3);
-  background: var(--card);
+  min-height: 32px;
+  padding: 6px 12px;
+  background: color-mix(in oklch, var(--card) 94%, transparent);
   border-top: 1px solid var(--border);
+  backdrop-filter: blur(10px);
 }
 
 .footLeft {
   display: flex;
-  gap: var(--space-3);
+  gap: 12px;
   align-items: center;
   min-width: 0;
 }
 
 .steamOn,
 .steamOff {
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .steamOn {
@@ -95,7 +124,10 @@
 }
 
 .version {
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
+  letter-spacing: 0.04em;
 }

@@ -89,7 +89,7 @@ export function Toolbar({
             value={query}
           />
           {accountCount > 0 ? (
-            <Badge className={styles.count} variant="secondary">
+            <Badge className={styles.count} variant="outline">
               {countLabel}
             </Badge>
           ) : null}
@@ -109,9 +109,10 @@ export function Toolbar({
       ) : (
         <>
           <div className={styles.brand}>
+            <span aria-hidden="true" className={styles.mark} />
             <span className={styles.title}>Roster</span>
             {accountCount > 0 ? (
-              <Badge className={styles.count} variant="secondary">
+              <Badge className={styles.count} variant="outline">
                 {countLabel}
               </Badge>
             ) : null}

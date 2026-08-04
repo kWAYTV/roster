@@ -17,26 +17,26 @@
   --brand: var(--primary);
   --brand-fg: var(--primary-foreground);
   --brand-hover: color-mix(in oklch, var(--primary) 88%, var(--foreground));
-  --brand-soft: color-mix(in oklch, var(--primary) 12%, transparent);
+  --brand-soft: color-mix(in oklch, var(--primary) 14%, transparent);
 
   --danger: var(--destructive);
-  --danger-soft: color-mix(in oklch, var(--destructive) 15%, transparent);
-  --warn: oklch(0.75 0.12 85);
-  --warn-soft: color-mix(in oklch, var(--warn) 14%, transparent);
-  --success: oklch(0.65 0.15 150);
+  --danger-soft: color-mix(in oklch, var(--destructive) 16%, transparent);
+  --warn: oklch(0.72 0.13 75);
+  --warn-soft: color-mix(in oklch, var(--warn) 16%, transparent);
+  --success: oklch(0.62 0.14 155);
 
-  --presence-online: #0072f5;
-  --presence-ingame: #17c964;
+  --presence-online: #1a8cff;
+  --presence-ingame: #18b86a;
   --presence-away: #c9a227;
-  --presence-offline: #6b6b6b;
+  --presence-offline: #6b7280;
 
   --control-bg: var(--background);
   --control-border: var(--input);
   --focus-ring: color-mix(in oklch, var(--ring) 45%, transparent);
 
-  --r-xs: calc(var(--radius) - 4px);
-  --r-sm: calc(var(--radius) - 2px);
-  --r: var(--radius);
+  --r-xs: calc(var(--radius) - 2px);
+  --r-sm: var(--radius);
+  --r: calc(var(--radius) + 2px);
   --r-lg: calc(var(--radius) + 4px);
 
   --space-1: calc(var(--spacing) * 1);
@@ -53,7 +53,7 @@
   --z-overlay: 100;
   --z-toast: 200;
 
-  --font: 13px / 1.45 var(--font-sans);
+  --font: 13px / 1.4 var(--font-sans);
   --text-xs: 10px;
   --text-sm: 11px;
   --text-base: 13px;

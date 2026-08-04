@@ -69,35 +69,35 @@ export function SettingsDialog({
 
           <Tabs className="gap-4" onValueChange={setTab} value={tab}>
             <TabsList
-              className="h-auto w-full justify-stretch gap-0 border-border border-b pb-0"
+              className="h-auto w-full justify-stretch gap-0 border-border border-b bg-transparent pb-0"
               variant="line"
             >
               <TabsTrigger
-                className="flex-1 rounded-none px-2 text-xs"
+                className="flex-1 rounded-none px-2 font-mono text-[10px] uppercase tracking-wider"
                 value="sign-in"
               >
                 Sign-in
               </TabsTrigger>
               <TabsTrigger
-                className="flex-1 rounded-none px-2 text-xs"
+                className="flex-1 rounded-none px-2 font-mono text-[10px] uppercase tracking-wider"
                 value="privacy"
               >
                 Privacy
               </TabsTrigger>
               <TabsTrigger
-                className="flex-1 rounded-none px-2 text-xs"
+                className="flex-1 rounded-none px-2 font-mono text-[10px] uppercase tracking-wider"
                 value="app"
               >
                 App
               </TabsTrigger>
               <TabsTrigger
-                className="flex-1 rounded-none px-2 text-xs"
+                className="flex-1 rounded-none px-2 font-mono text-[10px] uppercase tracking-wider"
                 value="updates"
               >
                 Updates
               </TabsTrigger>
               <TabsTrigger
-                className="flex-1 rounded-none px-2 text-destructive text-xs after:bg-destructive hover:text-destructive data-active:text-destructive dark:text-destructive dark:data-active:text-destructive dark:hover:text-destructive"
+                className="flex-1 rounded-none px-2 font-mono text-[10px] text-destructive uppercase tracking-wider after:bg-destructive hover:text-destructive data-active:text-destructive dark:text-destructive dark:data-active:text-destructive dark:hover:text-destructive"
                 value="danger"
               >
                 Danger
