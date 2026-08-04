@@ -1,9 +1,28 @@
+use std::path::PathBuf;
+
 use tauri::AppHandle;
 use tauri_plugin_opener::OpenerExt;
 
 #[tauri::command]
 pub fn write_clipboard(text: String) -> Result<(), String> {
     crate::intake::write_clipboard(&text)
+}
+
+#[tauri::command]
+pub fn write_text_file(path: String, contents: String) -> Result<(), String> {
+    let path = PathBuf::from(path);
+    if path.as_os_str().is_empty() {
+        return Err("No file path.".to_string());
+    }
+    std::fs::write(&path, contents).map_err(|error| format!("Could not write file: {error}"))
+}
+
+#[tauri::command]
+pub fn read_text_file(path: String) -> Result<String, String> {
+    if path.trim().is_empty() {
+        return Err("No file path.".to_string());
+    }
+    std::fs::read_to_string(path).map_err(|error| format!("Could not read file: {error}"))
 }
 
 #[tauri::command]

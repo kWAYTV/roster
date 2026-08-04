@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
 import { notify } from "../feedback/status";
+import { saveTextFile } from "../platform/files";
 import { commands } from "../platform/invoke";
 import type { AccountView } from "../roster/account";
 import type { PendingExport } from "./pending-export";
@@ -52,15 +53,15 @@ export function useExport(requireConfirm: boolean) {
         notify("No tokens to export", "error");
         return;
       }
-      const blob = new Blob([`${lines.join("\n")}\n`], {
-        type: "text/plain",
+      const saved = await saveTextFile({
+        contents: `${lines.join("\n")}\n`,
+        defaultPath: "tokens.txt",
+        filters: [{ extensions: ["txt"], name: "Text" }],
+        title: "Export tokens",
       });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "tokens.txt";
-      anchor.click();
-      URL.revokeObjectURL(url);
+      if (!saved) {
+        return;
+      }
       notify(`Exported ${lines.length}`);
     } catch (cause) {
       notify(String(cause), "error");
