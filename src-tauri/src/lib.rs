@@ -62,7 +62,7 @@ pub fn run() {
             {
                 tray::setup(app.handle())?;
                 protocol::setup(app.handle());
-                hotkey::setup(app.handle())?;
+                hotkey::setup(app.handle()).map_err(std::io::Error::other)?;
             }
             metadata::start_cooldown_watch(app.handle().clone());
             window::apply_capture_preferences(app.handle());
