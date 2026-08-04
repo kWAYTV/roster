@@ -15,10 +15,6 @@ pub fn autologin_user() -> Option<String> {
     }
 }
 
-pub fn is_autologin(account_name: &str) -> bool {
-    autologin_user().is_some_and(|current| current.eq_ignore_ascii_case(account_name))
-}
-
 pub fn set_autologin_user(account_name: &str) -> Result<(), String> {
     let key = RegKey::predef(HKEY_CURRENT_USER)
         .open_subkey_with_flags(STEAM_KEY, KEY_SET_VALUE)

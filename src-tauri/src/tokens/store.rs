@@ -26,7 +26,7 @@ pub fn all() -> Store {
     }
 }
 
-pub fn get(steamid: &str) -> Option<TokenRecord> {
+fn get(steamid: &str) -> Option<TokenRecord> {
     all().get(steamid).cloned()
 }
 
