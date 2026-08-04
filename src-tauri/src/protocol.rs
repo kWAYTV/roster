@@ -116,8 +116,7 @@ fn register_scheme() {
     };
     let _ = key.set_value("", &"URL:Roster Protocol");
     let _ = key.set_value("URL Protocol", &"");
-    let Ok((command_key, _)) =
-        key.create_subkey_with_flags("shell\\open\\command", KEY_WRITE)
+    let Ok((command_key, _)) = key.create_subkey_with_flags("shell\\open\\command", KEY_WRITE)
     else {
         return;
     };

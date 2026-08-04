@@ -52,13 +52,7 @@ pub fn clear_notes_many(app: AppHandle, steamids: Vec<String>) -> Result<String,
     for steamid in &steamids {
         crate::metadata::set_note(steamid, String::new())?;
     }
-    after_account_change(
-        &app,
-        Ok(format!(
-            "Cleared notes on {}",
-            steamids.len()
-        )),
-    )
+    after_account_change(&app, Ok(format!("Cleared notes on {}", steamids.len())))
 }
 
 /// Full replacement of per-account sign-in overrides (`null` = inherit global).
