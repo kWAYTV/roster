@@ -15,7 +15,10 @@
             "noSvgWithoutTitle": "off"
           },
           "suspicious": {
-            "noReactForwardRef": "off"
+            "noReactForwardRef": "off",
+            // False positive: Biome's type inference doesn't see the
+            // isControlledRef mutation inside useImperativeHandle.
+            "noUnnecessaryConditions": "off"
           }
         }
       }
