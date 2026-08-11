@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   publish:
-    runs-on: self-hosted
+    runs-on: windows-latest
     environment: roster
     steps:
       - uses: actions/checkout@v7
