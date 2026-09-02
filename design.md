@@ -9,17 +9,21 @@ modern-minimal (dark utility register)
 - App pages: Workbench — dense list, quiet chrome, no enrichment
 
 ## Theme
-Custom dark austere (catalog Cobalt is light; this is the dark instrument panel).
+Cursor zinc — zero-chroma solids. No cool/blue paper, no tinted shadows.
 
-- `--color-paper`   oklch(0.17 0.008 260)
-- `--color-paper-2` oklch(0.21 0.008 260)
-- `--color-ink`     oklch(0.93 0.006 260)
-- `--color-ink-2`   oklch(0.62 0.01 260)
-- `--color-rule`    oklch(0.30 0.01 260)
-- `--color-accent`  oklch(0.88 0.01 260)   /* near-ink fill for primary actions */
-- `--color-focus`   oklch(0.72 0.08 250)   /* quiet cool focus only */
+Dark (default):
 
-Light mode is the inverted sibling (cool near-white paper, charcoal ink). Same radii, same type, same CTA voice.
+- `--color-paper`   oklch(0.21 0 0)    /* #181818 — Cursor editor bg */
+- `--color-paper-2` oklch(0.24 0 0)
+- `--color-ink`     oklch(0.93 0 0)
+- `--color-ink-2`   oklch(0.64 0 0)
+- `--color-rule`    oklch(0.31 0 0)    /* #2b2b2b */
+- `--color-accent`  oklch(0.93 0 0)   /* near-ink fill for primary actions */
+- `--color-focus`   oklch(0.78 0 0)   /* gray ring only */
+
+Light is the inverted sibling (near-white paper, charcoal ink). Same radii, same type, same CTA voice. Same hue: 0. Same chroma: 0.
+
+Surfaces are opaque tokens. No blue, indigo, or cool-slate mixes in chrome.
 
 ## Typography
 System stacks only (Tauri CSP — no remote fonts).
@@ -54,10 +58,11 @@ System stacks only (Tauri CSP — no remote fonts).
 - List: flat stack with hairline dividers OR 1px gap — no card-in-card.
 - Bulk bar: quiet strip, normal case labels.
 - No decorative grids, sheens, or multi-layer hard shadows.
+- Presence: online is a gray/white solid; in-game stays green (semantic). No blue status.
 
 ## What pages MUST share
 - Dark default appearance
-- Quiet zinc palette + cool focus
+- Zero-chroma zinc palette + gray focus
 - System font stacks
 - Compact row density
 

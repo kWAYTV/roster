@@ -17,7 +17,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: color-mix(in oklch, var(--foreground) 16%, transparent);
+  background: var(--scrollbar-thumb);
   background-clip: padding-box;
   border: 2px solid transparent;
   border-radius: 4px;

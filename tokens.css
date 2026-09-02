@@ -1,13 +1,13 @@
-/* Hallmark export — mirrors src/index.css dark austere system. */
+/* Hallmark export — mirrors src/index.css Cursor zinc system. */
 :root {
-  --color-paper: oklch(0.97 0.004 260);
-  --color-paper-2: oklch(0.99 0.002 260);
-  --color-ink: oklch(0.22 0.01 260);
-  --color-ink-2: oklch(0.5 0.012 260);
-  --color-rule: oklch(0.88 0.008 260);
-  --color-accent: oklch(0.28 0.012 260);
-  --color-accent-ink: oklch(0.98 0.002 260);
-  --color-focus: oklch(0.55 0.08 250);
+  --color-paper: oklch(0.985 0 0);
+  --color-paper-2: oklch(1 0 0);
+  --color-ink: oklch(0.145 0 0);
+  --color-ink-2: oklch(0.5 0 0);
+  --color-rule: oklch(0.87 0 0);
+  --color-accent: oklch(0.145 0 0);
+  --color-accent-ink: oklch(0.985 0 0);
+  --color-focus: oklch(0.45 0 0);
 
   --font-display: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-body: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
@@ -30,12 +30,12 @@
 }
 
 .dark {
-  --color-paper: oklch(0.17 0.008 260);
-  --color-paper-2: oklch(0.21 0.008 260);
-  --color-ink: oklch(0.93 0.006 260);
-  --color-ink-2: oklch(0.62 0.01 260);
-  --color-rule: oklch(0.3 0.01 260);
-  --color-accent: oklch(0.88 0.01 260);
-  --color-accent-ink: oklch(0.18 0.01 260);
-  --color-focus: oklch(0.72 0.08 250);
+  --color-paper: oklch(0.21 0 0);
+  --color-paper-2: oklch(0.24 0 0);
+  --color-ink: oklch(0.93 0 0);
+  --color-ink-2: oklch(0.64 0 0);
+  --color-rule: oklch(0.31 0 0);
+  --color-accent: oklch(0.93 0 0);
+  --color-accent-ink: oklch(0.21 0 0);
+  --color-focus: oklch(0.78 0 0);
 }
