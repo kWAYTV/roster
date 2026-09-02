@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-09-02",
+    "macrostructure": "Workbench",
+    "theme": "custom",
+    "theme_axes": "dark / grotesk-sans / neutral",
+    "vibe": "cursor zinc solids",
+    "enrichment": "none",
+    "scope": "app",
+    "brief": "Roster · neutralize cool/blue chrome to Cursor gray-black-white"
+  },
+  {
     "date": "2026-08-04",
     "macrostructure": "Workbench",
     "theme": "custom",

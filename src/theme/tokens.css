@@ -1,6 +1,6 @@
 /*
   Legacy app tokens → shadcn/theme variables.
-  Keep presence/status colors as fixed semantics.
+  Chrome is zero-chroma solids. Presence keeps one semantic green for in-game.
 */
 :root,
 .dark {
@@ -15,8 +15,7 @@
 
   --brand: var(--primary);
   --brand-fg: var(--primary-foreground);
-  --brand-hover: color-mix(in oklch, var(--primary) 88%, var(--foreground));
-  --brand-soft: color-mix(in oklch, var(--foreground) 8%, transparent);
+  --brand-hover: var(--foreground);
 
   --danger: var(--destructive);
   --danger-soft: color-mix(in oklch, var(--destructive) 14%, transparent);
@@ -24,10 +23,8 @@
   --warn-soft: color-mix(in oklch, var(--warn) 14%, transparent);
   --success: oklch(0.68 0.12 155);
 
-  --presence-online: #3b82f6;
-  --presence-ingame: #22c55e;
-  --presence-away: #c9a227;
-  --presence-offline: #6b7280;
+  --presence-ingame: oklch(0.68 0.12 155);
+  --presence-away: oklch(0.78 0.12 85);
 
   --control-bg: var(--background);
   --control-border: var(--input);
@@ -57,4 +54,23 @@
   --text-base: 13px;
   --text-md: 14px;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Opaque per-mode solids — no alpha mixes on chrome. */
+:root {
+  --brand-soft: oklch(0.94 0 0);
+  --row-selected-hover: oklch(0.9 0 0);
+  --chip: oklch(0.94 0 0);
+  --scrollbar-thumb: oklch(0.78 0 0);
+  --presence-online: oklch(0.32 0 0);
+  --presence-offline: oklch(0.55 0 0);
+}
+
+.dark {
+  --brand-soft: oklch(0.28 0 0);
+  --row-selected-hover: oklch(0.32 0 0);
+  --chip: oklch(0.28 0 0);
+  --scrollbar-thumb: oklch(0.4 0 0);
+  --presence-online: oklch(0.82 0 0);
+  --presence-offline: oklch(0.5 0 0);
 }
