@@ -10,20 +10,67 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/primitives/dialog";
-import { Input } from "@/ui/primitives/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/primitives/select";
+  type DurationParts,
+  formatDuration,
+  joinDuration,
+  SECONDS_PER_DAY,
+  SECONDS_PER_HOUR,
+  SECONDS_PER_MINUTE,
+  splitDuration,
+} from "./cooldown";
+import { DurationField } from "./duration-field";
+import { useNow } from "./use-now";
 
-const UNITS = [
-  { label: "minutes", seconds: 60 },
-  { label: "hours", seconds: 3600 },
-  { label: "days", seconds: 86_400 },
+const QUICK_ADD = [
+  { label: "+30m", seconds: 30 * SECONDS_PER_MINUTE },
+  { label: "+1h", seconds: SECONDS_PER_HOUR },
+  { label: "+6h", seconds: 6 * SECONDS_PER_HOUR },
+  { label: "+1d", seconds: SECONDS_PER_DAY },
+  { label: "+7d", seconds: 7 * SECONDS_PER_DAY },
 ] as const;
+
+const DEFAULT_SECONDS = SECONDS_PER_HOUR;
+const PREVIEW_TICK_MS = 30_000;
+const ENDS_AT_FORMAT: Intl.DateTimeFormatOptions = {
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  month: "short",
+  weekday: "short",
+};
+
+type PartsDraft = Record<keyof DurationParts, string>;
+
+const EMPTY_DRAFT: PartsDraft = { days: "", hours: "", minutes: "" };
+
+function toDraft(seconds: number): PartsDraft {
+  const parts = splitDuration(seconds);
+  return {
+    days: parts.days ? String(parts.days) : "",
+    hours: parts.hours ? String(parts.hours) : "",
+    minutes: parts.minutes ? String(parts.minutes) : "",
+  };
+}
+
+function parseSlot(raw: string): number {
+  const value = Number(raw);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+}
+
+function fromDraft(draft: PartsDraft): number {
+  return joinDuration({
+    days: parseSlot(draft.days),
+    hours: parseSlot(draft.hours),
+    minutes: parseSlot(draft.minutes),
+  });
+}
+
+function isDurationUnit(
+  value: string | undefined
+): value is keyof DurationParts {
+  return value === "days" || value === "hours" || value === "minutes";
+}
 
 interface CooldownDialogProps {
   onClose: () => void;
@@ -37,12 +84,17 @@ export function CooldownDialog({
   onClose,
   onStart,
 }: CooldownDialogProps) {
-  const [amount, setAmount] = useState("1");
-  const [unit, setUnit] = useState(String(3600));
+  const [draft, setDraft] = useState<PartsDraft>(() =>
+    toDraft(DEFAULT_SECONDS)
+  );
+  const now = useNow(PREVIEW_TICK_MS);
 
-  const unitSeconds = Number(unit);
-  const seconds = Math.round(Number(amount) * unitSeconds);
-  const valid = Number.isFinite(seconds) && seconds > 0;
+  const seconds = fromDraft(draft);
+  const valid = seconds > 0;
+  const endsAt = new Date((now + seconds) * 1000).toLocaleString(
+    undefined,
+    ENDS_AT_FORMAT
+  );
 
   const submit = useCallback(() => {
     if (!valid) {
@@ -61,14 +113,21 @@ export function CooldownDialog({
     [onClose]
   );
 
-  const handleAmountChange = useCallback(
+  const handleSlotChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
-      setAmount(event.target.value);
+      const {
+        value,
+        dataset: { unit },
+      } = event.currentTarget;
+      if (!isDurationUnit(unit)) {
+        return;
+      }
+      setDraft((current) => ({ ...current, [unit]: value }));
     },
     []
   );
 
-  const handleAmountKeyDown = useCallback(
+  const handleSlotKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -78,10 +137,19 @@ export function CooldownDialog({
     [submit]
   );
 
-  const handleUnitChange = useCallback((value: string | null) => {
-    if (value !== null) {
-      setUnit(value);
-    }
+  const handleQuickAdd = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      const delta = Number(event.currentTarget.dataset.seconds);
+      if (!Number.isFinite(delta)) {
+        return;
+      }
+      setDraft((current) => toDraft(fromDraft(current) + delta));
+    },
+    []
+  );
+
+  const handleReset = useCallback(() => {
+    setDraft(EMPTY_DRAFT);
   }, []);
 
   return (
@@ -90,36 +158,63 @@ export function CooldownDialog({
         <DialogHeader>
           <DialogTitle>Custom cooldown</DialogTitle>
           <DialogDescription>
-            How long should the selected accounts stay on cooldown?
+            Days, hours and minutes add up. Quick-add buttons stack on top.
           </DialogDescription>
         </DialogHeader>
         <DialogBody>
-          <div className="flex gap-2">
-            <Input
+          <div className="grid grid-cols-3 gap-2">
+            <DurationField
               autoFocus
-              className="w-24 tabular-nums"
-              min={1}
-              onChange={handleAmountChange}
-              onKeyDown={handleAmountKeyDown}
-              type="number"
-              value={amount}
+              label="Days"
+              onChange={handleSlotChange}
+              onKeyDown={handleSlotKeyDown}
+              unit="days"
+              value={draft.days}
             />
-            <Select onValueChange={handleUnitChange} value={unit}>
-              <SelectTrigger className="h-8 flex-1" size="sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false}>
-                {UNITS.map((option) => (
-                  <SelectItem
-                    key={option.seconds}
-                    value={String(option.seconds)}
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <DurationField
+              label="Hours"
+              onChange={handleSlotChange}
+              onKeyDown={handleSlotKeyDown}
+              unit="hours"
+              value={draft.hours}
+            />
+            <DurationField
+              label="Minutes"
+              onChange={handleSlotChange}
+              onKeyDown={handleSlotKeyDown}
+              unit="minutes"
+              value={draft.minutes}
+            />
           </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {QUICK_ADD.map((chip) => (
+              <Button
+                data-seconds={chip.seconds}
+                key={chip.label}
+                onClick={handleQuickAdd}
+                size="xs"
+                type="button"
+                variant="outline"
+              >
+                {chip.label}
+              </Button>
+            ))}
+            <Button
+              className="ml-auto"
+              disabled={!valid}
+              onClick={handleReset}
+              size="xs"
+              type="button"
+              variant="ghost"
+            >
+              Clear
+            </Button>
+          </div>
+          <p className="text-muted-foreground text-xs tabular-nums">
+            {valid
+              ? `${formatDuration(seconds)} · ends ${endsAt}`
+              : "Enter a duration"}
+          </p>
         </DialogBody>
         <DialogFooter>
           <Button onClick={onClose} size="sm" variant="outline">

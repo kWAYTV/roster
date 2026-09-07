@@ -5,13 +5,56 @@ export interface CooldownPreset {
   seconds: number;
 }
 
+export const SECONDS_PER_MINUTE = 60;
+export const SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE;
+export const SECONDS_PER_DAY = 24 * SECONDS_PER_HOUR;
+
 export const COOLDOWN_PRESETS: CooldownPreset[] = [
-  { label: "30 minutes", seconds: 30 * 60 },
-  { label: "20 hours", seconds: 20 * 3600 },
-  { label: "7 days", seconds: 7 * 86_400 },
-  { label: "31 days", seconds: 31 * 86_400 },
-  { label: "181 days", seconds: 181 * 86_400 },
+  { label: "30 minutes", seconds: 30 * SECONDS_PER_MINUTE },
+  { label: "20 hours", seconds: 20 * SECONDS_PER_HOUR },
+  { label: "7 days", seconds: 7 * SECONDS_PER_DAY },
+  { label: "31 days", seconds: 31 * SECONDS_PER_DAY },
+  { label: "181 days", seconds: 181 * SECONDS_PER_DAY },
 ];
+
+export interface DurationParts {
+  days: number;
+  hours: number;
+  minutes: number;
+}
+
+export function splitDuration(seconds: number): DurationParts {
+  const total = Math.max(0, Math.floor(seconds));
+  return {
+    days: Math.floor(total / SECONDS_PER_DAY),
+    hours: Math.floor((total % SECONDS_PER_DAY) / SECONDS_PER_HOUR),
+    minutes: Math.floor((total % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE),
+  };
+}
+
+export function joinDuration({ days, hours, minutes }: DurationParts): number {
+  return (
+    days * SECONDS_PER_DAY +
+    hours * SECONDS_PER_HOUR +
+    minutes * SECONDS_PER_MINUTE
+  );
+}
+
+/// Full breakdown: "1d 12h 30m", "45m", "2d".
+export function formatDuration(seconds: number): string {
+  const { days, hours, minutes } = splitDuration(seconds);
+  const parts: string[] = [];
+  if (days) {
+    parts.push(`${days}d`);
+  }
+  if (hours) {
+    parts.push(`${hours}h`);
+  }
+  if (minutes) {
+    parts.push(`${minutes}m`);
+  }
+  return parts.join(" ");
+}
 
 export function nowSeconds(): number {
   return Math.floor(Date.now() / 1000);
