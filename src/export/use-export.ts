@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
 import { notify } from "../feedback/status";
+import { writeClipboard } from "../platform/clipboard";
 import { saveTextFile } from "../platform/files";
 import { commands } from "../platform/invoke";
 import type { AccountView } from "../roster/account";
@@ -34,12 +35,12 @@ export function useExport(requireConfirm: boolean) {
         notify("No tokens to export", "error");
         return;
       }
-      await commands.writeClipboard(lines.join("\n"));
+      await writeClipboard(lines.join("\n"));
       const skipped = steamids.length - lines.length;
       notify(
         skipped
-          ? `Copied ${lines.length} · ${skipped} missing`
-          : `Copied ${lines.length}`
+          ? `Copied ${lines.length} · ${skipped} missing · clears in 30s`
+          : `Copied ${lines.length} · clears in 30s`
       );
     } catch (cause) {
       notify(String(cause), "error");
@@ -112,8 +113,8 @@ export function useExport(requireConfirm: boolean) {
       return;
     }
     try {
-      await commands.writeClipboard(account.account_name);
-      notify("Copied");
+      await writeClipboard(account.account_name);
+      notify("Copied · clears in 30s");
     } catch (cause) {
       notify(String(cause), "error");
     }
@@ -124,8 +125,8 @@ export function useExport(requireConfirm: boolean) {
       return;
     }
     try {
-      await commands.writeClipboard(account.steamid);
-      notify("Copied SteamID");
+      await writeClipboard(account.steamid);
+      notify("Copied SteamID · clears in 30s");
     } catch (cause) {
       notify(String(cause), "error");
     }

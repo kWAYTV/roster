@@ -7,33 +7,32 @@ import type { OverridePatch } from "@/platform/invoke";
 import type { Preferences } from "@/preferences/preferences";
 import { SettingsDialog } from "@/preferences/settings-dialog";
 import type { AccountView } from "@/roster/account";
-import { NoteDialog } from "@/roster/note-dialog";
-import { OverridesDialog } from "@/roster/overrides-dialog";
-import { TagsDialog } from "@/roster/tags-dialog";
+import { AccountSheet } from "@/roster/account-sheet";
+import type { AccountSheetTab } from "@/roster/use-account-editors";
 import { cooldownMessage, removeMessage } from "@/shell/confirm-messages";
 
 interface ShellDialogsProps {
   bulkCooldownIds: string[];
   cooldownTarget: AccountView | null;
   currentVersion: string | null;
+  detailAccount: AccountView | null;
+  detailTab: AccountSheetTab;
   importOpen: boolean;
   importPrefill: string;
   importSession: number;
-  noteTarget: AccountView | null;
   onCancelExport: () => void;
   onChangePreference: (key: keyof Preferences, value: boolean) => void;
   onCheckForUpdates: () => void;
   onCloseBulkCooldown: () => void;
   onCloseCooldown: () => void;
+  onCloseDetail: () => void;
   onCloseImport: () => void;
-  onCloseNote: () => void;
-  onCloseOverrides: () => void;
   onCloseRemove: () => void;
   onCloseSettings: () => void;
-  onCloseTags: () => void;
   onConfirmCooldownSignIn: () => void;
   onConfirmExport: () => void;
   onConfirmRemove: () => void;
+  onDetailTabChange: (tab: AccountSheetTab) => void;
   onExportMetadata: () => void;
   onImportMetadata: () => void;
   onPatchPreferences: (patch: Partial<Preferences>) => void;
@@ -41,12 +40,10 @@ interface ShellDialogsProps {
   onSaveOverrides: (steamid: string, patch: OverridePatch) => void;
   onSaveTags: (tags: string[]) => void;
   onStartBulkCooldown: (seconds: number) => void;
-  overridesTarget: AccountView | null;
   pendingExport: PendingExport;
   preferences: Preferences;
   removeTargets: AccountView[];
   settingsOpen: boolean;
-  tagsTarget: AccountView | null;
   updateBusy: boolean;
 }
 
@@ -62,9 +59,8 @@ export function ShellDialogs({
   cooldownTarget,
   bulkCooldownIds,
   pendingExport,
-  noteTarget,
-  tagsTarget,
-  overridesTarget,
+  detailAccount,
+  detailTab,
   onCloseImport,
   onCloseSettings,
   onChangePreference,
@@ -80,11 +76,10 @@ export function ShellDialogs({
   onImportMetadata,
   onConfirmExport,
   onCancelExport,
-  onCloseNote,
+  onCloseDetail,
+  onDetailTabChange,
   onSaveNote,
-  onCloseTags,
   onSaveTags,
-  onCloseOverrides,
   onSaveOverrides,
 }: ShellDialogsProps) {
   return (
@@ -141,36 +136,17 @@ export function ShellDialogs({
         onConfirm={onConfirmExport}
         pending={pendingExport}
       />
-
-      {noteTarget ? (
-        <NoteDialog
-          initial={noteTarget.note}
-          key={`note-${noteTarget.steamid}`}
-          name={noteTarget.display_name}
-          onClose={onCloseNote}
-          onSave={onSaveNote}
-          open
-        />
-      ) : null}
-      {tagsTarget ? (
-        <TagsDialog
-          initial={tagsTarget.tags}
-          key={`tags-${tagsTarget.steamid}`}
-          name={tagsTarget.display_name}
-          onClose={onCloseTags}
-          onSave={onSaveTags}
-          open
-        />
-      ) : null}
-      {overridesTarget ? (
-        <OverridesDialog
-          account={overridesTarget}
-          key={overridesTarget.steamid}
-          onClose={onCloseOverrides}
-          onSave={onSaveOverrides}
-          open
-        />
-      ) : null}
+      <AccountSheet
+        account={detailAccount}
+        onClose={onCloseDetail}
+        onSaveNote={onSaveNote}
+        onSaveOverrides={onSaveOverrides}
+        onSaveTags={onSaveTags}
+        onTabChange={onDetailTabChange}
+        open={detailAccount !== null}
+        streamer={preferences.streamer_mode}
+        tab={detailTab}
+      />
     </>
   );
 }

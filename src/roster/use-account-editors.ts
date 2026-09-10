@@ -2,35 +2,39 @@ import { useCallback, useState } from "react";
 
 import type { AccountView } from "./account";
 
-/// Owns note / tags / overrides dialog targets for the roster domain.
+export type AccountSheetTab = "account" | "sign-in";
+
+export interface AccountEditorTarget {
+  steamid: string;
+  tab: AccountSheetTab;
+}
+
+/// Owns the account detail sheet target for the roster domain.
 export function useAccountEditors() {
-  const [noteTarget, setNoteTarget] = useState<AccountView | null>(null);
-  const [tagsTarget, setTagsTarget] = useState<AccountView | null>(null);
-  const [overridesTarget, setOverridesTarget] = useState<AccountView | null>(
-    null
-  );
+  const [target, setTarget] = useState<AccountEditorTarget | null>(null);
 
-  const closeNote = useCallback(() => {
-    setNoteTarget(null);
+  const openAccount = useCallback((account: AccountView) => {
+    setTarget({ steamid: account.steamid, tab: "account" });
   }, []);
 
-  const closeTags = useCallback(() => {
-    setTagsTarget(null);
+  const openOverrides = useCallback((account: AccountView) => {
+    setTarget({ steamid: account.steamid, tab: "sign-in" });
   }, []);
 
-  const closeOverrides = useCallback(() => {
-    setOverridesTarget(null);
+  const close = useCallback(() => {
+    setTarget(null);
+  }, []);
+
+  const setTab = useCallback((tab: AccountSheetTab) => {
+    setTarget((current) => (current ? { ...current, tab } : current));
   }, []);
 
   return {
-    closeNote,
-    closeOverrides,
-    closeTags,
-    noteTarget,
-    openNote: setNoteTarget,
-    openOverrides: setOverridesTarget,
-    openTags: setTagsTarget,
-    overridesTarget,
-    tagsTarget,
+    close,
+    openNote: openAccount,
+    openOverrides,
+    openTags: openAccount,
+    setTab,
+    target,
   };
 }

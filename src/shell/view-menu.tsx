@@ -37,10 +37,12 @@ const SORTS: { id: RosterSort; label: string }[] = [
 
 interface ViewMenuProps {
   filter: RosterFilter;
+  groupByTag: boolean;
   onFilter: (filter: RosterFilter) => void;
   onInvertSelection: () => void;
   onSelectAll: () => void;
   onSort: (sort: RosterSort) => void;
+  onToggleGroupByTag: () => void;
   sort: RosterSort;
   visible: boolean;
 }
@@ -49,12 +51,14 @@ export function ViewMenu({
   visible,
   filter,
   sort,
+  groupByTag,
   onFilter,
   onSort,
+  onToggleGroupByTag,
   onSelectAll,
   onInvertSelection,
 }: ViewMenuProps) {
-  const active = filter !== "all" || sort !== "default";
+  const active = filter !== "all" || sort !== "default" || !groupByTag;
 
   const handleFilterClick = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -85,9 +89,9 @@ export function ViewMenu({
       <DropdownMenuTrigger
         render={
           <Button
-            aria-label={active ? viewHint(filter, sort) : "View"}
+            aria-label={active ? viewHint(filter, sort, groupByTag) : "View"}
             size="icon-sm"
-            title={active ? viewHint(filter, sort) : "View"}
+            title={active ? viewHint(filter, sort, groupByTag) : "View"}
             type="button"
             variant={active ? "secondary" : "ghost"}
           />
@@ -128,6 +132,13 @@ export function ViewMenu({
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onToggleGroupByTag}>
+          <span className="w-4 shrink-0">
+            {groupByTag ? <CheckIcon size={14} /> : null}
+          </span>
+          Group by tag
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onSelectAll}>
           Select all
           <DropdownMenuShortcut>Ctrl+A</DropdownMenuShortcut>
@@ -141,15 +152,23 @@ export function ViewMenu({
   );
 }
 
-function viewHint(filter: RosterFilter, sort: RosterSort): string {
+function viewHint(
+  filter: RosterFilter,
+  sort: RosterSort,
+  groupByTag: boolean
+): string {
   const filterLabel =
     FILTERS.find((item) => item.id === filter)?.label ?? "All";
   const sortLabel = SORTS.find((item) => item.id === sort)?.label ?? "Default";
-  if (filter !== "all" && sort !== "default") {
-    return `${filterLabel} · ${sortLabel}`;
-  }
+  const parts: string[] = [];
   if (filter !== "all") {
-    return `Filter: ${filterLabel}`;
+    parts.push(filterLabel);
   }
-  return `Sort: ${sortLabel}`;
+  if (sort !== "default") {
+    parts.push(sortLabel);
+  }
+  if (!groupByTag) {
+    parts.push("Ungrouped");
+  }
+  return parts.join(" · ");
 }

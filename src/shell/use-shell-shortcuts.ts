@@ -3,6 +3,7 @@ import { useEffect } from "react";
 interface ShellShortcutsOptions {
   clearSelection: () => void;
   closeSearch: () => void;
+  commandOpen: boolean;
   onInvertSelection: () => void;
   onSelectAll: () => void;
   openSearch: () => void;
@@ -10,10 +11,12 @@ interface ShellShortcutsOptions {
   requestSignIn: (steamid: string) => void;
   searchOpen: boolean;
   selectedIds: Set<string>;
+  toggleCommand: () => void;
 }
 
 export function useShellShortcuts({
   searchOpen,
+  commandOpen,
   selectedIds,
   closeSearch,
   clearSelection,
@@ -22,12 +25,14 @@ export function useShellShortcuts({
   requestSignIn,
   onSelectAll,
   onInvertSelection,
+  toggleCommand,
 }: ShellShortcutsOptions) {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       handleShortcut(event, {
         clearSelection,
         closeSearch,
+        commandOpen,
         onInvertSelection,
         onSelectAll,
         openSearch,
@@ -35,6 +40,7 @@ export function useShellShortcuts({
         requestSignIn,
         searchOpen,
         selectedIds,
+        toggleCommand,
       });
     };
     window.addEventListener("keydown", onKey);
@@ -42,6 +48,7 @@ export function useShellShortcuts({
   }, [
     clearSelection,
     closeSearch,
+    commandOpen,
     onInvertSelection,
     onSelectAll,
     openSearch,
@@ -49,6 +56,7 @@ export function useShellShortcuts({
     requestSignIn,
     searchOpen,
     selectedIds,
+    toggleCommand,
   ]);
 }
 
@@ -57,6 +65,9 @@ function handleShortcut(
   options: ShellShortcutsOptions
 ): void {
   if (handleEscape(event, options)) {
+    return;
+  }
+  if (handleCommandShortcut(event, options)) {
     return;
   }
   if (handleSignInShortcut(event, options)) {
@@ -75,7 +86,7 @@ function handleEscape(
   event: KeyboardEvent,
   options: Pick<
     ShellShortcutsOptions,
-    "searchOpen" | "closeSearch" | "clearSelection"
+    "searchOpen" | "commandOpen" | "closeSearch" | "clearSelection"
   >
 ): boolean {
   if (event.key !== "Escape") {
@@ -85,7 +96,22 @@ function handleEscape(
     options.closeSearch();
     return true;
   }
+  if (options.commandOpen) {
+    return true;
+  }
   options.clearSelection();
+  return true;
+}
+
+function handleCommandShortcut(
+  event: KeyboardEvent,
+  options: Pick<ShellShortcutsOptions, "toggleCommand">
+): boolean {
+  if (!((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k")) {
+    return false;
+  }
+  event.preventDefault();
+  options.toggleCommand();
   return true;
 }
 
