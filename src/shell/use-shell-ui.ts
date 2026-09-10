@@ -18,6 +18,17 @@ export function useShellUi() {
     dispatch({ type: "close-search" });
   }, [dispatch]);
 
+  const toggleCommand = useCallback(() => {
+    dispatch({ type: "toggle-command" });
+  }, [dispatch]);
+
+  const setCommandOpen = useCallback(
+    (open: boolean) => {
+      dispatch({ open, type: "set-command" });
+    },
+    [dispatch]
+  );
+
   const setQuery = useCallback(
     (query: string) => {
       dispatch({ query, type: "set-query" });
@@ -94,7 +105,9 @@ export function useShellUi() {
     openImport,
     openSearch,
     openSettings,
+    setCommandOpen,
     setQuery,
+    toggleCommand,
     ui,
   };
 }

@@ -2,6 +2,7 @@ import type { AccountView } from "../roster/account";
 
 export interface ShellUiState {
   bulkCooldownIds: string[];
+  commandOpen: boolean;
   cooldownTarget: AccountView | null;
   importOpen: boolean;
   importPrefill: string;
@@ -16,6 +17,8 @@ export interface ShellUiState {
 export type ShellUiAction =
   | { type: "open-search" }
   | { type: "close-search" }
+  | { type: "toggle-command" }
+  | { type: "set-command"; open: boolean }
   | { type: "set-query"; query: string }
   | { type: "open-import"; prefill?: string }
   | { type: "close-import" }
@@ -30,6 +33,7 @@ export type ShellUiAction =
 
 export const initialShellUi: ShellUiState = {
   bulkCooldownIds: [],
+  commandOpen: false,
   cooldownTarget: null,
   importOpen: false,
   importPrefill: "",
@@ -49,6 +53,10 @@ export function shellUiReducer(
       return { ...state, searchOpen: true };
     case "close-search":
       return { ...state, query: "", searchOpen: false };
+    case "toggle-command":
+      return { ...state, commandOpen: !state.commandOpen };
+    case "set-command":
+      return { ...state, commandOpen: action.open };
     case "set-query":
       return { ...state, query: action.query };
     case "open-import":

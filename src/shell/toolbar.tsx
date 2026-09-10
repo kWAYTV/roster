@@ -17,6 +17,7 @@ interface ToolbarProps {
   accountCount: number;
   countLabel: string;
   filter: RosterFilter;
+  groupByTag: boolean;
   onCloseSearch: () => void;
   onFilter: (filter: RosterFilter) => void;
   onInvertSelection: () => void;
@@ -26,6 +27,7 @@ interface ToolbarProps {
   onQueryChange: (query: string) => void;
   onSelectAll: () => void;
   onSort: (sort: RosterSort) => void;
+  onToggleGroupByTag: () => void;
   query: string;
   searchOpen: boolean;
   sort: RosterSort;
@@ -38,6 +40,7 @@ export function Toolbar({
   accountCount,
   filter,
   sort,
+  groupByTag,
   onQueryChange,
   onOpenSearch,
   onCloseSearch,
@@ -45,6 +48,7 @@ export function Toolbar({
   onOpenSettings,
   onFilter,
   onSort,
+  onToggleGroupByTag,
   onSelectAll,
   onInvertSelection,
 }: ToolbarProps) {
@@ -62,10 +66,12 @@ export function Toolbar({
   const viewMenu = (
     <ViewMenu
       filter={filter}
+      groupByTag={groupByTag}
       onFilter={onFilter}
       onInvertSelection={onInvertSelection}
       onSelectAll={onSelectAll}
       onSort={onSort}
+      onToggleGroupByTag={onToggleGroupByTag}
       sort={sort}
       visible={accountCount > 0}
     />

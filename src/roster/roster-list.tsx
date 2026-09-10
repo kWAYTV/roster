@@ -1,11 +1,19 @@
 import { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/ui/primitives/accordion";
+import { Badge } from "@/ui/primitives/badge";
 import { Button } from "@/ui/primitives/button";
 import type { StatusMap } from "../status/status";
 import type { AccountView } from "./account";
 import { AccountRow } from "./account-row";
 import { BulkBar } from "./bulk-bar";
+import { groupAccountsByTag } from "./group-accounts";
 import styles from "./roster-list.module.css";
 
 interface RosterListProps {
@@ -13,6 +21,7 @@ interface RosterListProps {
   emptyHint?: string;
   emptyTitle?: string;
   exportCountFor: (steamids: string[]) => number;
+  groupByTag?: boolean;
   loading: boolean;
   onClearCooldown: (steamids: string[]) => void;
   onClearNotes: (steamids: string[]) => void;
@@ -46,6 +55,7 @@ export function RosterList({
   emptyHint = "Import a refresh token to get started.",
   loading,
   streamer,
+  groupByTag = false,
   pending,
   statuses,
   selectedIds,
@@ -140,6 +150,54 @@ export function RosterList({
     onRemove(selectedAccounts);
   }, [onRemove, selectedAccounts]);
 
+  const indexById = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const [index, account] of accounts.entries()) {
+      map.set(account.steamid, index);
+    }
+    return map;
+  }, [accounts]);
+
+  const groups = useMemo(() => {
+    if (!groupByTag || streamer) {
+      return null;
+    }
+    return groupAccountsByTag(accounts);
+  }, [accounts, groupByTag, streamer]);
+
+  const renderRow = (account: AccountView) => {
+    const targets = menuTargetsFor(account);
+    return (
+      <AccountRow
+        account={account}
+        busy={pending === account.steamid}
+        exportCount={exportCountFor(targets.map((item) => item.steamid))}
+        index={indexById.get(account.steamid) ?? 0}
+        key={account.steamid}
+        menuTargets={targets}
+        onClearCooldown={onClearCooldown}
+        onCooldown={onCooldown}
+        onCopyExport={onCopyExport}
+        onCopySteamId={onCopySteamId}
+        onCopyUsername={onCopyUsername}
+        onCustomCooldown={onCustomCooldown}
+        onEditNote={onEditNote}
+        onEditOverrides={onEditOverrides}
+        onEditTags={onEditTags}
+        onExportFile={onExportFile}
+        onOpenProfile={onOpenProfile}
+        onReimport={onReimport}
+        onRemove={onRemove}
+        onSelect={onSelect}
+        onSignIn={onSignIn}
+        onTogglePin={onTogglePin}
+        selected={selectedIds.has(account.steamid)}
+        status={statuses[account.steamid]}
+        streamer={streamer}
+      />
+    );
+  };
+
   if (accounts.length === 0 && loading) {
     return null;
   }
@@ -159,40 +217,37 @@ export function RosterList({
 
   return (
     <>
-      <div className={styles.list}>
-        {accounts.map((account, index) => {
-          const targets = menuTargetsFor(account);
-          return (
-            <AccountRow
-              account={account}
-              busy={pending === account.steamid}
-              exportCount={exportCountFor(targets.map((item) => item.steamid))}
-              index={index}
-              key={account.steamid}
-              menuTargets={targets}
-              onClearCooldown={onClearCooldown}
-              onCooldown={onCooldown}
-              onCopyExport={onCopyExport}
-              onCopySteamId={onCopySteamId}
-              onCopyUsername={onCopyUsername}
-              onCustomCooldown={onCustomCooldown}
-              onEditNote={onEditNote}
-              onEditOverrides={onEditOverrides}
-              onEditTags={onEditTags}
-              onExportFile={onExportFile}
-              onOpenProfile={onOpenProfile}
-              onReimport={onReimport}
-              onRemove={onRemove}
-              onSelect={onSelect}
-              onSignIn={onSignIn}
-              onTogglePin={onTogglePin}
-              selected={selectedIds.has(account.steamid)}
-              status={statuses[account.steamid]}
-              streamer={streamer}
-            />
-          );
-        })}
-      </div>
+      {groups ? (
+        <Accordion
+          className="gap-1"
+          defaultValue={groups.map((group) => group.key)}
+          multiple
+        >
+          {groups.map((group) => (
+            <AccordionItem
+              className="border-0"
+              key={group.key}
+              value={group.key}
+            >
+              <AccordionTrigger className="px-1 py-1.5 hover:no-underline">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate">{group.label}</span>
+                  <Badge variant="secondary">{group.accounts.length}</Badge>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-0">
+                <div className={styles.list}>
+                  {group.accounts.map((account) => renderRow(account))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      ) : (
+        <div className={styles.list}>
+          {accounts.map((account) => renderRow(account))}
+        </div>
+      )}
       {createPortal(
         <BulkBar
           count={selectedAccounts.length}

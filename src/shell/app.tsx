@@ -19,6 +19,7 @@ import { useRoster } from "../roster/use-roster";
 import { useStatus } from "../status/use-status";
 import { useTheme } from "../theme/use-theme";
 import { useUpdater } from "../updater/use-updater";
+import { CommandPalette } from "./command-palette";
 import { ShellDialogs } from "./dialogs";
 import { ErrorStatusGate } from "./error-status-gate";
 import { filterAccounts, sortAccounts } from "./filter-accounts";
@@ -67,7 +68,8 @@ export function App() {
     selectAll,
     invertSelection,
   } = useSelection();
-  const { filter, sort, setFilter, setSort } = useRosterView();
+  const { filter, sort, groupByTag, setFilter, setSort, toggleGroupByTag } =
+    useRosterView();
   const now = useNow(1000);
   const {
     ui,
@@ -84,18 +86,24 @@ export function App() {
     closeCooldown,
     askBulkCooldown,
     closeBulkCooldown,
+    setCommandOpen,
+    toggleCommand,
   } = useShellUi();
   const {
-    noteTarget,
-    tagsTarget,
-    overridesTarget,
+    target: detailTarget,
     openNote,
     openTags,
     openOverrides,
-    closeNote,
-    closeTags,
-    closeOverrides,
+    close: closeDetail,
+    setTab: setDetailTab,
   } = useAccountEditors();
+
+  const detailAccount = useMemo(
+    () =>
+      accounts.find((account) => account.steamid === detailTarget?.steamid) ??
+      null,
+    [accounts, detailTarget]
+  );
 
   const clock = now || nowSeconds();
 
@@ -179,22 +187,22 @@ export function App() {
 
   const handleSaveNote = useCallback(
     (note: string) => {
-      if (!noteTarget) {
+      if (!detailTarget) {
         return;
       }
-      setNote(noteTarget.steamid, note);
+      setNote(detailTarget.steamid, note);
     },
-    [noteTarget, setNote]
+    [detailTarget, setNote]
   );
 
   const handleSaveTags = useCallback(
     (tags: string[]) => {
-      if (!tagsTarget) {
+      if (!detailTarget) {
         return;
       }
-      setTags(tagsTarget.steamid, tags);
+      setTags(detailTarget.steamid, tags);
     },
-    [tagsTarget, setTags]
+    [detailTarget, setTags]
   );
 
   const handleSelectAll = useCallback(() => {
@@ -219,6 +227,7 @@ export function App() {
   useShellShortcuts({
     clearSelection,
     closeSearch,
+    commandOpen: ui.commandOpen,
     onInvertSelection: handleInvertSelection,
     onSelectAll: handleSelectAll,
     openSearch,
@@ -226,6 +235,7 @@ export function App() {
     requestSignIn,
     searchOpen: ui.searchOpen,
     selectedIds: visibleSelectedIds,
+    toggleCommand,
   });
 
   const countLabel =
@@ -277,6 +287,7 @@ export function App() {
         accountCount={accounts.length}
         countLabel={countLabel}
         filter={filter}
+        groupByTag={groupByTag}
         onCloseSearch={closeSearch}
         onFilter={setFilter}
         onInvertSelection={handleInvertSelection}
@@ -286,6 +297,7 @@ export function App() {
         onQueryChange={setQuery}
         onSelectAll={handleSelectAll}
         onSort={setSort}
+        onToggleGroupByTag={toggleGroupByTag}
         query={ui.query}
         searchOpen={ui.searchOpen}
         sort={sort}
@@ -301,6 +313,7 @@ export function App() {
           }
           emptyTitle={accounts.length > 0 ? "No matches" : "No accounts yet"}
           exportCountFor={exportCountForFiltered}
+          groupByTag={groupByTag}
           loading={loading}
           onClearCooldown={clearMany}
           onClearNotes={clearNotesMany}
@@ -342,28 +355,39 @@ export function App() {
         />
       ) : null}
 
+      <CommandPalette
+        accounts={accounts}
+        onFilter={setFilter}
+        onOpenChange={setCommandOpen}
+        onOpenImport={openImport}
+        onOpenSettings={openSettings}
+        onSignIn={requestSignIn}
+        open={ui.commandOpen}
+        streamer={preferences.streamer_mode}
+      />
+
       <ShellDialogs
         bulkCooldownIds={ui.bulkCooldownIds}
         cooldownTarget={ui.cooldownTarget}
         currentVersion={currentVersion}
+        detailAccount={detailAccount}
+        detailTab={detailTarget?.tab ?? "account"}
         importOpen={ui.importOpen}
         importPrefill={ui.importPrefill}
         importSession={ui.importSession}
-        noteTarget={noteTarget}
         onCancelExport={cancelExport}
         onChangePreference={setPreference}
         onCheckForUpdates={handleCheckForUpdates}
         onCloseBulkCooldown={closeBulkCooldown}
         onCloseCooldown={closeCooldown}
+        onCloseDetail={closeDetail}
         onCloseImport={closeImport}
-        onCloseNote={closeNote}
-        onCloseOverrides={closeOverrides}
         onCloseRemove={closeRemove}
         onCloseSettings={closeSettings}
-        onCloseTags={closeTags}
         onConfirmCooldownSignIn={handleConfirmCooldownSignIn}
         onConfirmExport={handleConfirmExport}
         onConfirmRemove={handleConfirmRemove}
+        onDetailTabChange={setDetailTab}
         onExportMetadata={exportBackup}
         onImportMetadata={importBackup}
         onPatchPreferences={patchPreferences}
@@ -371,12 +395,10 @@ export function App() {
         onSaveOverrides={setOverrides}
         onSaveTags={handleSaveTags}
         onStartBulkCooldown={handleStartBulkCooldown}
-        overridesTarget={overridesTarget}
         pendingExport={pendingExport}
         preferences={preferences}
         removeTargets={ui.removeTargets}
         settingsOpen={ui.settingsOpen}
-        tagsTarget={tagsTarget}
         updateBusy={busy}
       />
     </div>
