@@ -3161,7 +3161,7 @@ dependencies = [
 
 [[package]]
 name = "roster"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "arboard",
  "base64 0.23.1",
