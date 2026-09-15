@@ -1,4 +1,4 @@
-import { type MouseEvent, useCallback, useMemo } from "react";
+import { type MouseEvent, type ReactNode, useCallback, useMemo } from "react";
 
 import { ChevronDownIcon } from "@/ui/icons/chevron-down";
 import { Button } from "@/ui/primitives/button";
@@ -7,14 +7,17 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/ui/primitives/dropdown-menu";
-import { Hint } from "@/ui/widgets/hint";
+
 import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
 import type { AccountView } from "./account";
-import styles from "./bulk-bar.module.css";
 
-interface BulkBarProps {
+interface SelectionMenuProps {
   exportCount: number;
   onClear: () => void;
   onClearCooldown: (steamids: string[]) => void;
@@ -28,7 +31,7 @@ interface BulkBarProps {
   selected: AccountView[];
 }
 
-export function BulkBar({
+export function SelectionMenu({
   selected,
   exportCount,
   onClear,
@@ -40,7 +43,7 @@ export function BulkBar({
   onClearNotes,
   onPin,
   onRemove,
-}: BulkBarProps) {
+}: SelectionMenuProps): ReactNode {
   const steamids = useMemo(
     () => selected.map((account) => account.steamid),
     [selected]
@@ -93,26 +96,25 @@ export function BulkBar({
     return null;
   }
 
-  const copyLabel = copyExportLabel(exportCount, count);
-  const copyHint =
-    exportCount === 0
-      ? "No saved tokens on selected accounts"
-      : `${count - exportCount} selected account(s) have no saved token`;
-
   return (
-    <section aria-label="Selection" className={styles.bar}>
-      <span className={styles.label}>{count} selected</span>
-      <div className={styles.actions}>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button className={styles.menuBtn} size="xs" variant="outline" />
-            }
-          >
-            Cooldown
-            <ChevronDownIcon size={14} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-auto min-w-36">
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            aria-label={`${count} selected`}
+            className="shrink-0 tabular-nums"
+            size="xs"
+            variant="secondary"
+          />
+        }
+      >
+        {count} selected
+        <ChevronDownIcon size={14} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-auto min-w-40">
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>Cooldown</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent className="w-auto min-w-36">
             {COOLDOWN_PRESETS.map((preset) => (
               <DropdownMenuItem
                 data-seconds={preset.seconds}
@@ -129,65 +131,36 @@ export function BulkBar({
             <DropdownMenuItem onClick={handleClearCooldown}>
               Clear cooldown
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button className={styles.menuBtn} size="xs" variant="ghost" />
-            }
-          >
-            Pin
-            <ChevronDownIcon size={14} />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-auto min-w-36">
-            <DropdownMenuItem onClick={pinAll}>Pin</DropdownMenuItem>
-            <DropdownMenuItem onClick={unpinAll}>Unpin</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleClearNotes}>
-              Clear notes
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        {exportCount < count ? (
-          <Hint label={copyHint}>
-            <Button
-              disabled={exportCount === 0}
-              onClick={handleCopyExport}
-              size="xs"
-              variant="ghost"
-            >
-              {copyLabel}
-            </Button>
-          </Hint>
-        ) : (
-          <Button onClick={handleCopyExport} size="xs" variant="ghost">
-            {copyLabel}
-          </Button>
-        )}
-        <Button
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        <DropdownMenuItem onClick={pinAll}>Pin</DropdownMenuItem>
+        <DropdownMenuItem onClick={unpinAll}>Unpin</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleClearNotes}>
+          Clear notes
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={exportCount === 0}
+          onClick={handleCopyExport}
+        >
+          {copyExportLabel(exportCount, count)}
+        </DropdownMenuItem>
+        <DropdownMenuItem
           disabled={exportCount === 0}
           onClick={handleExportFile}
-          size="xs"
-          variant="ghost"
         >
           Save…
-        </Button>
-        <Button
-          className="text-destructive hover:bg-destructive/15 hover:text-destructive"
-          onClick={handleRemove}
-          size="xs"
-          variant="ghost"
-        >
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleRemove} variant="destructive">
           Remove
-        </Button>
-        <Hint label="Clear selection (Esc)">
-          <Button onClick={onClear} size="xs" variant="ghost">
-            Done
-          </Button>
-        </Hint>
-      </div>
-    </section>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onClear}>
+          Clear selection
+          <DropdownMenuShortcut>Esc</DropdownMenuShortcut>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
