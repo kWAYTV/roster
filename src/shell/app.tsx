@@ -13,6 +13,7 @@ import { useMetadataBackup } from "../preferences/use-metadata-backup";
 import { usePreferences } from "../preferences/use-preferences";
 import type { AccountView } from "../roster/account";
 import { RosterList } from "../roster/roster-list";
+import { SelectionMenu } from "../roster/selection-menu";
 import { useAccountEditors } from "../roster/use-account-editors";
 import { useAccountMeta } from "../roster/use-account-meta";
 import { useRoster } from "../roster/use-roster";
@@ -238,6 +239,16 @@ export function App() {
     toggleCommand,
   });
 
+  const selectedAccounts = useMemo(
+    () => filtered.filter((account) => visibleSelectedIds.has(account.steamid)),
+    [filtered, visibleSelectedIds]
+  );
+
+  const selectedSteamids = useMemo(
+    () => selectedAccounts.map((account) => account.steamid),
+    [selectedAccounts]
+  );
+
   const countLabel =
     filtered.length === accounts.length
       ? `${accounts.length}`
@@ -300,6 +311,21 @@ export function App() {
         onToggleGroupByTag={toggleGroupByTag}
         query={ui.query}
         searchOpen={ui.searchOpen}
+        selectionMenu={
+          <SelectionMenu
+            exportCount={exportCountForFiltered(selectedSteamids)}
+            onClear={clearSelection}
+            onClearCooldown={clearMany}
+            onClearNotes={clearNotesMany}
+            onCooldown={startMany}
+            onCopyExport={copyExport}
+            onCustomCooldown={askBulkCooldown}
+            onExportFile={exportFile}
+            onPin={setPinnedMany}
+            onRemove={askRemove}
+            selected={selectedAccounts}
+          />
+        }
         sort={sort}
       />
 
@@ -316,8 +342,6 @@ export function App() {
           groupByTag={groupByTag}
           loading={loading}
           onClearCooldown={clearMany}
-          onClearNotes={clearNotesMany}
-          onClearSelection={clearSelection}
           onCooldown={startMany}
           onCopyExport={copyExport}
           onCopySteamId={copySteamId}
@@ -329,7 +353,6 @@ export function App() {
           onExportFile={exportFile}
           onImport={accounts.length === 0 ? openImport : undefined}
           onOpenProfile={openProfile}
-          onPinMany={setPinnedMany}
           onReimport={handleReimport}
           onRemove={askRemove}
           onSelect={selectAccount}

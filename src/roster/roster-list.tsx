@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react";
-import { createPortal } from "react-dom";
 
 import {
   Accordion,
@@ -12,7 +11,6 @@ import { Button } from "@/ui/primitives/button";
 import type { StatusMap } from "../status/status";
 import type { AccountView } from "./account";
 import { AccountRow } from "./account-row";
-import { BulkBar } from "./bulk-bar";
 import { groupAccountsByTag } from "./group-accounts";
 import styles from "./roster-list.module.css";
 
@@ -24,8 +22,6 @@ interface RosterListProps {
   groupByTag?: boolean;
   loading: boolean;
   onClearCooldown: (steamids: string[]) => void;
-  onClearNotes: (steamids: string[]) => void;
-  onClearSelection: () => void;
   onCooldown: (steamids: string[], seconds: number) => void;
   onCopyExport: (steamids: string[]) => void;
   onCopySteamId: (account: AccountView) => void;
@@ -37,7 +33,6 @@ interface RosterListProps {
   onExportFile: (steamids: string[]) => void;
   onImport?: () => void;
   onOpenProfile: (steamid: string) => void;
-  onPinMany: (steamids: string[], pinned: boolean) => void;
   onReimport: (account: AccountView) => void;
   onRemove: (accounts: AccountView[]) => void;
   onSelect: (account: AccountView, additive: boolean) => void;
@@ -60,7 +55,6 @@ export function RosterList({
   statuses,
   selectedIds,
   onSelect,
-  onClearSelection,
   onSignIn,
   onRemove,
   onCopyUsername,
@@ -72,8 +66,6 @@ export function RosterList({
   onCooldown,
   onClearCooldown,
   onCustomCooldown,
-  onClearNotes,
-  onPinMany,
   onTogglePin,
   onEditNote,
   onEditOverrides,
@@ -106,49 +98,6 @@ export function RosterList({
     },
     [selectedAccounts, selectedIds]
   );
-
-  const selectedSteamids = useMemo(
-    () => selectedAccounts.map((account) => account.steamid),
-    [selectedAccounts]
-  );
-
-  const handleClearCooldown = useCallback(() => {
-    onClearCooldown(selectedSteamids);
-  }, [onClearCooldown, selectedSteamids]);
-
-  const handleCooldown = useCallback(
-    (seconds: number) => {
-      onCooldown(selectedSteamids, seconds);
-    },
-    [onCooldown, selectedSteamids]
-  );
-
-  const handleCustomCooldown = useCallback(() => {
-    onCustomCooldown(selectedSteamids);
-  }, [onCustomCooldown, selectedSteamids]);
-
-  const handleCopyExport = useCallback(() => {
-    onCopyExport(selectedSteamids);
-  }, [onCopyExport, selectedSteamids]);
-
-  const handleExportFile = useCallback(() => {
-    onExportFile(selectedSteamids);
-  }, [onExportFile, selectedSteamids]);
-
-  const handleClearNotes = useCallback(() => {
-    onClearNotes(selectedSteamids);
-  }, [onClearNotes, selectedSteamids]);
-
-  const handlePin = useCallback(
-    (pinned: boolean) => {
-      onPinMany(selectedSteamids, pinned);
-    },
-    [onPinMany, selectedSteamids]
-  );
-
-  const handleRemove = useCallback(() => {
-    onRemove(selectedAccounts);
-  }, [onRemove, selectedAccounts]);
 
   const indexById = useMemo(() => {
     const map = new Map<string, number>();
@@ -247,22 +196,6 @@ export function RosterList({
         <div className={styles.list}>
           {accounts.map((account) => renderRow(account))}
         </div>
-      )}
-      {createPortal(
-        <BulkBar
-          count={selectedAccounts.length}
-          exportCount={exportCountFor(selectedSteamids)}
-          onClear={onClearSelection}
-          onClearCooldown={handleClearCooldown}
-          onClearNotes={handleClearNotes}
-          onCooldown={handleCooldown}
-          onCopyExport={handleCopyExport}
-          onCustomCooldown={handleCustomCooldown}
-          onExportFile={handleExportFile}
-          onPin={handlePin}
-          onRemove={handleRemove}
-        />,
-        document.body
       )}
     </>
   );

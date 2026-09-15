@@ -41,7 +41,7 @@ function TooltipContent({
       <TooltipPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}
-        className="isolate z-50"
+        className="isolate z-[var(--z-menu)]"
         side={side}
         sideOffset={sideOffset}
       >
