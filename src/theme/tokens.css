@@ -45,8 +45,9 @@
   --shadow-modal: var(--shadow-lg);
 
   --z-base: 0;
-  --z-menu: 40;
-  --z-overlay: 100;
+  --z-overlay: 50;
+  --z-menu: 70;
+  --z-modal: 80;
 
   --font: 13px / 1.4 var(--font-sans);
   --text-xs: 10px;
