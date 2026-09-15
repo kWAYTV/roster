@@ -4,10 +4,19 @@ import { commands } from "@/platform/invoke";
 
 export interface ClassifyHint {
   count: number;
+  expired: number;
   hint: string;
+  newCount: number;
+  updateCount: number;
 }
 
-const EMPTY: ClassifyHint = { count: 0, hint: "" };
+const EMPTY: ClassifyHint = {
+  count: 0,
+  expired: 0,
+  hint: "",
+  newCount: 0,
+  updateCount: 0,
+};
 
 /// Debounced classify against the backend for a paste field.
 export function useClassifyImport(
@@ -38,12 +47,15 @@ export function useClassifyImport(
           }
           setResult({
             count: classified.importable.length,
+            expired: classified.expired.length,
             hint: hintFor(
               classified.importable.length,
               classified.expired.length,
               classified.new_count,
               classified.update_count
             ),
+            newCount: classified.new_count,
+            updateCount: classified.update_count,
           });
         })
         .catch(() => {

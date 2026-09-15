@@ -1,0 +1,32 @@
+/* Hallmark · component: dialog · genre: modern-minimal · theme: cursor-zinc
+ * design-system: design.md · designed-as-app
+ */
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.choice {
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  height: auto;
+  min-height: 40px;
+  padding-block: 10px;
+  text-align: left;
+  white-space: normal;
+}
+
+.choiceLabel {
+  font-weight: 600;
+}
+
+.choiceHint {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: inherit;
+  text-wrap: pretty;
+  opacity: 0.72;
+}

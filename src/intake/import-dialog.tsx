@@ -1,25 +1,22 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
-import { ImportBulk } from "@/intake/import-bulk";
-import { looksLikeBulk, seedFields } from "@/intake/import-seed";
+import { ImportComposer } from "@/intake/import-composer";
+import { importLabel, isImportFile, seedText } from "@/intake/import-seed";
 import { ImportSignInAsk } from "@/intake/import-sign-in-ask";
-import { ImportSingle } from "@/intake/import-single";
 import { useClassifyImport } from "@/intake/use-classify-import";
 import { useImport } from "@/intake/use-intake";
 import type { ImportWithoutSignIn } from "@/preferences/preferences";
+import { Button } from "@/ui/primitives/button";
 import {
   Dialog,
   DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/ui/primitives/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/primitives/tabs";
-
-const TEXT_FILE = /\.(txt|csv|log|jwt)$/i;
-
-type ImportTab = "single" | "bulk";
+import { SpinningLoader } from "@/ui/widgets/spinning-loader";
 
 interface ImportDialogProps {
   importWithoutSignIn: ImportWithoutSignIn;
@@ -37,14 +34,13 @@ export function ImportDialog({
   onClose,
 }: ImportDialogProps) {
   const { importText, paste, busy } = useImport();
-  const seeded = seedFields(prefill);
-  const [single, setSingle] = useState(seeded.single);
-  const [bulk, setBulk] = useState(seeded.bulk);
-  const [tab, setTab] = useState<ImportTab>(seeded.bulk ? "bulk" : "single");
+  const [draft, setDraft] = useState(() => seedText(prefill));
   const [dragging, setDragging] = useState(false);
   const [pendingAsk, setPendingAsk] = useState<string | null>(null);
-  const singleClassified = useClassifyImport(single, open && tab === "single");
-  const bulkClassified = useClassifyImport(bulk, open && tab === "bulk");
+  const dragDepthRef = useRef(0);
+  const classified = useClassifyImport(draft, open);
+  const filled = draft.trim().length > 0;
+  const canImport = classified.count > 0 && !busy;
 
   const runImport = useCallback(
     async (payload: string, withoutSignIn: boolean) => {
@@ -70,26 +66,6 @@ export function ImportDialog({
     [importWithoutSignIn, runImport]
   );
 
-  const pasteInto = useCallback(
-    async (target: ImportTab) => {
-      const text = (await paste()).trim();
-      if (!text) {
-        return;
-      }
-      if (target !== "bulk" && !looksLikeBulk(text)) {
-        setSingle(text);
-        setTab("single");
-        return;
-      }
-      setBulk(text);
-      setTab("bulk");
-      if (target === "single") {
-        setSingle("");
-      }
-    },
-    [paste]
-  );
-
   const handleOpenChange = useCallback(
     (next: boolean) => {
       if (!next) {
@@ -99,27 +75,24 @@ export function ImportDialog({
     [onClose]
   );
 
-  const handleTabChange = useCallback((value: string | number | null) => {
-    if (value === "single" || value === "bulk") {
-      setTab(value);
-    }
+  const pasteDraft = useCallback(() => {
+    paste()
+      .then((text) => {
+        const next = text.trim();
+        if (next) {
+          setDraft(next);
+        }
+      })
+      .catch(() => undefined);
+  }, [paste]);
+
+  const submitDraft = useCallback(() => {
+    submit(draft).catch(() => undefined);
+  }, [submit, draft]);
+
+  const clearDraft = useCallback(() => {
+    setDraft("");
   }, []);
-
-  const pasteSingle = useCallback(() => {
-    pasteInto("single").catch(() => undefined);
-  }, [pasteInto]);
-
-  const pasteBulk = useCallback(() => {
-    pasteInto("bulk").catch(() => undefined);
-  }, [pasteInto]);
-
-  const submitSingle = useCallback(() => {
-    submit(single).catch(() => undefined);
-  }, [submit, single]);
-
-  const submitBulk = useCallback(() => {
-    submit(bulk).catch(() => undefined);
-  }, [submit, bulk]);
 
   const cancelAsk = useCallback(() => {
     setPendingAsk(null);
@@ -148,39 +121,38 @@ export function ImportDialog({
     if (!next) {
       return;
     }
-    if (looksLikeBulk(next)) {
-      setBulk(next);
-      setSingle("");
-      setTab("bulk");
-      return;
-    }
-    setSingle(next);
-    setTab("single");
+    setDraft(next);
+  }, []);
+
+  const handleDragEnter = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    dragDepthRef.current += 1;
+    setDragging(true);
   }, []);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    setDragging(true);
+    event.dataTransfer.dropEffect = "copy";
   }, []);
 
   const handleDragLeave = useCallback((event: React.DragEvent) => {
     event.preventDefault();
+    dragDepthRef.current -= 1;
+    if (dragDepthRef.current > 0) {
+      return;
+    }
+    dragDepthRef.current = 0;
     setDragging(false);
   }, []);
 
   const handleDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
+      dragDepthRef.current = 0;
       setDragging(false);
-      const file = [...event.dataTransfer.files].find(
-        (item) => TEXT_FILE.test(item.name) || item.type.startsWith("text/")
-      );
+      const file = [...event.dataTransfer.files].find(isImportFile);
       if (!file) {
-        const text = event.dataTransfer.getData("text/plain").trim();
-        if (!text) {
-          return;
-        }
-        applyDroppedText(text);
+        applyDroppedText(event.dataTransfer.getData("text/plain"));
         return;
       }
       file
@@ -191,68 +163,89 @@ export function ImportDialog({
     [applyDroppedText]
   );
 
+  const handleDialogKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) {
+        return;
+      }
+      event.preventDefault();
+      if (!canImport) {
+        return;
+      }
+      submitDraft();
+    },
+    [canImport, submitDraft]
+  );
+
+  const suppressPasteBlur = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+    },
+    []
+  );
+
   return (
     <>
       <Dialog onOpenChange={handleOpenChange} open={open}>
         <DialogContent
-          className={dragging ? "ring-2 ring-primary/40" : undefined}
+          className="sm:max-w-lg"
+          onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
+          onKeyDown={handleDialogKeyDown}
         >
           <DialogHeader>
-            <DialogTitle>Import</DialogTitle>
+            <DialogTitle>Import accounts</DialogTitle>
             <DialogDescription>
-              Paste one token, a list, or drop a .txt file. Expired tokens are
-              skipped.
+              One token or a list. Expired entries are skipped.
             </DialogDescription>
           </DialogHeader>
 
           <DialogBody>
-            <Tabs className="gap-4" onValueChange={handleTabChange} value={tab}>
-              <TabsList
-                className="h-auto w-full justify-stretch gap-0 border-border border-b bg-transparent pb-0"
-                variant="line"
-              >
-                <TabsTrigger
-                  className="flex-1 rounded-none px-1.5 text-xs"
-                  value="single"
-                >
-                  Single
-                </TabsTrigger>
-                <TabsTrigger
-                  className="flex-1 rounded-none px-1.5 text-xs"
-                  value="bulk"
-                >
-                  Bulk
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent className="mt-0 outline-none" value="single">
-                <ImportSingle
-                  autoFocus={tab === "single"}
-                  busy={busy}
-                  classified={singleClassified}
-                  onChange={setSingle}
-                  onPaste={pasteSingle}
-                  onSubmit={submitSingle}
-                  value={single}
-                />
-              </TabsContent>
-
-              <TabsContent className="mt-0 outline-none" value="bulk">
-                <ImportBulk
-                  autoFocus={tab === "bulk"}
-                  busy={busy}
-                  classified={bulkClassified}
-                  onChange={setBulk}
-                  onPaste={pasteBulk}
-                  onSubmit={submitBulk}
-                  value={bulk}
-                />
-              </TabsContent>
-            </Tabs>
+            <ImportComposer
+              autoFocus={filled}
+              busy={busy}
+              classified={classified}
+              dragging={dragging}
+              onChange={setDraft}
+              onClear={clearDraft}
+              onSubmit={submitDraft}
+              value={draft}
+            />
           </DialogBody>
+
+          <DialogFooter className="sm:items-center">
+            {canImport ? (
+              <kbd className="mr-auto rounded-sm border border-border bg-muted px-1.5 font-medium text-[10px] text-muted-foreground leading-[18px]">
+                Ctrl+Enter
+              </kbd>
+            ) : null}
+            <div className="flex justify-end gap-2">
+              <Button
+                autoFocus={!filled}
+                disabled={busy}
+                onClick={pasteDraft}
+                onMouseDown={suppressPasteBlur}
+                size="sm"
+                type="button"
+                variant={filled ? "outline" : "default"}
+              >
+                {filled ? "Paste" : "Paste from clipboard"}
+              </Button>
+              {filled ? (
+                <Button
+                  disabled={!canImport}
+                  onClick={submitDraft}
+                  size="sm"
+                  type="button"
+                >
+                  {busy ? <SpinningLoader size={14} /> : null}
+                  {importLabel(busy, classified.count)}
+                </Button>
+              ) : null}
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
