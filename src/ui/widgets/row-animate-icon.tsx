@@ -3,6 +3,7 @@ import {
   type MouseEventHandler,
   type ReactElement,
   type RefAttributes,
+  useCallback,
   useRef,
 } from "react";
 
@@ -25,22 +26,27 @@ export function useRowIconAnimation(count = 1) {
     refs.current[index] = handle;
   };
 
-  const start = () => {
+  const start = useCallback(() => {
     for (const handle of refs.current) {
       const result = handle?.startAnimation();
       Promise.resolve(result).catch(() => undefined);
     }
-  };
+  }, []);
 
-  const stop = () => {
+  const stop = useCallback(() => {
     for (const handle of refs.current) {
       const result = handle?.stopAnimation();
       Promise.resolve(result).catch(() => undefined);
     }
-  };
+  }, []);
 
-  const onMouseEnter: MouseEventHandler = () => start();
-  const onMouseLeave: MouseEventHandler = () => stop();
+  const onMouseEnter = useCallback<MouseEventHandler>(() => {
+    start();
+  }, [start]);
+
+  const onMouseLeave = useCallback<MouseEventHandler>(() => {
+    stop();
+  }, [stop]);
 
   return { onMouseEnter, onMouseLeave, setRef, start, stop };
 }

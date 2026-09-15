@@ -11,6 +11,7 @@ import { DeleteIcon } from "@/ui/icons/delete";
 import { Button } from "@/ui/primitives/button";
 import { ContextMenu, ContextMenuTrigger } from "@/ui/primitives/context-menu";
 import { Hint } from "@/ui/widgets/hint";
+import { IconAction } from "@/ui/widgets/icon-action";
 import { SpinningLoader } from "@/ui/widgets/spinning-loader";
 import { nowSeconds } from "../cooldown/cooldown";
 import { CooldownBadge } from "../cooldown/cooldown-badge";
@@ -224,37 +225,41 @@ export function AccountRow({
           </div>
         </button>
         <div className={styles.actions}>
-          <Hint label="Sign in">
-            <Button
-              aria-label="Sign in"
-              disabled={busy}
+          {busy ? (
+            <Hint label="Sign in">
+              <Button
+                aria-label="Sign in"
+                disabled
+                size="icon-sm"
+                type="button"
+              >
+                <SpinningLoader size={15} />
+              </Button>
+            </Hint>
+          ) : (
+            <IconAction
+              icon={<ArrowRightIcon />}
+              iconSize={15}
+              label="Sign in"
               onClick={handleSignIn}
               size="icon-sm"
-            >
-              {busy ? (
-                <SpinningLoader size={15} />
-              ) : (
-                <ArrowRightIcon size={15} />
-              )}
-            </Button>
-          </Hint>
+            />
+          )}
           <CooldownMenu
             disabled={busy}
             steamid={account.steamid}
             until={account.cooldown_until}
           />
-          <Hint label="Remove">
-            <Button
-              aria-label="Remove account"
-              className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-              disabled={busy}
-              onClick={handleRemove}
-              size="icon-sm"
-              variant="ghost"
-            >
-              <DeleteIcon size={15} />
-            </Button>
-          </Hint>
+          <IconAction
+            className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
+            disabled={busy}
+            icon={<DeleteIcon />}
+            iconSize={15}
+            label="Remove account"
+            onClick={handleRemove}
+            size="icon-sm"
+            variant="ghost"
+          />
         </div>
       </ContextMenuTrigger>
       <AccountContextMenu

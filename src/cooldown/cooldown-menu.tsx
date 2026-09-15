@@ -9,6 +9,10 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/primitives/dropdown-menu";
 import { Hint } from "@/ui/widgets/hint";
+import {
+  RowAnimateIcon,
+  useRowIconAnimation,
+} from "@/ui/widgets/row-animate-icon";
 import { COOLDOWN_PRESETS, isCooldownActive } from "./cooldown";
 import { CooldownDialog } from "./cooldown-dialog";
 import { useCooldown } from "./use-cooldown";
@@ -22,6 +26,7 @@ interface CooldownMenuProps {
 export function CooldownMenu({ steamid, until, disabled }: CooldownMenuProps) {
   const [customOpen, setCustomOpen] = useState(false);
   const { start, clear } = useCooldown();
+  const anim = useRowIconAnimation(1);
 
   const openCustom = useCallback(() => {
     setCustomOpen(true);
@@ -61,12 +66,16 @@ export function CooldownMenu({ steamid, until, disabled }: CooldownMenuProps) {
             render={
               <Button
                 aria-label="Set cooldown"
+                onMouseEnter={anim.onMouseEnter}
+                onMouseLeave={anim.onMouseLeave}
                 size="icon-sm"
                 variant="ghost"
               />
             }
           >
-            <ClockIcon size={16} />
+            <RowAnimateIcon iconRef={anim.setRef(0)} size={16}>
+              <ClockIcon />
+            </RowAnimateIcon>
           </DropdownMenuTrigger>
         </Hint>
         <DropdownMenuContent align="end" className="w-auto min-w-40">

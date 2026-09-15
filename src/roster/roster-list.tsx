@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 
+import { PlusIcon } from "@/ui/icons/plus";
 import {
   Accordion,
   AccordionContent,
@@ -7,7 +8,7 @@ import {
   AccordionTrigger,
 } from "@/ui/primitives/accordion";
 import { Badge } from "@/ui/primitives/badge";
-import { Button } from "@/ui/primitives/button";
+import { IconAction } from "@/ui/widgets/icon-action";
 import type { StatusMap } from "../status/status";
 import type { AccountView } from "./account";
 import { AccountRow } from "./account-row";
@@ -156,9 +157,15 @@ export function RosterList({
         <p className={styles.emptyTitle}>{emptyTitle}</p>
         <p className={styles.emptyHint}>{emptyHint}</p>
         {onImport ? (
-          <Button className={styles.emptyAction} onClick={onImport} size="sm">
+          <IconAction
+            className={styles.emptyAction}
+            icon={<PlusIcon />}
+            label="Import account"
+            onClick={onImport}
+            size="sm"
+          >
             Import account
-          </Button>
+          </IconAction>
         ) : null}
       </div>
     );
