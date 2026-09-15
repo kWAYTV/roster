@@ -1,0 +1,134 @@
+/* Hallmark · component: dialog · genre: modern-minimal · theme: cursor-zinc
+ * design-system: design.md · designed-as-app
+ * states: default · hover · focus · active · disabled · loading · error · success
+ * contrast: pass (46–50)
+ * Hallmark · pre-emit critique: P4 H5 E4 S4 R5 V4
+ */
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.well {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  transition-timing-function: var(--ease-out);
+  transition-duration: 150ms;
+  transition-property: border-color, box-shadow;
+}
+
+.well[data-empty="true"] {
+  border-style: dashed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .well[data-empty="true"]:hover:not([data-dragging="true"]):not(
+    [data-invalid="true"]
+  ) {
+    border-color: var(--foreground);
+  }
+}
+
+.well[data-dragging="true"] {
+  border-color: var(--foreground);
+  border-style: dashed;
+}
+
+.well[data-invalid="true"] {
+  border-color: var(--destructive);
+}
+
+.well[data-busy="true"] {
+  opacity: 0.5;
+}
+
+.field {
+  field-sizing: fixed;
+  min-height: 10.5rem;
+  max-height: 14rem;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  resize: none;
+  user-select: text;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.field:focus-visible {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.well:focus-within:not([data-dragging="true"]):not([data-invalid="true"]) {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.well[data-empty="true"] .field {
+  opacity: 0;
+}
+
+.curtain {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  pointer-events: none;
+  background: var(--card);
+  border-radius: inherit;
+}
+
+.lead {
+  max-width: 28ch;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-align: center;
+  text-wrap: pretty;
+}
+
+.example {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.status {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 20px;
+}
+
+.chips {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.invalid {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--destructive);
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .well {
+    transition-duration: 0.01ms;
+  }
+}

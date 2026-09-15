@@ -4,11 +4,13 @@ import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/ui/primitives/alert-dialog";
 import { Button } from "@/ui/primitives/button";
+import { cn } from "@/ui/primitives/cn";
+
+import styles from "./import-sign-in-ask.module.css";
 
 interface ImportSignInAskProps {
   onCancel: () => void;
@@ -48,29 +50,52 @@ export function ImportSignInAsk({
     onStoreOnly();
   }, [onStoreOnly]);
 
+  const handleCancel = useCallback(() => {
+    decidedRef.current = true;
+    onCancel();
+  }, [onCancel]);
+
   return (
     <AlertDialog onOpenChange={handleOpenChange} open={open}>
       <AlertDialogContent size="default">
         <AlertDialogHeader>
           <AlertDialogTitle>Sign in after import?</AlertDialogTitle>
           <AlertDialogDescription>
-            Sign into the last imported account, or store tokens without
-            switching.
+            Steam can switch to the last imported account, or stay on this
+            session.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="sm:justify-end">
+        <div className={styles.choices}>
           <Button
+            autoFocus
+            className={cn(styles.choice, "h-auto w-full whitespace-normal")}
+            onClick={handleSignIn}
+            type="button"
+          >
+            <span className={styles.choiceLabel}>Sign in</span>
+            <span className={styles.choiceHint}>
+              Switch Steam to the last imported account
+            </span>
+          </Button>
+          <Button
+            className={cn(styles.choice, "h-auto w-full whitespace-normal")}
             onClick={handleStoreOnly}
-            size="sm"
             type="button"
             variant="outline"
           >
-            Store only
+            <span className={styles.choiceLabel}>Store only</span>
+            <span className={styles.choiceHint}>Keep the current session</span>
           </Button>
-          <Button autoFocus onClick={handleSignIn} size="sm" type="button">
-            Sign in
+          <Button
+            className="self-start"
+            onClick={handleCancel}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            Cancel
           </Button>
-        </AlertDialogFooter>
+        </div>
       </AlertDialogContent>
     </AlertDialog>
   );

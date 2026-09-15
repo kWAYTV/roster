@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-09-15",
+    "macrostructure": "Workbench",
+    "theme": "custom",
+    "theme_axes": "dark / grotesk-sans / neutral",
+    "vibe": "cursor zinc solids",
+    "enrichment": "none",
+    "scope": "app",
+    "brief": "Roster · import dialog paste-first well, no single/bulk tabs"
+  },
+  {
     "date": "2026-09-02",
     "macrostructure": "Workbench",
     "theme": "custom",
