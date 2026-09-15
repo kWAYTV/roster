@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { type MouseEvent, useCallback, useMemo } from "react";
 
 import { ChevronDownIcon } from "@/ui/icons/chevron-down";
 import { Button } from "@/ui/primitives/button";
@@ -11,24 +11,25 @@ import {
 } from "@/ui/primitives/dropdown-menu";
 import { Hint } from "@/ui/widgets/hint";
 import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
+import type { AccountView } from "./account";
 import styles from "./bulk-bar.module.css";
 
 interface BulkBarProps {
-  count: number;
   exportCount: number;
   onClear: () => void;
-  onClearCooldown: () => void;
-  onClearNotes: () => void;
-  onCooldown: (seconds: number) => void;
-  onCopyExport: () => void;
-  onCustomCooldown: () => void;
-  onExportFile: () => void;
-  onPin: (pinned: boolean) => void;
-  onRemove: () => void;
+  onClearCooldown: (steamids: string[]) => void;
+  onClearNotes: (steamids: string[]) => void;
+  onCooldown: (steamids: string[], seconds: number) => void;
+  onCopyExport: (steamids: string[]) => void;
+  onCustomCooldown: (steamids: string[]) => void;
+  onExportFile: (steamids: string[]) => void;
+  onPin: (steamids: string[], pinned: boolean) => void;
+  onRemove: (accounts: AccountView[]) => void;
+  selected: AccountView[];
 }
 
 export function BulkBar({
-  count,
+  selected,
   exportCount,
   onClear,
   onCooldown,
@@ -40,23 +41,53 @@ export function BulkBar({
   onPin,
   onRemove,
 }: BulkBarProps) {
+  const steamids = useMemo(
+    () => selected.map((account) => account.steamid),
+    [selected]
+  );
+  const count = selected.length;
+
   const handlePresetClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
+    (event: MouseEvent<HTMLDivElement>) => {
       const seconds = Number(event.currentTarget.dataset.seconds);
       if (Number.isFinite(seconds)) {
-        onCooldown(seconds);
+        onCooldown(steamids, seconds);
       }
     },
-    [onCooldown]
+    [onCooldown, steamids]
   );
 
   const pinAll = useCallback(() => {
-    onPin(true);
-  }, [onPin]);
+    onPin(steamids, true);
+  }, [onPin, steamids]);
 
   const unpinAll = useCallback(() => {
-    onPin(false);
-  }, [onPin]);
+    onPin(steamids, false);
+  }, [onPin, steamids]);
+
+  const handleClearCooldown = useCallback(() => {
+    onClearCooldown(steamids);
+  }, [onClearCooldown, steamids]);
+
+  const handleCustomCooldown = useCallback(() => {
+    onCustomCooldown(steamids);
+  }, [onCustomCooldown, steamids]);
+
+  const handleCopyExport = useCallback(() => {
+    onCopyExport(steamids);
+  }, [onCopyExport, steamids]);
+
+  const handleExportFile = useCallback(() => {
+    onExportFile(steamids);
+  }, [onExportFile, steamids]);
+
+  const handleClearNotes = useCallback(() => {
+    onClearNotes(steamids);
+  }, [onClearNotes, steamids]);
+
+  const handleRemove = useCallback(() => {
+    onRemove(selected);
+  }, [onRemove, selected]);
 
   if (count < 2) {
     return null;
@@ -69,17 +100,13 @@ export function BulkBar({
       : `${count - exportCount} selected account(s) have no saved token`;
 
   return (
-    <div className={styles.bar}>
+    <section aria-label="Selection" className={styles.bar}>
       <span className={styles.label}>{count} selected</span>
       <div className={styles.actions}>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button
-                className={styles.cooldownBtn}
-                size="xs"
-                variant="outline"
-              />
+              <Button className={styles.menuBtn} size="xs" variant="outline" />
             }
           >
             Cooldown
@@ -96,28 +123,37 @@ export function BulkBar({
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onCustomCooldown}>
+            <DropdownMenuItem onClick={handleCustomCooldown}>
               Custom…
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onClearCooldown}>
+            <DropdownMenuItem onClick={handleClearCooldown}>
               Clear cooldown
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button onClick={pinAll} size="xs" variant="ghost">
-          Pin
-        </Button>
-        <Button onClick={unpinAll} size="xs" variant="ghost">
-          Unpin
-        </Button>
-        <Button onClick={onClearNotes} size="xs" variant="ghost">
-          Clear notes
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button className={styles.menuBtn} size="xs" variant="ghost" />
+            }
+          >
+            Pin
+            <ChevronDownIcon size={14} />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-auto min-w-36">
+            <DropdownMenuItem onClick={pinAll}>Pin</DropdownMenuItem>
+            <DropdownMenuItem onClick={unpinAll}>Unpin</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleClearNotes}>
+              Clear notes
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {exportCount < count ? (
           <Hint label={copyHint}>
             <Button
               disabled={exportCount === 0}
-              onClick={onCopyExport}
+              onClick={handleCopyExport}
               size="xs"
               variant="ghost"
             >
@@ -125,13 +161,13 @@ export function BulkBar({
             </Button>
           </Hint>
         ) : (
-          <Button onClick={onCopyExport} size="xs" variant="ghost">
+          <Button onClick={handleCopyExport} size="xs" variant="ghost">
             {copyLabel}
           </Button>
         )}
         <Button
           disabled={exportCount === 0}
-          onClick={onExportFile}
+          onClick={handleExportFile}
           size="xs"
           variant="ghost"
         >
@@ -139,17 +175,19 @@ export function BulkBar({
         </Button>
         <Button
           className="text-destructive hover:bg-destructive/15 hover:text-destructive"
-          onClick={onRemove}
+          onClick={handleRemove}
           size="xs"
           variant="ghost"
         >
           Remove
         </Button>
-        <Button onClick={onClear} size="xs" variant="ghost">
-          Done
-        </Button>
+        <Hint label="Clear selection (Esc)">
+          <Button onClick={onClear} size="xs" variant="ghost">
+            Done
+          </Button>
+        </Hint>
       </div>
-    </div>
+    </section>
   );
 }
 
