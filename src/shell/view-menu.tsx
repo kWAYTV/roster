@@ -13,6 +13,10 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/ui/primitives/dropdown-menu";
+import {
+  RowAnimateIcon,
+  useRowIconAnimation,
+} from "@/ui/widgets/row-animate-icon";
 
 import type { RosterFilter, RosterSort } from "./filter-accounts";
 
@@ -58,6 +62,7 @@ export function ViewMenu({
   onSelectAll,
   onInvertSelection,
 }: ViewMenuProps) {
+  const anim = useRowIconAnimation(1);
   const active = filter !== "all" || sort !== "default" || !groupByTag;
 
   const handleFilterClick = useCallback(
@@ -90,6 +95,8 @@ export function ViewMenu({
         render={
           <Button
             aria-label={active ? viewHint(filter, sort, groupByTag) : "View"}
+            onMouseEnter={anim.onMouseEnter}
+            onMouseLeave={anim.onMouseLeave}
             size="icon-sm"
             title={active ? viewHint(filter, sort, groupByTag) : "View"}
             type="button"
@@ -97,7 +104,9 @@ export function ViewMenu({
           />
         }
       >
-        <ListFilterIcon size={16} />
+        <RowAnimateIcon iconRef={anim.setRef(0)} size={16}>
+          <ListFilterIcon />
+        </RowAnimateIcon>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto min-w-44">
         <DropdownMenuGroup>

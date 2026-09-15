@@ -6,6 +6,8 @@ import { ImportSignInAsk } from "@/intake/import-sign-in-ask";
 import { useClassifyImport } from "@/intake/use-classify-import";
 import { useImport } from "@/intake/use-intake";
 import type { ImportWithoutSignIn } from "@/preferences/preferences";
+import { ClipboardPasteIcon } from "@/ui/icons/clipboard-paste";
+import { PlusIcon } from "@/ui/icons/plus";
 import { Button } from "@/ui/primitives/button";
 import {
   Dialog,
@@ -16,6 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/primitives/dialog";
+import { IconAction } from "@/ui/widgets/icon-action";
 import { SpinningLoader } from "@/ui/widgets/spinning-loader";
 
 interface ImportDialogProps {
@@ -222,27 +225,25 @@ export function ImportDialog({
               </kbd>
             ) : null}
             <div className="flex justify-end gap-2">
-              <Button
+              <IconAction
                 autoFocus={!filled}
                 disabled={busy}
+                icon={<ClipboardPasteIcon />}
+                label="Paste from clipboard"
                 onClick={pasteDraft}
                 onMouseDown={suppressPasteBlur}
                 size="sm"
-                type="button"
                 variant={filled ? "outline" : "default"}
               >
-                {filled ? "Paste" : "Paste from clipboard"}
-              </Button>
+                Paste
+              </IconAction>
               {filled ? (
-                <Button
-                  disabled={!canImport}
+                <ImportSubmit
+                  busy={busy}
+                  canImport={canImport}
+                  count={classified.count}
                   onClick={submitDraft}
-                  size="sm"
-                  type="button"
-                >
-                  {busy ? <SpinningLoader size={14} /> : null}
-                  {importLabel(busy, classified.count)}
-                </Button>
+                />
               ) : null}
             </div>
           </DialogFooter>
@@ -256,5 +257,38 @@ export function ImportDialog({
         open={pendingAsk !== null}
       />
     </>
+  );
+}
+
+function ImportSubmit({
+  busy,
+  canImport,
+  count,
+  onClick,
+}: {
+  busy: boolean;
+  canImport: boolean;
+  count: number;
+  onClick: () => void;
+}) {
+  if (busy) {
+    return (
+      <Button disabled size="sm" type="button">
+        <SpinningLoader size={14} />
+        Importing…
+      </Button>
+    );
+  }
+
+  return (
+    <IconAction
+      disabled={!canImport}
+      icon={<PlusIcon />}
+      label="Import"
+      onClick={onClick}
+      size="sm"
+    >
+      {importLabel(false, count)}
+    </IconAction>
   );
 }

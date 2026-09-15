@@ -5,9 +5,8 @@ import { SearchIcon } from "@/ui/icons/search";
 import { SettingsIcon } from "@/ui/icons/settings";
 import { XIcon } from "@/ui/icons/x";
 import { Badge } from "@/ui/primitives/badge";
-import { Button } from "@/ui/primitives/button";
 import { Input } from "@/ui/primitives/input";
-import { Hint } from "@/ui/widgets/hint";
+import { IconAction } from "@/ui/widgets/icon-action";
 
 import type { RosterFilter, RosterSort } from "./filter-accounts";
 import styles from "./shell.module.css";
@@ -100,17 +99,13 @@ export function Toolbar({
             </Badge>
           ) : null}
           {viewMenu}
-          <Hint label="Close search">
-            <Button
-              aria-label="Close search"
-              onClick={onCloseSearch}
-              size="icon-sm"
-              type="button"
-              variant="ghost"
-            >
-              <XIcon size={16} />
-            </Button>
-          </Hint>
+          <IconAction
+            icon={<XIcon />}
+            label="Close search"
+            onClick={onCloseSearch}
+            size="icon-sm"
+            variant="ghost"
+          />
         </>
       ) : (
         <>
@@ -123,40 +118,28 @@ export function Toolbar({
             ) : null}
           </div>
           <div className={styles.actions}>
-            <Hint label="Import">
-              <Button
-                aria-label="Import"
-                onClick={handleOpenImport}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <PlusIcon size={16} />
-              </Button>
-            </Hint>
-            <Hint label="Search accounts">
-              <Button
-                aria-label="Search accounts"
-                onClick={onOpenSearch}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <SearchIcon size={16} />
-              </Button>
-            </Hint>
+            <IconAction
+              icon={<PlusIcon />}
+              label="Import"
+              onClick={handleOpenImport}
+              size="icon-sm"
+              variant="ghost"
+            />
+            <IconAction
+              icon={<SearchIcon />}
+              label="Search accounts"
+              onClick={onOpenSearch}
+              size="icon-sm"
+              variant="ghost"
+            />
             {viewMenu}
-            <Hint label="Settings">
-              <Button
-                aria-label="Settings"
-                onClick={onOpenSettings}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <SettingsIcon size={16} />
-              </Button>
-            </Hint>
+            <IconAction
+              icon={<SettingsIcon />}
+              label="Settings"
+              onClick={onOpenSettings}
+              size="icon-sm"
+              variant="ghost"
+            />
           </div>
         </>
       )}

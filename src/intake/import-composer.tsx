@@ -145,33 +145,57 @@ function ImportChips({ classified }: { classified: ClassifyHint }) {
     return <p className={styles.invalid}>No valid tokens</p>;
   }
 
-  if (!(classified.count || classified.expired || classified.hint)) {
+  const singleReady = classified.count <= 1 && classified.expired === 0;
+  if (singleReady) {
+    return null;
+  }
+
+  if (!(classified.count || classified.expired)) {
     return null;
   }
 
   return (
     <div className={styles.chips}>
       {classified.newCount > 0 ? (
-        <Badge className="tabular-nums" variant="outline">
-          {classified.newCount} new
+        <Badge
+          className={classified.newCount > 1 ? "tabular-nums" : undefined}
+          variant="outline"
+        >
+          {unitChip(classified.newCount, "New", "new")}
         </Badge>
       ) : null}
       {classified.updateCount > 0 ? (
-        <Badge className="tabular-nums" variant="outline">
-          {classified.updateCount} update
+        <Badge
+          className={classified.updateCount > 1 ? "tabular-nums" : undefined}
+          variant="outline"
+        >
+          {unitChip(classified.updateCount, "Update", "update")}
         </Badge>
       ) : null}
       {classified.count > 0 &&
       !(classified.newCount || classified.updateCount) ? (
-        <Badge className="tabular-nums" variant="outline">
-          {classified.count} ready
+        <Badge
+          className={classified.count > 1 ? "tabular-nums" : undefined}
+          variant="outline"
+        >
+          {unitChip(classified.count, "Ready", "ready")}
         </Badge>
       ) : null}
       {classified.expired > 0 ? (
-        <Badge className="tabular-nums" variant="destructive">
-          {classified.expired} expired
+        <Badge
+          className={classified.expired > 1 ? "tabular-nums" : undefined}
+          variant="destructive"
+        >
+          {unitChip(classified.expired, "Expired", "expired")}
         </Badge>
       ) : null}
     </div>
   );
+}
+
+function unitChip(count: number, singular: string, plural: string): string {
+  if (count === 1) {
+    return singular;
+  }
+  return `${count} ${plural}`;
 }
