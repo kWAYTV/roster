@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { type ReactNode, useCallback } from "react";
 
 import { PlusIcon } from "@/ui/icons/plus";
 import { SearchIcon } from "@/ui/icons/search";
@@ -29,6 +29,7 @@ interface ToolbarProps {
   onToggleGroupByTag: () => void;
   query: string;
   searchOpen: boolean;
+  selectionMenu?: ReactNode;
   sort: RosterSort;
 }
 
@@ -50,6 +51,7 @@ export function Toolbar({
   onToggleGroupByTag,
   onSelectAll,
   onInvertSelection,
+  selectionMenu,
 }: ToolbarProps) {
   const handleQueryChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,6 +100,7 @@ export function Toolbar({
               {countLabel}
             </Badge>
           ) : null}
+          {selectionMenu}
           {viewMenu}
           <IconAction
             icon={<XIcon />}
@@ -116,6 +119,7 @@ export function Toolbar({
                 {countLabel}
               </Badge>
             ) : null}
+            {selectionMenu}
           </div>
           <div className={styles.actions}>
             <IconAction

@@ -56,7 +56,7 @@ System stacks only (Tauri CSP — no remote fonts).
 - Rows: avatar · two-line info · trailing actions. No leading CTA column, no left accent stripe, no action wells.
 - Badges: small, sentence case or as-data, hairline border — not UPPERCASE mono chips.
 - List: flat stack with hairline dividers OR 1px gap — no card-in-card.
-- Bulk bar: quiet strip, normal case labels.
+- Selection: compact "N selected" menu in the toolbar. No overlay dock.
 - No decorative grids, sheens, or multi-layer hard shadows.
 - Presence: online is a gray/white solid; in-game stays green (semantic). No blue status.
 

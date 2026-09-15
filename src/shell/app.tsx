@@ -12,8 +12,8 @@ import { commands } from "../platform/invoke";
 import { useMetadataBackup } from "../preferences/use-metadata-backup";
 import { usePreferences } from "../preferences/use-preferences";
 import type { AccountView } from "../roster/account";
-import { BulkBar } from "../roster/bulk-bar";
 import { RosterList } from "../roster/roster-list";
+import { SelectionMenu } from "../roster/selection-menu";
 import { useAccountEditors } from "../roster/use-account-editors";
 import { useAccountMeta } from "../roster/use-account-meta";
 import { useRoster } from "../roster/use-roster";
@@ -294,41 +294,40 @@ export function App() {
 
   return (
     <div className={styles.app}>
-      {selectedAccounts.length > 1 ? (
-        <BulkBar
-          exportCount={exportCountForFiltered(selectedSteamids)}
-          onClear={clearSelection}
-          onClearCooldown={clearMany}
-          onClearNotes={clearNotesMany}
-          onCooldown={startMany}
-          onCopyExport={copyExport}
-          onCustomCooldown={askBulkCooldown}
-          onExportFile={exportFile}
-          onPin={setPinnedMany}
-          onRemove={askRemove}
-          selected={selectedAccounts}
-        />
-      ) : (
-        <Toolbar
-          accountCount={accounts.length}
-          countLabel={countLabel}
-          filter={filter}
-          groupByTag={groupByTag}
-          onCloseSearch={closeSearch}
-          onFilter={setFilter}
-          onInvertSelection={handleInvertSelection}
-          onOpenImport={openImport}
-          onOpenSearch={openSearch}
-          onOpenSettings={openSettings}
-          onQueryChange={setQuery}
-          onSelectAll={handleSelectAll}
-          onSort={setSort}
-          onToggleGroupByTag={toggleGroupByTag}
-          query={ui.query}
-          searchOpen={ui.searchOpen}
-          sort={sort}
-        />
-      )}
+      <Toolbar
+        accountCount={accounts.length}
+        countLabel={countLabel}
+        filter={filter}
+        groupByTag={groupByTag}
+        onCloseSearch={closeSearch}
+        onFilter={setFilter}
+        onInvertSelection={handleInvertSelection}
+        onOpenImport={openImport}
+        onOpenSearch={openSearch}
+        onOpenSettings={openSettings}
+        onQueryChange={setQuery}
+        onSelectAll={handleSelectAll}
+        onSort={setSort}
+        onToggleGroupByTag={toggleGroupByTag}
+        query={ui.query}
+        searchOpen={ui.searchOpen}
+        selectionMenu={
+          <SelectionMenu
+            exportCount={exportCountForFiltered(selectedSteamids)}
+            onClear={clearSelection}
+            onClearCooldown={clearMany}
+            onClearNotes={clearNotesMany}
+            onCooldown={startMany}
+            onCopyExport={copyExport}
+            onCustomCooldown={askBulkCooldown}
+            onExportFile={exportFile}
+            onPin={setPinnedMany}
+            onRemove={askRemove}
+            selected={selectedAccounts}
+          />
+        }
+        sort={sort}
+      />
 
       <main className={styles.main}>
         <RosterList
