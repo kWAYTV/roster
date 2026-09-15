@@ -79,7 +79,7 @@ function SelectContent({
         align={align}
         alignItemWithTrigger={alignItemWithTrigger}
         alignOffset={alignOffset}
-        className="isolate z-50"
+        className="isolate z-[var(--z-menu)]"
         side={side}
         sideOffset={sideOffset}
       >
