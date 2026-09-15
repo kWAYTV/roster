@@ -7,7 +7,8 @@ build = "build.rs"
 
 [lib]
 name = "roster_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# Windows desktop only. Mobile crate types make rustc codegen this crate three times.
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -32,14 +33,13 @@ tauri-plugin-window-state = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-global-shortcut = "2"
 
-[dependencies.windows]
-version = "0.62"
-features = [
-    "Win32_Foundation",
-    "Win32_Security_Cryptography",
-]
+[profile.dev]
+incremental = true
+debug = "line-tables-only"
 
 [profile.release]
-opt-level = "s"
-lto = "thin"
+# IO-bound helper: skip size/LTO opts that made `tauri build` ~10 minutes.
+opt-level = 2
+lto = false
+codegen-units = 16
 strip = true
