@@ -3,6 +3,7 @@ import type * as React from "react";
 import { XIcon } from "@/ui/icons/x";
 import { Button } from "@/ui/primitives/button";
 import { cn } from "@/ui/primitives/cn";
+import { EnterStagger } from "@/ui/widgets/enter-stagger";
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
@@ -22,12 +23,17 @@ function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
 
 function DialogOverlay({
   className,
+  motion = true,
   ...props
-}: DialogPrimitive.Backdrop.Props) {
+}: DialogPrimitive.Backdrop.Props & {
+  motion?: boolean;
+}) {
   return (
     <DialogPrimitive.Backdrop
       className={cn(
-        "data-open:fade-in-0 data-closed:fade-out-0 fixed inset-0 z-[var(--z-overlay)] bg-black/60 duration-150 data-closed:animate-out data-open:animate-in",
+        "fixed inset-0 z-[var(--z-overlay)] bg-black/60",
+        motion &&
+          "data-open:fade-in-0 data-closed:fade-out-0 duration-150 data-closed:animate-out data-open:animate-in",
         className
       )}
       data-slot="dialog-overlay"
@@ -41,17 +47,21 @@ function DialogContent({
   children,
   showCloseButton = true,
   size = "md",
+  motion = true,
   ...props
 }: DialogPrimitive.Popup.Props & {
+  motion?: boolean;
   showCloseButton?: boolean;
   size?: "sm" | "md";
 }) {
   return (
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay motion={motion} />
       <DialogPrimitive.Popup
         className={cn(
-          "data-open:fade-in-0 data-open:zoom-in-95 data-closed:fade-out-0 data-closed:zoom-out-95 fixed top-1/2 left-1/2 z-[calc(var(--z-overlay)+1)] grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border border-border bg-popover p-4 text-popover-foreground text-sm shadow-md outline-none ring-1 ring-foreground/8 duration-200 data-closed:animate-out data-open:animate-in",
+          "fixed top-1/2 left-1/2 z-[calc(var(--z-overlay)+1)] grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border border-border bg-popover p-4 text-popover-foreground text-sm shadow-md outline-none ring-1 ring-foreground/8",
+          motion &&
+            "data-open:fade-in-0 data-open:zoom-in-95 data-closed:fade-out-0 data-closed:zoom-out-95 duration-200 data-closed:animate-out data-open:animate-in",
           size === "sm" ? "sm:max-w-sm" : "sm:max-w-md",
           className
         )}
@@ -59,7 +69,19 @@ function DialogContent({
         data-slot="dialog-content"
         {...props}
       >
-        {children}
+        {motion ? (
+          <EnterStagger
+            className="contents"
+            duration={0.2}
+            fade={false}
+            stagger={0.04}
+            y={6}
+          >
+            {children}
+          </EnterStagger>
+        ) : (
+          children
+        )}
         {showCloseButton ? (
           <DialogPrimitive.Close
             data-slot="dialog-close"

@@ -2,6 +2,7 @@ import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog
 import type * as React from "react";
 import { Button } from "@/ui/primitives/button";
 import { cn } from "@/ui/primitives/cn";
+import { EnterStagger } from "@/ui/widgets/enter-stagger";
 
 function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
@@ -37,6 +38,7 @@ function AlertDialogOverlay({
 
 function AlertDialogContent({
   className,
+  children,
   size = "default",
   ...props
 }: AlertDialogPrimitive.Popup.Props & {
@@ -53,7 +55,17 @@ function AlertDialogContent({
         data-size={size}
         data-slot="alert-dialog-content"
         {...props}
-      />
+      >
+        <EnterStagger
+          className="contents"
+          duration={0.2}
+          fade={false}
+          stagger={0.04}
+          y={6}
+        >
+          {children}
+        </EnterStagger>
+      </AlertDialogPrimitive.Popup>
     </AlertDialogPortal>
   );
 }

@@ -4,6 +4,7 @@ import type * as React from "react";
 import { XIcon } from "@/ui/icons/x";
 import { Button } from "@/ui/primitives/button";
 import { cn } from "@/ui/primitives/cn";
+import { EnterStagger } from "@/ui/widgets/enter-stagger";
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
@@ -56,7 +57,15 @@ function SheetContent({
         data-slot="sheet-content"
         {...props}
       >
-        {children}
+        <EnterStagger
+          className="contents"
+          duration={0.2}
+          fade={false}
+          stagger={0.04}
+          y={6}
+        >
+          {children}
+        </EnterStagger>
         {showCloseButton ? (
           <SheetPrimitive.Close
             data-slot="sheet-close"

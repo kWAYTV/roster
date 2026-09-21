@@ -158,7 +158,9 @@ export function AccountRow({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger render={<div className={rowClass} />}>
+      <ContextMenuTrigger
+        render={<div className={rowClass} data-enter="row" />}
+      >
         <div className={styles.avatarWrap}>
           <Hint label="Open Steam profile">
             <a
