@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import { isCooldownActive, nowSeconds } from "../cooldown/cooldown";
 import { useCooldown } from "../cooldown/use-cooldown";
@@ -19,6 +19,7 @@ import { useAccountMeta } from "../roster/use-account-meta";
 import { useRoster } from "../roster/use-roster";
 import { useStatus } from "../status/use-status";
 import { useTheme } from "../theme/use-theme";
+import { useEnterStagger } from "../ui/widgets/use-enter-stagger";
 import { useUpdater } from "../updater/use-updater";
 import { CommandPalette } from "./command-palette";
 import { ShellDialogs } from "./dialogs";
@@ -292,8 +293,17 @@ export function App() {
     confirmExport().catch(() => undefined);
   }, [confirmExport]);
 
+  const frameRef = useRef<HTMLDivElement>(null);
+  useEnterStagger(frameRef, {
+    duration: 0.24,
+    once: "shell",
+    selector: "[data-enter='chrome']",
+    stagger: 0.05,
+    y: 6,
+  });
+
   return (
-    <div className={styles.app}>
+    <div className={styles.app} ref={frameRef}>
       <Toolbar
         accountCount={accounts.length}
         countLabel={countLabel}

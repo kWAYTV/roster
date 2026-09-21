@@ -21,7 +21,7 @@ export function Footer({ currentVersion }: FooterProps) {
   }, []);
 
   return (
-    <footer className={styles.foot}>
+    <footer className={styles.foot} data-enter="chrome">
       <StatusLine />
       <div className={styles.footMeta}>
         <span

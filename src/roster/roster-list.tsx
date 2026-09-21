@@ -8,6 +8,7 @@ import {
   AccordionTrigger,
 } from "@/ui/primitives/accordion";
 import { Badge } from "@/ui/primitives/badge";
+import { EnterStagger } from "@/ui/widgets/enter-stagger";
 import { IconAction } from "@/ui/widgets/icon-action";
 import type { StatusMap } from "../status/status";
 import type { AccountView } from "./account";
@@ -153,7 +154,13 @@ export function RosterList({
   }
   if (accounts.length === 0) {
     return (
-      <div className={styles.empty}>
+      <EnterStagger
+        blur={4}
+        className={styles.empty}
+        duration={0.28}
+        stagger={0.06}
+        y={8}
+      >
         <p className={styles.emptyTitle}>{emptyTitle}</p>
         <p className={styles.emptyHint}>{emptyHint}</p>
         {onImport ? (
@@ -167,39 +174,59 @@ export function RosterList({
             Import account
           </IconAction>
         ) : null}
-      </div>
+      </EnterStagger>
     );
   }
 
   if (groups) {
     return (
-      <Accordion
-        className="gap-1"
-        defaultValue={groups.map((group) => group.key)}
-        multiple
+      <EnterStagger
+        className="contents"
+        duration={0.22}
+        once="roster"
+        selector="[data-enter='row']"
+        stagger={0.035}
+        y={6}
       >
-        {groups.map((group) => (
-          <AccordionItem className="border-0" key={group.key} value={group.key}>
-            <AccordionTrigger className="px-1 py-1.5 hover:no-underline">
-              <span className="flex min-w-0 items-center gap-2">
-                <span className="truncate">{group.label}</span>
-                <Badge variant="secondary">{group.accounts.length}</Badge>
-              </span>
-            </AccordionTrigger>
-            <AccordionContent className="pb-0">
-              <div className={styles.list}>
-                {group.accounts.map((account) => renderRow(account))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+        <Accordion
+          className="gap-1"
+          defaultValue={groups.map((group) => group.key)}
+          multiple
+        >
+          {groups.map((group) => (
+            <AccordionItem
+              className="border-0"
+              key={group.key}
+              value={group.key}
+            >
+              <AccordionTrigger className="px-1 py-1.5 hover:no-underline">
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate">{group.label}</span>
+                  <Badge variant="secondary">{group.accounts.length}</Badge>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="pb-0">
+                <div className={styles.list}>
+                  {group.accounts.map((account) => renderRow(account))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </EnterStagger>
     );
   }
 
   return (
-    <div className={styles.list}>
+    <EnterStagger
+      className={styles.list}
+      duration={0.22}
+      once="roster"
+      selector="[data-enter='row']"
+      stagger={0.035}
+      y={6}
+    >
       {accounts.map((account) => renderRow(account))}
-    </div>
+    </EnterStagger>
   );
 }

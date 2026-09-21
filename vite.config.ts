@@ -16,6 +16,10 @@ export default defineConfig({
         codeSplitting: {
           groups: [
             {
+              name: "gsap",
+              test: /node_modules[\\/]gsap[\\/]/,
+            },
+            {
               name: "motion",
               test: /node_modules[\\/](motion|framer-motion)[\\/]/,
             },

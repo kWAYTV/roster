@@ -79,7 +79,7 @@ export function Toolbar({
   );
 
   return (
-    <header className={styles.toolbar}>
+    <header className={styles.toolbar} data-enter="chrome">
       {searchOpen ? (
         <>
           <SearchIcon
