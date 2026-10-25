@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -69,10 +70,45 @@ fn fetch_one(steamid: &str) -> Option<FetchedProfile> {
 }
 
 fn fetch_xml(steamid: &str) -> Option<String> {
+    fetch_xml_timeout(steamid, TIMEOUT)
+}
+
+/// Public profile display name, when Steam has one that isn't a SteamID.
+pub fn lookup_persona(steamid: &str) -> Option<String> {
+    let body = fetch_xml_timeout(steamid, Duration::from_secs(2))?;
+    let name = profile::parse(&body).persona_name;
+    let name = name.trim();
+    if crate::steam_config::loginusers::is_display_label(name) {
+        Some(name.to_string())
+    } else {
+        None
+    }
+}
+
+/// Resolve several personas, a few at a time.
+pub fn lookup_personas(steamids: &[String]) -> HashMap<String, String> {
+    let mut out = HashMap::new();
+    for chunk in steamids.chunks(WORKERS) {
+        std::thread::scope(|scope| {
+            let mut handles = Vec::new();
+            for steamid in chunk {
+                handles.push(scope.spawn(|| (steamid.clone(), lookup_persona(steamid))));
+            }
+            for handle in handles {
+                if let Ok((id, Some(name))) = handle.join() {
+                    out.insert(id, name);
+                }
+            }
+        });
+    }
+    out
+}
+
+fn fetch_xml_timeout(steamid: &str, timeout: Duration) -> Option<String> {
     let url = format!("https://steamcommunity.com/profiles/{steamid}/?xml=1");
     ureq::get(&url)
         .config()
-        .timeout_global(Some(TIMEOUT))
+        .timeout_global(Some(timeout))
         .build()
         .header("User-Agent", "Mozilla/5.0")
         .header("Cache-Control", "no-cache")

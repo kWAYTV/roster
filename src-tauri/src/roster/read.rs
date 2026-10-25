@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::fs;
+use std::path::Path;
 
 use super::account::Account;
 use super::avatar;
@@ -11,6 +12,24 @@ use crate::vdf::quoted_fields;
 /// All remembered accounts, most-recent first then alphabetical by display name.
 pub fn list() -> Result<Vec<Account>, String> {
     load_accounts(true)
+}
+
+/// Roster for the window. Resolves community personas for placeholder logins
+/// before the first paint, then remembers them.
+pub fn list_for_ui() -> Result<(Vec<Account>, bool), String> {
+    let mut accounts = list()?;
+    let install = install_dir()?;
+    let filled = fill_personas(&install, &mut accounts);
+    if filled {
+        accounts.sort_by(|a, b| {
+            b.metadata
+                .pinned
+                .cmp(&a.metadata.pinned)
+                .then_with(|| b.most_recent.cmp(&a.most_recent))
+                .then_with(|| a.display_name().cmp(b.display_name()))
+        });
+    }
+    Ok((accounts, filled))
 }
 
 /// Account list for tray rebuilds — skips JWT decryption.
@@ -40,7 +59,12 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
             if account.account_name.is_empty() {
                 account.account_name = rec.account_name.clone();
             }
-            if account.persona_name.is_empty() {
+            // Token store wins when Steam's file still has our `user######` placeholder.
+            if !crate::steam_config::loginusers::is_display_label(&account.persona_name)
+                && crate::steam_config::loginusers::is_display_label(&rec.persona_name)
+            {
+                account.persona_name = rec.persona_name.clone();
+            } else if account.persona_name.is_empty() {
                 account.persona_name = rec.persona_name.clone();
             }
         }
@@ -88,6 +112,42 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
             .then_with(|| a.display_name().cmp(b.display_name()))
     });
     Ok(accounts)
+}
+
+/// Fetch community display names for accounts that only have a `user######` placeholder.
+fn fill_personas(install: &Path, accounts: &mut [Account]) -> bool {
+    use crate::steam_config::loginusers::is_display_label;
+
+    let missing: Vec<String> = accounts
+        .iter()
+        .filter(|account| {
+            !is_display_label(&account.persona_name) && !is_display_label(&account.account_name)
+        })
+        .map(|account| account.steamid.clone())
+        .collect();
+    if missing.is_empty() {
+        return false;
+    }
+
+    let found = crate::status::lookup_personas(&missing);
+    if found.is_empty() {
+        return false;
+    }
+
+    let loginusers_path = install.join("config").join("loginusers.vdf");
+    for account in accounts.iter_mut() {
+        let Some(name) = found.get(&account.steamid) else {
+            continue;
+        };
+        account.persona_name.clone_from(name);
+        let _ = crate::tokens::set_persona(&account.steamid, name);
+        let _ = crate::steam_config::loginusers::set_persona_if_placeholder(
+            &loginusers_path,
+            &account.steamid,
+            name,
+        );
+    }
+    true
 }
 
 fn token_state(account: &Account, connect_map: Option<&HashMap<String, String>>) -> (bool, i64) {

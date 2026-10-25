@@ -28,14 +28,14 @@ pub fn require_config_files(config_dir: &Path) -> Result<(), String> {
 
 /// Make `steamid` the most-recent login: demote everyone else, then either
 /// refresh the existing block or append a new one.
-pub fn set_active(path: &Path, username: &str, steamid: &str) -> Result<(), String> {
+pub fn set_active(path: &Path, username: &str, persona: &str, steamid: &str) -> Result<(), String> {
     let mut content = fs::read_to_string(path).map_err(|_| "Failed to read loginusers.vdf.")?;
     content = demote_most_recent(&content);
 
     content = if content.contains(&format!("\"{steamid}\"")) {
-        refresh_block(&content, username, steamid)
+        refresh_block(&content, username, persona, steamid)
     } else {
-        insert_before_last_brace(&content, &new_block(username, steamid, true))
+        insert_before_last_brace(&content, &new_block(username, persona, steamid, true))
     };
 
     fs::write(path, content).map_err(|_| "Failed to write loginusers.vdf.".to_string())
@@ -43,12 +43,33 @@ pub fn set_active(path: &Path, username: &str, steamid: &str) -> Result<(), Stri
 
 /// Ensure `steamid` has a loginusers block without making it MostRecent.
 /// Used by multi-import so every stored account is visible in the roster.
-pub fn ensure_present(path: &Path, username: &str, steamid: &str) -> Result<(), String> {
+pub fn ensure_present(
+    path: &Path,
+    username: &str,
+    persona: &str,
+    steamid: &str,
+) -> Result<(), String> {
     let content = fs::read_to_string(path).map_err(|_| "Failed to read loginusers.vdf.")?;
     if entry_for(&content, steamid).is_some() {
+        return set_persona_if_placeholder(path, steamid, persona);
+    }
+    let updated = insert_before_last_brace(&content, &new_block(username, persona, steamid, false));
+    fs::write(path, updated).map_err(|_| "Failed to write loginusers.vdf.".to_string())
+}
+
+/// Replace `PersonaName` when it is empty or one of our placeholders.
+/// Leaves a real Steam persona untouched. No-op if the account block is absent.
+pub fn set_persona_if_placeholder(path: &Path, steamid: &str, persona: &str) -> Result<(), String> {
+    let persona = sanitize_persona(persona);
+    if !is_display_label(&persona) {
         return Ok(());
     }
-    let updated = insert_before_last_brace(&content, &new_block(username, steamid, false));
+    let Ok(content) = fs::read_to_string(path) else {
+        return Ok(());
+    };
+    let Some(updated) = replace_placeholder_persona(&content, steamid, &persona) else {
+        return Ok(());
+    };
     fs::write(path, updated).map_err(|_| "Failed to write loginusers.vdf.".to_string())
 }
 
@@ -82,7 +103,7 @@ fn demote_most_recent(content: &str) -> String {
 }
 
 /// Rewrite the fields inside the `steamid` block for an active login.
-fn refresh_block(content: &str, username: &str, steamid: &str) -> String {
+fn refresh_block(content: &str, username: &str, persona: &str, steamid: &str) -> String {
     let mut out = String::new();
     let mut lines = content.lines();
 
@@ -90,7 +111,7 @@ fn refresh_block(content: &str, username: &str, steamid: &str) -> String {
         out.push_str(line);
         out.push('\n');
         if is_header(line, steamid) {
-            rewrite_body(&mut out, &mut lines, username);
+            rewrite_body(&mut out, &mut lines, username, persona);
         }
     }
 
@@ -98,7 +119,12 @@ fn refresh_block(content: &str, username: &str, steamid: &str) -> String {
 }
 
 /// Consume `{ ... }` following a header, emitting the login-ready fields.
-fn rewrite_body<'a>(out: &mut String, lines: &mut impl Iterator<Item = &'a str>, username: &str) {
+fn rewrite_body<'a>(
+    out: &mut String,
+    lines: &mut impl Iterator<Item = &'a str>,
+    username: &str,
+    persona: &str,
+) {
     let mut seen_remember = false;
     let mut seen_autologin = false;
     let mut body: Vec<String> = Vec::new();
@@ -108,6 +134,7 @@ fn rewrite_body<'a>(out: &mut String, lines: &mut impl Iterator<Item = &'a str>,
         body.push(rewrite_field(
             line,
             username,
+            persona,
             &mut seen_remember,
             &mut seen_autologin,
         ));
@@ -135,6 +162,7 @@ fn rewrite_body<'a>(out: &mut String, lines: &mut impl Iterator<Item = &'a str>,
 fn rewrite_field(
     line: &str,
     username: &str,
+    persona: &str,
     seen_remember: &mut bool,
     seen_autologin: &mut bool,
 ) -> String {
@@ -147,6 +175,14 @@ fn rewrite_field(
                     format!("{line}\n")
                 } else {
                     format!("\t\t\"AccountName\"\t\t\"{username}\"\n")
+                }
+            }
+            "PersonaName" => {
+                let next = sanitize_persona(persona);
+                if is_display_label(&next) && !is_display_label(&fields[1]) {
+                    format!("\t\t\"PersonaName\"\t\t\"{next}\"\n")
+                } else {
+                    format!("{line}\n")
                 }
             }
             "MostRecent" => "\t\t\"MostRecent\"\t\t\"1\"\n".to_string(),
@@ -173,10 +209,27 @@ fn should_preserve_account_name(existing: &str, incoming: &str) -> bool {
 }
 
 /// `jwt::username` fallback shape: `user` + last 6 SteamID digits.
-fn is_generated_username(value: &str) -> bool {
+pub fn is_generated_username(value: &str) -> bool {
     value.len() == 10
         && value.starts_with("user")
         && value.as_bytes()[4..].iter().all(u8::is_ascii_digit)
+}
+
+/// A name safe to show as a persona or login. Placeholders and SteamIDs are not.
+pub fn is_display_label(value: &str) -> bool {
+    let value = value.trim();
+    !value.is_empty() && !looks_like_steamid(value) && !is_generated_username(value)
+}
+
+/// Strip characters that would break a quoted VDF value.
+pub fn sanitize_persona(value: &str) -> String {
+    value
+        .trim()
+        .chars()
+        .filter(|c| !matches!(c, '"' | '\\' | '{' | '}' | '\n' | '\r' | '\t'))
+        .collect::<String>()
+        .trim()
+        .to_string()
 }
 
 fn strip_block(content: &str, steamid: &str) -> String {
@@ -278,13 +331,56 @@ fn list_entries(content: &str) -> Vec<LoginEntry> {
     entries
 }
 
-fn new_block(username: &str, steamid: &str, most_recent: bool) -> String {
+/// `None` when nothing changed (missing block, or the persona is already real).
+fn replace_placeholder_persona(content: &str, steamid: &str, persona: &str) -> Option<String> {
+    let mut out = String::new();
+    let mut inside = false;
+    let mut replaced = false;
+
+    for line in content.lines() {
+        if is_header(line, steamid) {
+            inside = true;
+            out.push_str(line);
+            out.push('\n');
+            continue;
+        }
+        if inside && line.trim() == "}" {
+            inside = false;
+        }
+        if inside {
+            let fields = quoted_fields(line);
+            if fields.len() >= 2 && fields[0] == "PersonaName" {
+                if is_display_label(&fields[1]) {
+                    return None;
+                }
+                let indent = indent_of(line);
+                out.push_str(&format!("{indent}\"PersonaName\"\t\t\"{persona}\"\n"));
+                replaced = true;
+                continue;
+            }
+        }
+        out.push_str(line);
+        out.push('\n');
+    }
+
+    replaced.then_some(out)
+}
+
+fn new_block(username: &str, persona: &str, steamid: &str, most_recent: bool) -> String {
     let ts = now();
     let recent = if most_recent { "1" } else { "0" };
+    let shown = {
+        let clean = sanitize_persona(persona);
+        if is_display_label(&clean) {
+            clean
+        } else {
+            String::new()
+        }
+    };
     format!(
         "\t\"{steamid}\"\n\t{{\n\
          \t\t\"AccountName\"\t\t\"{username}\"\n\
-         \t\t\"PersonaName\"\t\t\"{username}\"\n\
+         \t\t\"PersonaName\"\t\t\"{shown}\"\n\
          \t\t\"RememberPassword\"\t\t\"1\"\n\
          \t\t\"WantsOfflineMode\"\t\t\"0\"\n\
          \t\t\"SkipOfflineModeWarning\"\t\t\"0\"\n\
@@ -311,16 +407,16 @@ fn now() -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        demote_most_recent, entry_for, is_generated_username, list_entries, new_block,
-        should_preserve_account_name, strip_block,
+        demote_most_recent, entry_for, is_display_label, is_generated_username, list_entries,
+        new_block, replace_placeholder_persona, should_preserve_account_name, strip_block,
     };
 
     #[test]
     fn strips_target_block_only() {
         let content = format!(
             "\"users\"\n{{\n{}{}}}\n",
-            new_block("a", "11111111111111111", true),
-            new_block("b", "22222222222222222", false)
+            new_block("a", "Alpha", "11111111111111111", true),
+            new_block("b", "Beta", "22222222222222222", false)
         );
         let out = strip_block(&content, "11111111111111111");
         assert!(!out.contains("\"11111111111111111\""));
@@ -362,5 +458,19 @@ mod tests {
         assert!(!should_preserve_account_name("", "coolname"));
         assert!(is_generated_username("user081825"));
         assert!(!is_generated_username("userfoo"));
+        assert!(!is_display_label("user081825"));
+        assert!(is_display_label("who did"));
+    }
+
+    #[test]
+    fn replaces_placeholder_persona_only() {
+        let content = new_block("user681954", "user681954", "76561199664681954", false);
+        let updated = replace_placeholder_persona(&content, "76561199664681954", "who did")
+            .expect("placeholder persona");
+        assert!(updated.contains("\"PersonaName\"\t\t\"who did\""));
+        assert!(updated.contains("\"AccountName\"\t\t\"user681954\""));
+
+        let real = new_block("bill2003", "missfavela", "76561198000000000", false);
+        assert!(replace_placeholder_persona(&real, "76561198000000000", "other").is_none());
     }
 }

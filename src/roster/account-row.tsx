@@ -19,7 +19,7 @@ import { CooldownMenu } from "../cooldown/cooldown-menu";
 import { useNow } from "../cooldown/use-now";
 import type { AccountStatus } from "../status/status";
 import { StatusDot } from "../status/status-dot";
-import type { AccountView } from "./account";
+import { type AccountView, visibleAccountName } from "./account";
 import { AccountContextMenu } from "./account-context-menu";
 import styles from "./account-row.module.css";
 import { formatJwtExpiry, jwtExpiryTooltip } from "./jwt-label";
@@ -84,7 +84,7 @@ export function AccountRow({
   const name = streamer ? `Account ${index + 1}` : account.display_name;
   const login = streamer
     ? "\u2022\u2022\u2022\u2022\u2022"
-    : account.account_name;
+    : visibleAccountName(account);
   const lastUsed = formatLastUsed(account.last_used, now || nowSeconds());
   const game = status?.state === "in-game" ? status.game : "";
   const jwtLabel = formatJwtExpiry(account.jwt_expires_in);

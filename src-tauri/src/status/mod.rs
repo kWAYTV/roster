@@ -4,5 +4,5 @@
 mod fetch;
 mod profile;
 
-pub use fetch::{sweep, FetchedProfile};
+pub use fetch::{lookup_persona, lookup_personas, sweep, FetchedProfile};
 pub use profile::OnlineState;

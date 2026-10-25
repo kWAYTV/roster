@@ -4,9 +4,13 @@ use super::dto::AccountView;
 use super::{after_account_change, find_account};
 
 #[tauri::command]
-pub fn list_accounts() -> Result<Vec<AccountView>, String> {
+pub fn list_accounts(app: AppHandle) -> Result<Vec<AccountView>, String> {
+    let (accounts, filled) = crate::roster::list_for_ui()?;
+    if filled {
+        let _ = crate::tray::rebuild(&app);
+    }
     let autologin = crate::steam_client::autologin_user();
-    Ok(crate::roster::list()?
+    Ok(accounts
         .iter()
         .map(|account| AccountView::from_account(account, autologin.as_deref()))
         .collect())

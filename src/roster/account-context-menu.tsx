@@ -20,7 +20,7 @@ import {
 } from "@/ui/primitives/context-menu";
 
 import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
-import type { AccountView } from "./account";
+import { type AccountView, visibleAccountName } from "./account";
 import { IconItem, IconSubTrigger } from "./menu-icon-item";
 
 const AVATAR_SIZE = 28;
@@ -168,7 +168,7 @@ export function AccountContextMenu({
             </div>
             {streamer ? null : (
               <div className="truncate text-muted-foreground text-xs leading-tight">
-                {account.account_name}
+                {visibleAccountName(account)}
               </div>
             )}
           </div>

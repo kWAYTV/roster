@@ -2,4 +2,4 @@
 
 mod store;
 
-pub use store::{all, clear_all, remove, save, token_for};
+pub use store::{all, clear_all, persona_for, remove, save, set_persona, token_for};

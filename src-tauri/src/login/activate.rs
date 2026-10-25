@@ -46,7 +46,10 @@ pub fn activate(
     prefs: &SignInPrefs,
 ) -> Result<(), String> {
     let loginusers_path = install.join("config").join("loginusers.vdf");
-    loginusers::set_active(&loginusers_path, username, steamid)?;
+    let persona = crate::tokens::persona_for(steamid)
+        .filter(|name| loginusers::is_display_label(name))
+        .unwrap_or_else(|| username.to_string());
+    loginusers::set_active(&loginusers_path, username, &persona, steamid)?;
     // set_active may keep an existing real AccountName; AutoLoginUser must match it.
     let autologin = loginusers::account_name_for(&loginusers_path, steamid)?
         .filter(|name| !name.is_empty())

@@ -112,10 +112,32 @@ fn store_entry(
         &username,
         &steamid,
     )?;
-    loginusers::ensure_present(loginusers_path, &username, &steamid)?;
+    let persona = persona_to_store(&username, community_persona(&username, &steamid).as_deref());
+    loginusers::ensure_present(loginusers_path, &username, &persona, &steamid)?;
     connect_cache::store_token(cache, &username, &token)?;
-    crate::tokens::save(&steamid, &username, &username, &token);
+    crate::tokens::save(&steamid, &username, &persona, &token);
     Ok((username, steamid))
+}
+
+/// Persona written next to a new account. Real logins are kept; placeholders
+/// are replaced with the public Steam profile name when we can read one.
+pub(crate) fn persona_to_store(username: &str, fetched: Option<&str>) -> String {
+    use crate::steam_config::loginusers::{is_display_label, sanitize_persona};
+
+    if is_display_label(username) {
+        return username.to_string();
+    }
+    fetched
+        .map(sanitize_persona)
+        .filter(|name| is_display_label(name))
+        .unwrap_or_default()
+}
+
+fn community_persona(username: &str, steamid: &str) -> Option<String> {
+    if crate::steam_config::loginusers::is_display_label(username) {
+        return None;
+    }
+    crate::status::lookup_persona(steamid)
 }
 
 fn summary(stored: usize, username: &str, failures: &[String]) -> String {
@@ -145,7 +167,14 @@ fn with_failures(base: String, failures: &[String]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::summary;
+    use super::{persona_to_store, summary};
+
+    #[test]
+    fn placeholder_login_uses_fetched_persona() {
+        assert_eq!(persona_to_store("user681954", Some("who did")), "who did");
+        assert_eq!(persona_to_store("user681954", None), "");
+        assert_eq!(persona_to_store("bill2003", Some("ignored")), "bill2003");
+    }
 
     #[test]
     fn summary_mentions_failures() {

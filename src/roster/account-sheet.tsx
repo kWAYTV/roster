@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/primitives/tabs";
 import { Textarea } from "@/ui/primitives/textarea";
 
-import type { AccountView } from "./account";
+import { type AccountView, visibleAccountName } from "./account";
 import { formatJwtExpiry, jwtExpiryTooltip } from "./jwt-label";
 import { formatLastUsed } from "./last-used";
 import {
@@ -191,7 +191,7 @@ function AccountSheetForm({
       <SheetHeader>
         <SheetTitle className="truncate">{title}</SheetTitle>
         <SheetDescription className="truncate font-mono">
-          {streamer ? "Hidden in streamer mode" : account.account_name}
+          {streamer ? "Hidden in streamer mode" : visibleAccountName(account)}
         </SheetDescription>
       </SheetHeader>
 

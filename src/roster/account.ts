@@ -26,3 +26,18 @@ export interface AccountView {
   steamid: string;
   tags: string[];
 }
+
+const GENERATED_USERNAME = /^user\d{6}$/;
+
+/// `user` plus the last 6 SteamID digits — the placeholder used when a token has no login.
+export function isGeneratedUsername(value: string): boolean {
+  return GENERATED_USERNAME.test(value);
+}
+
+/// Login shown in the UI. Placeholder names fall back to the SteamID.
+export function visibleAccountName(account: AccountView): string {
+  if (isGeneratedUsername(account.account_name)) {
+    return account.steamid;
+  }
+  return account.account_name;
+}

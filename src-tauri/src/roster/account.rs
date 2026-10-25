@@ -18,17 +18,17 @@ pub struct Account {
 }
 
 impl Account {
-    /// Persona from loginusers.vdf when it looks like a real display name.
+    /// Persona when it is a real display name, not a SteamID or `user######` placeholder.
     pub fn has_real_persona(&self) -> bool {
-        !self.persona_name.is_empty() && !looks_like_steamid(&self.persona_name)
+        crate::steam_config::loginusers::is_display_label(&self.persona_name)
     }
 
-    /// The friendliest available name: persona if set, else the login name.
+    /// The friendliest available name: persona, else a real login, else the SteamID.
     pub fn display_name(&self) -> &str {
         if self.has_real_persona() {
             return &self.persona_name;
         }
-        if !self.account_name.is_empty() && !looks_like_steamid(&self.account_name) {
+        if crate::steam_config::loginusers::is_display_label(&self.account_name) {
             return &self.account_name;
         }
         &self.steamid
@@ -56,4 +56,32 @@ impl Account {
 
 fn looks_like_steamid(value: &str) -> bool {
     value.len() >= 16 && value.chars().all(|c| c.is_ascii_digit())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Account;
+
+    #[test]
+    fn generated_username_is_not_the_display_name() {
+        let account = Account {
+            steamid: "76561199664681954".into(),
+            account_name: "user681954".into(),
+            persona_name: "user681954".into(),
+            ..Account::default()
+        };
+        assert!(!account.has_real_persona());
+        assert_eq!(account.display_name(), "76561199664681954");
+    }
+
+    #[test]
+    fn community_persona_wins_over_generated_login() {
+        let account = Account {
+            steamid: "76561199664681954".into(),
+            account_name: "user681954".into(),
+            persona_name: "who did".into(),
+            ..Account::default()
+        };
+        assert_eq!(account.display_name(), "who did");
+    }
 }

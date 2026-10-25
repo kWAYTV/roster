@@ -1,4 +1,5 @@
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter};
@@ -45,14 +46,32 @@ fn start_sweep(app: AppHandle) {
         }
     };
 
+    let emit_app = app.clone();
     std::thread::spawn(move || {
-        sweep(&steamids, |steamid, fetched| {
+        let filled = Arc::new(AtomicBool::new(false));
+        let filled_flag = Arc::clone(&filled);
+        sweep(&steamids, move |steamid, fetched| {
             let Some(fetched) = fetched else {
                 return;
             };
             let account = accounts.iter().find(|item| item.steamid == steamid);
-            let _ = app.emit("account-status", view(steamid, account, &fetched));
+            let view = view(steamid, account, &fetched);
+            if let Some(name) = &view.display_name {
+                if crate::tokens::set_persona(steamid, name) {
+                    filled_flag.store(true, Ordering::Relaxed);
+                }
+                if let Ok(install) = crate::steam_client::install_dir() {
+                    let path = install.join("config").join("loginusers.vdf");
+                    let _ = crate::steam_config::loginusers::set_persona_if_placeholder(
+                        &path, steamid, name,
+                    );
+                }
+            }
+            let _ = emit_app.emit("account-status", view);
         });
+        if filled.load(Ordering::Relaxed) {
+            let _ = crate::tray::rebuild(&app);
+        }
         SWEEPING.store(false, Ordering::SeqCst);
         if QUEUED.swap(false, Ordering::SeqCst) {
             start_sweep(app);
@@ -64,8 +83,7 @@ fn view(steamid: &str, account: Option<&Account>, fetched: &FetchedProfile) -> S
     let status = &fetched.status;
     let persona = status.persona_name.trim();
     let enrich_name = account.is_some_and(needs_profile_label)
-        && !persona.is_empty()
-        && !looks_like_steamid(persona);
+        && crate::steam_config::loginusers::is_display_label(persona);
     let enrich_avatar =
         account.is_some_and(|item| item.avatar_path.is_none()) && fetched.avatar.is_some();
 
@@ -88,8 +106,4 @@ fn view(steamid: &str, account: Option<&Account>, fetched: &FetchedProfile) -> S
 
 fn needs_profile_label(account: &Account) -> bool {
     !account.has_real_persona()
-}
-
-fn looks_like_steamid(value: &str) -> bool {
-    value.len() >= 16 && value.chars().all(|c| c.is_ascii_digit())
 }

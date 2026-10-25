@@ -34,6 +34,29 @@ pub fn token_for(steamid: &str) -> Option<String> {
     get(steamid).map(|record| record.token)
 }
 
+pub fn persona_for(steamid: &str) -> Option<String> {
+    get(steamid)
+        .map(|record| record.persona_name)
+        .filter(|name| !name.is_empty())
+}
+
+/// Remember a resolved community name. Returns whether the store changed.
+pub fn set_persona(steamid: &str, persona: &str) -> bool {
+    let persona = persona.trim();
+    if persona.is_empty() {
+        return false;
+    }
+    let mut records = all();
+    let Some(record) = records.get_mut(steamid) else {
+        return false;
+    };
+    if record.persona_name == persona {
+        return false;
+    }
+    record.persona_name = persona.to_string();
+    persist(&records).is_ok()
+}
+
 pub fn save(steamid: &str, account_name: &str, persona_name: &str, token: &str) {
     let mut records = all();
     records.insert(
