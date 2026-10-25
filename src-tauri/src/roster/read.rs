@@ -60,12 +60,11 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
                 account.account_name = rec.account_name.clone();
             }
             // Token store wins when Steam's file still has our `user######` placeholder.
+            // An empty loginusers persona is not a display label, so this covers that too.
             if !crate::steam_config::loginusers::is_display_label(&account.persona_name)
                 && crate::steam_config::loginusers::is_display_label(&rec.persona_name)
             {
-                account.persona_name = rec.persona_name.clone();
-            } else if account.persona_name.is_empty() {
-                account.persona_name = rec.persona_name.clone();
+                account.persona_name.clone_from(&rec.persona_name);
             }
         }
     }
