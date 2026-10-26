@@ -1,7 +1,7 @@
 use serde::Serialize;
 use tauri::AppHandle;
 
-use super::after_account_change;
+use super::{after_account_change, run_blocking};
 
 #[derive(Serialize)]
 pub struct ClassifyResult {
@@ -28,10 +28,16 @@ pub fn classify_import(payload: String) -> ClassifyResult {
 }
 
 #[tauri::command]
-pub fn import_accounts(
+pub async fn import_accounts(
     app: AppHandle,
     payload: String,
     without_sign_in: bool,
 ) -> Result<String, String> {
-    after_account_change(&app, crate::intake::import_text(&payload, without_sign_in))
+    run_blocking(move || {
+        after_account_change(
+            &app,
+            crate::intake::import_text(&payload, without_sign_in),
+        )
+    })
+    .await
 }

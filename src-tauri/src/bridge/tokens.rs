@@ -1,6 +1,7 @@
 //! Token health check without signing in.
 
 use serde::Serialize;
+use tauri::{AppHandle, Emitter};
 
 use crate::intake::{expires_in, is_jwt};
 use crate::steam_client::cache_dir;
@@ -16,7 +17,7 @@ pub struct TokenHealth {
 
 /// Decrypt each roster token and report ok / expired / missing / invalid.
 #[tauri::command]
-pub fn check_tokens() -> Result<Vec<TokenHealth>, String> {
+pub fn check_tokens(app: AppHandle) -> Result<Vec<TokenHealth>, String> {
     let accounts = crate::roster::list()?;
     let connect_map = cache_dir()
         .ok()
@@ -53,5 +54,7 @@ pub fn check_tokens() -> Result<Vec<TokenHealth>, String> {
         });
     }
 
+    // Relist in the window so JWT badges match this decrypt pass.
+    let _ = app.emit("accounts-changed", ());
     Ok(out)
 }

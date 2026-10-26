@@ -13,25 +13,46 @@ const DETACHED_PROCESS: u32 = 0x0000_0008;
 const CLIENT_NAME: &str = "steam.exe";
 const ALL_NAMES: [&str; 2] = [CLIENT_NAME, "steamwebhelper.exe"];
 
-const SHUTDOWN_WAIT: Duration = Duration::from_millis(800);
-const KILL_SETTLE: Duration = Duration::from_millis(500);
+const SHUTDOWN_POLL: Duration = Duration::from_millis(200);
+const SHUTDOWN_BUDGET: Duration = Duration::from_secs(6);
+const KILL_BUDGET: Duration = Duration::from_secs(4);
 
-/// Ask Steam to quit, then force-kill anything left.
+/// Ask Steam to quit, then force-kill anything left and wait until it's gone.
+/// Returning while steamwebhelper is still alive is what leaves sign-in stuck
+/// on "Loading user data".
 pub fn stop() -> Result<(), String> {
     if !any_steam_process() {
         return Ok(());
     }
 
     request_shutdown();
-    std::thread::sleep(SHUTDOWN_WAIT);
-    if !any_steam_process() {
+    if wait_until_stopped(SHUTDOWN_BUDGET) {
         return Ok(());
     }
 
     kill_tracked_pid();
     kill_by_name();
-    std::thread::sleep(KILL_SETTLE);
+    if wait_until_stopped(KILL_BUDGET) {
+        return Ok(());
+    }
+
+    // One more pass for stubborn helpers, then proceed — relaunch still waits.
+    kill_by_name();
+    let _ = wait_until_stopped(Duration::from_secs(2));
     Ok(())
+}
+
+fn wait_until_stopped(budget: Duration) -> bool {
+    let started = std::time::Instant::now();
+    while started.elapsed() < budget {
+        if !any_steam_process() {
+            // Brief settle so file locks drop before we rewrite config.
+            std::thread::sleep(Duration::from_millis(300));
+            return !any_steam_process();
+        }
+        std::thread::sleep(SHUTDOWN_POLL);
+    }
+    !any_steam_process()
 }
 
 /// True when `steam.exe` is alive (helpers alone do not count).

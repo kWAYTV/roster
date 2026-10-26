@@ -12,6 +12,7 @@ import { commands } from "../platform/invoke";
 import { useMetadataBackup } from "../preferences/use-metadata-backup";
 import { usePreferences } from "../preferences/use-preferences";
 import type { AccountView } from "../roster/account";
+import { liveJwtExpiresIn } from "../roster/jwt-label";
 import { RosterList } from "../roster/roster-list";
 import { SelectionMenu } from "../roster/selection-menu";
 import { useAccountEditors } from "../roster/use-account-editors";
@@ -36,7 +37,8 @@ import { useShellShortcuts } from "./use-shell-shortcuts";
 import { useShellUi } from "./use-shell-ui";
 
 export function App() {
-  const { accounts, loading, error, patchAccount, patchProfile } = useRoster();
+  const { accounts, listedAt, loading, error, patchAccount, patchProfile } =
+    useRoster();
   const statuses = useStatus(!loading, patchProfile);
   const { preferences, setPreference, patchPreferences } = usePreferences();
   useTheme(preferences.theme);
@@ -100,18 +102,34 @@ export function App() {
     setTab: setDetailTab,
   } = useAccountEditors();
 
-  const detailAccount = useMemo(
+  const clock = now || nowSeconds();
+
+  // Tick JWT remaining time down from the last list snapshot so expiry badges
+  // flip without waiting for another accounts-changed refresh.
+  const accountsLive = useMemo(
     () =>
-      accounts.find((account) => account.steamid === detailTarget?.steamid) ??
-      null,
-    [accounts, detailTarget]
+      accounts.map((account) => ({
+        ...account,
+        jwt_expires_in: liveJwtExpiresIn(
+          account.jwt_expires_in,
+          listedAt,
+          clock
+        ),
+      })),
+    [accounts, clock, listedAt]
   );
 
-  const clock = now || nowSeconds();
+  const detailAccount = useMemo(
+    () =>
+      accountsLive.find(
+        (account) => account.steamid === detailTarget?.steamid
+      ) ?? null,
+    [accountsLive, detailTarget]
+  );
 
   const filtered = useMemo(() => {
     const matched = filterAccounts(
-      accounts,
+      accountsLive,
       ui.query,
       filter,
       statuses,
@@ -120,7 +138,7 @@ export function App() {
     );
     return sortAccounts(matched, sort, clock);
   }, [
-    accounts,
+    accountsLive,
     clock,
     filter,
     preferences.warn_jwt_expiry_days,
@@ -142,7 +160,7 @@ export function App() {
 
   const requestSignIn = useCallback(
     (steamid: string, forceInvisible = false) => {
-      const account = accounts.find(
+      const account = accountsLive.find(
         (candidate) => candidate.steamid === steamid
       );
       if (!account || forceInvisible) {
@@ -155,7 +173,7 @@ export function App() {
       }
       signIn(steamid, forceInvisible);
     },
-    [accounts, askCooldownSignIn, signIn]
+    [accountsLive, askCooldownSignIn, signIn]
   );
 
   const openProfile = useCallback(async (steamid: string) => {
@@ -256,8 +274,8 @@ export function App() {
       : `${filtered.length}/${accounts.length}`;
 
   const exportCountForFiltered = useCallback(
-    (steamids: string[]) => exportCountFor(accounts, steamids),
-    [accounts, exportCountFor]
+    (steamids: string[]) => exportCountFor(accountsLive, steamids),
+    [accountsLive, exportCountFor]
   );
 
   const handleCheckForUpdates = useCallback(() => {
@@ -380,16 +398,16 @@ export function App() {
 
       {error ? <ErrorStatusGate key={error} message={error} /> : null}
       {!loading &&
-      accounts.length > 0 &&
+      accountsLive.length > 0 &&
       preferences.warn_jwt_expiry_days > 0 ? (
         <JwtWarningGate
-          accounts={accounts}
+          accounts={accountsLive}
           warnDays={preferences.warn_jwt_expiry_days}
         />
       ) : null}
 
       <CommandPalette
-        accounts={accounts}
+        accounts={accountsLive}
         onFilter={setFilter}
         onOpenChange={setCommandOpen}
         onOpenImport={openImport}

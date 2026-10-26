@@ -1,3 +1,25 @@
+/**
+ * Adjust a snapshot `jwt_expires_in` from list time so badges expire live
+ * without waiting for another roster refresh.
+ */
+export function liveJwtExpiresIn(
+  expiresIn: number,
+  listedAtSeconds: number,
+  nowSeconds: number
+): number {
+  if (expiresIn === 0) {
+    return 0;
+  }
+  if (expiresIn < 0) {
+    return -1;
+  }
+  if (listedAtSeconds <= 0) {
+    return expiresIn;
+  }
+  const remaining = expiresIn - (nowSeconds - listedAtSeconds);
+  return remaining > 0 ? remaining : -1;
+}
+
 /** Short JWT expiry label for row badges (seconds remaining; -1 = expired). */
 export function formatJwtExpiry(expiresIn: number): string {
   if (expiresIn < 0) {

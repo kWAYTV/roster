@@ -9,7 +9,8 @@ use crate::steam_client::{launch, launch_cs2, localconfig_path, steamid3_from_st
 /// Start Steam for the active account. Assumes callers already stopped Steam
 /// so the freshly written config is not clobbered.
 pub fn relaunch(install: &Path, steamid: &str, prefs: &SignInPrefs) -> Result<(), String> {
-    std::thread::sleep(Duration::from_millis(400));
+    // Give the previous Steam process time to release config/cache locks.
+    std::thread::sleep(Duration::from_millis(900));
     launch(install, prefs.launch_steam_minimized)?;
 
     if prefs.cancel_downloads_on_login {

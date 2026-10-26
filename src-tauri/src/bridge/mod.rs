@@ -25,11 +25,31 @@ pub(crate) fn after_account_change(
         Ok(message) => crate::log::append(message.to_string()),
         Err(error) => crate::log::append(format!("Error: {error}")),
     }
-    if result.is_ok() {
+    // Refresh the roster on token failures too — so JWT expired badges update.
+    if result.is_ok() || is_token_roster_error(&result) {
         let _ = crate::tray::rebuild(app);
         let _ = app.emit("accounts-changed", ());
     }
     result
+}
+
+fn is_token_roster_error(result: &Result<String, String>) -> bool {
+    let Err(error) = result else {
+        return false;
+    };
+    let lower = error.to_ascii_lowercase();
+    lower.contains("expired") || lower.contains("no saved login token")
+}
+
+/// Run Steam/file work off the IPC thread so the window stays responsive.
+pub(crate) async fn run_blocking<T, F>(work: F) -> Result<T, String>
+where
+    T: Send + 'static,
+    F: FnOnce() -> Result<T, String> + Send + 'static,
+{
+    tauri::async_runtime::spawn_blocking(work)
+        .await
+        .map_err(|error| format!("Background task failed: {error}"))?
 }
 
 /// Resolve a stored account by SteamID for command handlers.

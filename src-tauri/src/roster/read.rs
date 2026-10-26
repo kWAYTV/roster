@@ -14,22 +14,12 @@ pub fn list() -> Result<Vec<Account>, String> {
     load_accounts(true)
 }
 
-/// Roster for the window. Resolves community personas for placeholder logins
-/// before the first paint, then remembers them.
-pub fn list_for_ui() -> Result<(Vec<Account>, bool), String> {
+/// Fetch community personas for placeholder logins and persist them.
+/// Returns whether any account changed (caller should refresh the UI).
+pub fn fill_missing_personas() -> Result<bool, String> {
     let mut accounts = list()?;
     let install = install_dir()?;
-    let filled = fill_personas(&install, &mut accounts);
-    if filled {
-        accounts.sort_by(|a, b| {
-            b.metadata
-                .pinned
-                .cmp(&a.metadata.pinned)
-                .then_with(|| b.most_recent.cmp(&a.most_recent))
-                .then_with(|| a.display_name().cmp(b.display_name()))
-        });
-    }
-    Ok((accounts, filled))
+    Ok(fill_personas(&install, &mut accounts))
 }
 
 /// Account list for tray rebuilds — skips JWT decryption.

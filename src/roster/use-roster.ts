@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { nowSeconds } from "../cooldown/cooldown";
 import { onAccountsChanged } from "../platform/events";
 import { commands } from "../platform/invoke";
 import type { AccountView } from "./account";
@@ -14,15 +15,18 @@ export interface ProfilePatch {
 /// Load the account roster and keep it in sync with backend change events.
 export function useRoster() {
   const [accounts, setAccounts] = useState<AccountView[]>([]);
+  const [listedAt, setListedAt] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       setAccounts(await commands.listAccounts());
+      setListedAt(nowSeconds());
       setError(null);
     } catch (cause) {
       setAccounts([]);
+      setListedAt(0);
       setError(String(cause));
     } finally {
       setLoading(false);
@@ -74,5 +78,5 @@ export function useRoster() {
     };
   }, [refresh]);
 
-  return { accounts, error, loading, patchAccount, patchProfile };
+  return { accounts, error, listedAt, loading, patchAccount, patchProfile };
 }
