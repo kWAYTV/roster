@@ -27,15 +27,13 @@ fn schedule_persona_fill(app: AppHandle) {
         return;
     }
 
-    std::thread::spawn(move || {
-        match crate::roster::fill_missing_personas() {
-            Ok(true) => {
-                let _ = crate::tray::rebuild(&app);
-                let _ = app.emit("accounts-changed", ());
-            }
-            Ok(false) => {}
-            Err(error) => crate::log::append(format!("Error: persona fill failed: {error}")),
+    std::thread::spawn(move || match crate::roster::fill_missing_personas() {
+        Ok(true) => {
+            let _ = crate::tray::rebuild(&app);
+            let _ = app.emit("accounts-changed", ());
         }
+        Ok(false) => {}
+        Err(error) => crate::log::append(format!("Error: persona fill failed: {error}")),
     });
 }
 
