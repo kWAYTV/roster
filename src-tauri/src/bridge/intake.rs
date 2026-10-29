@@ -34,10 +34,7 @@ pub async fn import_accounts(
     without_sign_in: bool,
 ) -> Result<String, String> {
     run_blocking(move || {
-        after_account_change(
-            &app,
-            crate::intake::import_text(&payload, without_sign_in),
-        )
+        after_account_change(&app, crate::intake::import_text(&payload, without_sign_in))
     })
     .await
 }
