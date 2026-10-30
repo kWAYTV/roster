@@ -38,8 +38,11 @@ System stacks only (Tauri CSP — no remote fonts).
 
 ## Motion
 - `--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`
-- Hover/press only; no enter staggers, no grid reveals
+- Hover/press only; at most one quiet opacity enter (no blur, no multi-direction fly-ins)
 - Reduced-motion: opacity only ≤150ms
+
+## Unslop polish (2026-10)
+Light pass over locked Cursor zinc. Quiet chrome, presence dots as signature, no hue gradients/glows/emoji chrome. Spacing on 4px grid; weights 400–500; micro type ≥11px.
 
 ## Microinteractions stance
 - Silent chrome: feedback lives in the footer status line (errors linger; click to dismiss)

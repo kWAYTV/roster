@@ -313,11 +313,11 @@ export function App() {
 
   const frameRef = useRef<HTMLDivElement>(null);
   useEnterStagger(frameRef, {
-    duration: 0.24,
+    duration: 0.18,
     once: "shell",
     selector: "[data-enter='chrome']",
-    stagger: 0.05,
-    y: 6,
+    stagger: 0,
+    y: 0,
   });
 
   return (

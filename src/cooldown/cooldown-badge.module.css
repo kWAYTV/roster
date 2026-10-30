@@ -1,8 +1,8 @@
 .badge {
   flex-shrink: 0;
-  padding: 0 5px;
-  font-size: 10px;
-  font-weight: 600;
+  padding: 0 4px;
+  font-size: var(--text-xs);
+  font-weight: 500;
   line-height: 16px;
   color: var(--danger);
   white-space: nowrap;

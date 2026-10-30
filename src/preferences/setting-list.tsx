@@ -52,7 +52,7 @@ function SettingRow({ setting, checked, onChange }: SettingRowProps) {
       htmlFor={id}
     >
       <span className="min-w-0 flex-1">
-        <span className="block font-semibold text-sm leading-snug tracking-tight">
+        <span className="block font-medium text-sm leading-snug tracking-tight">
           {setting.label}
         </span>
         <span className="mt-0.5 block text-pretty text-muted-foreground text-xs leading-snug">

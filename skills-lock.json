@@ -72,6 +72,12 @@
       "sourceType": "github",
       "skillPath": ".claude/skills/tauri-v2/SKILL.md",
       "computedHash": "7108944eec3bef17686df9ebae9c9bdbee7809744930c8734c979e3c4573eaab"
+    },
+    "unslop": {
+      "source": "heydamir/unslop",
+      "sourceType": "github",
+      "skillPath": "skills/unslop/SKILL.md",
+      "computedHash": "375ce784374371f9d8558244c48f8863ffdbf1ca99c66bb6b2db178c5197bc76"
     }
   }
 }

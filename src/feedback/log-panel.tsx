@@ -20,10 +20,10 @@ function LogPanelLive() {
   const lines = useLogLines();
   const ref = useRef<HTMLElement>(null);
   useEnterStagger(ref, {
-    duration: 0.2,
+    duration: 0.16,
     selector: ":scope",
     stagger: 0,
-    y: 6,
+    y: 0,
   });
 
   return (

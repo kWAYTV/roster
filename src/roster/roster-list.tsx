@@ -182,11 +182,11 @@ export function RosterList({
     return (
       <EnterStagger
         className="contents"
-        duration={0.22}
+        duration={0.16}
         once="roster"
         selector="[data-enter='row']"
-        stagger={0.035}
-        y={6}
+        stagger={0.02}
+        y={4}
       >
         <Accordion
           className="gap-1"
@@ -220,11 +220,11 @@ export function RosterList({
   return (
     <EnterStagger
       className={styles.list}
-      duration={0.22}
+      duration={0.16}
       once="roster"
       selector="[data-enter='row']"
-      stagger={0.035}
-      y={6}
+      stagger={0.02}
+      y={4}
     >
       {accounts.map((account) => renderRow(account))}
     </EnterStagger>

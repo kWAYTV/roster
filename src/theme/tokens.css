@@ -50,8 +50,8 @@
   --z-modal: 80;
 
   --font: 13px / 1.4 var(--font-sans);
-  --text-xs: 10px;
-  --text-sm: 11px;
+  --text-xs: 11px;
+  --text-sm: 12px;
   --text-base: 13px;
   --text-md: 14px;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);

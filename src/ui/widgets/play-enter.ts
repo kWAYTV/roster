@@ -38,7 +38,7 @@ export function playEnter(
   const reduced = window.matchMedia(REDUCED_MOTION).matches;
   const fade = options.fade ?? true;
   const blur = options.blur ?? 0;
-  const y = options.y ?? 8;
+  const y = options.y ?? 4;
   if (reduced && !fade) {
     return () => undefined;
   }

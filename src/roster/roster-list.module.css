@@ -19,7 +19,7 @@
 
 .emptyTitle {
   font-size: var(--text-base);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text);
   text-wrap: balance;
 }

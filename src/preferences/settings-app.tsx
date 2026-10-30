@@ -71,7 +71,7 @@ export function SettingsApp({
       <div className="flex items-center justify-between gap-3 border-border/80 border-b py-2.5">
         <div className="min-w-0 flex-1">
           <label
-            className="block font-semibold text-sm leading-snug tracking-tight"
+            className="block font-medium text-sm leading-snug tracking-tight"
             htmlFor={THEME_ID}
           >
             Appearance

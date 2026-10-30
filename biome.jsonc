@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "extends": ["ultracite/biome/core", "ultracite/biome/react"],
   "files": {
-    "includes": ["!src-tauri"]
+    // App source only. Vendor agent skills (e.g. unslop scripts) are not linted.
+    "includes": ["!src-tauri", "!.agents"]
   },
   "overrides": [
     {
