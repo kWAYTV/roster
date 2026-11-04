@@ -57,6 +57,30 @@ pub fn set_persona(steamid: &str, persona: &str) -> bool {
     persist(&records).is_ok()
 }
 
+/// Remember the Steam login name. Returns whether the store changed.
+pub fn set_account_name(steamid: &str, account_name: &str) -> bool {
+    let account_name = account_name.trim();
+    if account_name.is_empty() {
+        return false;
+    }
+    let mut records = all();
+    let Some(record) = records.get_mut(steamid) else {
+        return false;
+    };
+    if record.account_name == account_name {
+        return false;
+    }
+    record.account_name = account_name.to_string();
+    persist(&records).is_ok()
+}
+
+/// Stored Steam login for `steamid`, when present.
+pub fn account_name_for(steamid: &str) -> Option<String> {
+    get(steamid)
+        .map(|record| record.account_name)
+        .filter(|name| !name.is_empty())
+}
+
 pub fn save(steamid: &str, account_name: &str, persona_name: &str, token: &str) {
     let mut records = all();
     records.insert(

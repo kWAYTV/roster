@@ -3,16 +3,34 @@
 use std::fs;
 use std::path::Path;
 
+use crate::steam_config::loginusers::is_display_label;
 use crate::vdf::{block_body_offset, block_range, byte_offset_of_line, quoted_fields};
 
 /// Register `steamid` under the `Accounts` block; a no-op if already present.
+/// Never writes a `user######` placeholder key — that poisons later lookups.
 pub fn add_account(path: &Path, username: &str, steamid: &str) -> Result<(), String> {
-    let content = fs::read_to_string(path).map_err(|_| "Failed to read config.vdf.")?;
-    if contains_steamid(&content, steamid) {
+    if !is_display_label(username) {
         return Ok(());
+    }
+    let content = fs::read_to_string(path).map_err(|_| "Failed to read config.vdf.")?;
+    if let Some(existing) = account_name_in(&content, steamid) {
+        if is_display_label(&existing) {
+            return Ok(());
+        }
+        // Replace a leftover placeholder key with the real login.
+        let stripped = strip_account(&content, steamid);
+        let updated = insert_account(&stripped, username, steamid)?;
+        return fs::write(path, updated).map_err(|_| "Failed to write config.vdf.".to_string());
     }
     let updated = insert_account(&content, username, steamid)?;
     fs::write(path, updated).map_err(|_| "Failed to write config.vdf.".to_string())
+}
+
+/// Steam login for `steamid` from the `Accounts` block key, when Steam already
+/// knows the account. Prefers a real login over our `user######` placeholders.
+pub fn account_name_for_steamid(path: &Path, steamid: &str) -> Result<Option<String>, String> {
+    let content = fs::read_to_string(path).map_err(|_| "Failed to read config.vdf.")?;
+    Ok(account_name_in(&content, steamid).filter(|name| is_display_label(name)))
 }
 
 /// Remove the account sub-block that carries `steamid`.
@@ -98,12 +116,41 @@ fn sub_block_end(lines: &[&str], key: usize) -> Option<usize> {
     None
 }
 
-fn contains_steamid(content: &str, steamid: &str) -> bool {
-    content.contains(&steamid_marker(steamid))
-}
-
 fn steamid_marker(steamid: &str) -> String {
     format!("\"SteamID\"\t\t\"{steamid}\"")
+}
+
+/// Account block key whose `SteamID` field matches, preferring a real login.
+fn account_name_in(content: &str, steamid: &str) -> Option<String> {
+    let lines: Vec<&str> = content.lines().collect();
+    let (open, close) = block_range(&lines, "Accounts")?;
+    let marker = steamid_marker(steamid);
+    let mut best: Option<String> = None;
+    let mut i = open + 1;
+
+    while i < close {
+        let fields = quoted_fields(lines[i]);
+        if fields.len() != 1 {
+            i += 1;
+            continue;
+        }
+        let Some(end) = sub_block_end(&lines, i) else {
+            i += 1;
+            continue;
+        };
+        if lines[i..=end].join("\n").contains(&marker) {
+            let name = fields[0].clone();
+            if is_display_label(&name) {
+                return Some(name);
+            }
+            if best.is_none() {
+                best = Some(name);
+            }
+        }
+        i = end + 1;
+    }
+
+    best
 }
 
 fn account_entry(username: &str, steamid: &str) -> String {
@@ -137,7 +184,10 @@ mod tests {
     fn creates_accounts_when_absent() {
         let out = insert_account(CONFIG, "player", "76561199843081825").unwrap();
         assert!(out.contains("\"Accounts\""));
-        assert!(contains_steamid(&out, "76561199843081825"));
+        assert_eq!(
+            account_name_in(&out, "76561199843081825").as_deref(),
+            Some("player")
+        );
     }
 
     #[test]
@@ -145,7 +195,28 @@ mod tests {
         let with_two =
             insert_account(&insert_account(CONFIG, "a", "111").unwrap(), "b", "222").unwrap();
         let out = strip_account(&with_two, "111");
-        assert!(!contains_steamid(&out, "111"));
-        assert!(contains_steamid(&out, "222"));
+        assert!(account_name_in(&out, "111").is_none());
+        assert_eq!(account_name_in(&out, "222").as_deref(), Some("b"));
+    }
+
+    #[test]
+    fn finds_login_by_steamid() {
+        let content = insert_account(CONFIG, "bill2003", "76561199725786495").unwrap();
+        assert_eq!(
+            account_name_in(&content, "76561199725786495").as_deref(),
+            Some("bill2003")
+        );
+        assert!(account_name_in(&content, "999").is_none());
+    }
+
+    #[test]
+    fn prefers_real_login_over_placeholder_key() {
+        let poisoned = insert_account(CONFIG, "user786495", "76561199725786495").unwrap();
+        let with_real = insert_account(&poisoned, "bill2003", "76561199725786495").unwrap();
+        // Two keys can share a SteamID only in adversarial fixtures; prefer display label.
+        assert_eq!(
+            account_name_in(&with_real, "76561199725786495").as_deref(),
+            Some("bill2003")
+        );
     }
 }

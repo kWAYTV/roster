@@ -51,10 +51,46 @@ pub fn ensure_present(
 ) -> Result<(), String> {
     let content = fs::read_to_string(path).map_err(|_| "Failed to read loginusers.vdf.")?;
     if entry_for(&content, steamid).is_some() {
+        set_account_name_if_placeholder(path, steamid, username)?;
         return set_persona_if_placeholder(path, steamid, persona);
     }
     let updated = insert_before_last_brace(&content, &new_block(username, persona, steamid, false));
     fs::write(path, updated).map_err(|_| "Failed to write loginusers.vdf.".to_string())
+}
+
+/// Replace `AccountName` when it is empty, a SteamID, or our `user######` placeholder.
+/// Leaves a real Steam login untouched. No-op if the account block is absent.
+pub fn set_account_name_if_placeholder(
+    path: &Path,
+    steamid: &str,
+    username: &str,
+) -> Result<(), String> {
+    let username = username.trim();
+    if !is_display_label(username) {
+        return Ok(());
+    }
+    let Ok(content) = fs::read_to_string(path) else {
+        return Ok(());
+    };
+    let Some(updated) = replace_placeholder_account_name(&content, steamid, username) else {
+        return Ok(());
+    };
+    fs::write(path, updated).map_err(|_| "Failed to write loginusers.vdf.".to_string())
+}
+
+/// Prefer a real Steam login over empty / SteamID / `user######` placeholders.
+pub fn prefer_login_name(preferred: &str, fallback: &str) -> String {
+    if is_display_label(preferred) {
+        return preferred.to_string();
+    }
+    if is_display_label(fallback) {
+        return fallback.to_string();
+    }
+    if !preferred.is_empty() {
+        preferred.to_string()
+    } else {
+        fallback.to_string()
+    }
 }
 
 /// Replace `PersonaName` when it is empty or one of our placeholders.
@@ -333,6 +369,30 @@ fn list_entries(content: &str) -> Vec<LoginEntry> {
 
 /// `None` when nothing changed (missing block, or the persona is already real).
 fn replace_placeholder_persona(content: &str, steamid: &str, persona: &str) -> Option<String> {
+    replace_placeholder_field(content, steamid, "PersonaName", persona, |current| {
+        is_display_label(current)
+    })
+}
+
+/// `None` when nothing changed (missing block, or AccountName is already a real login).
+fn replace_placeholder_account_name(
+    content: &str,
+    steamid: &str,
+    username: &str,
+) -> Option<String> {
+    replace_placeholder_field(content, steamid, "AccountName", username, |current| {
+        is_display_label(current)
+    })
+}
+
+/// Rewrite one quoted field inside the `steamid` block when `keep` says the current value is fine.
+fn replace_placeholder_field(
+    content: &str,
+    steamid: &str,
+    key: &str,
+    next: &str,
+    keep: impl Fn(&str) -> bool,
+) -> Option<String> {
     let mut out = String::new();
     let mut inside = false;
     let mut replaced = false;
@@ -349,12 +409,12 @@ fn replace_placeholder_persona(content: &str, steamid: &str, persona: &str) -> O
         }
         if inside {
             let fields = quoted_fields(line);
-            if fields.len() >= 2 && fields[0] == "PersonaName" {
-                if is_display_label(&fields[1]) {
+            if fields.len() >= 2 && fields[0] == key {
+                if keep(&fields[1]) {
                     return None;
                 }
                 let indent = indent_of(line);
-                out.push_str(&format!("{indent}\"PersonaName\"\t\t\"{persona}\"\n"));
+                out.push_str(&format!("{indent}\"{key}\"\t\t\"{next}\"\n"));
                 replaced = true;
                 continue;
             }
@@ -408,7 +468,8 @@ fn now() -> String {
 mod tests {
     use super::{
         demote_most_recent, entry_for, is_display_label, is_generated_username, list_entries,
-        new_block, replace_placeholder_persona, should_preserve_account_name, strip_block,
+        new_block, prefer_login_name, replace_placeholder_account_name,
+        replace_placeholder_persona, should_preserve_account_name, strip_block,
     };
 
     #[test]
@@ -472,5 +533,25 @@ mod tests {
 
         let real = new_block("bill2003", "missfavela", "76561198000000000", false);
         assert!(replace_placeholder_persona(&real, "76561198000000000", "other").is_none());
+    }
+
+    #[test]
+    fn replaces_placeholder_account_name_only() {
+        let content = new_block("user681954", "who did", "76561199664681954", false);
+        let updated = replace_placeholder_account_name(&content, "76561199664681954", "bill2003")
+            .expect("placeholder login");
+        assert!(updated.contains("\"AccountName\"\t\t\"bill2003\""));
+        assert!(updated.contains("\"PersonaName\"\t\t\"who did\""));
+
+        let real = new_block("bill2003", "missfavela", "76561198000000000", false);
+        assert!(replace_placeholder_account_name(&real, "76561198000000000", "other").is_none());
+    }
+
+    #[test]
+    fn prefers_real_login_over_placeholder() {
+        assert_eq!(prefer_login_name("bill2003", "user681954"), "bill2003");
+        assert_eq!(prefer_login_name("user681954", "bill2003"), "bill2003");
+        assert_eq!(prefer_login_name("alpha", "beta"), "alpha");
+        assert_eq!(prefer_login_name("user681954", ""), "user681954");
     }
 }

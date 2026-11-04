@@ -44,12 +44,41 @@ fn load_accounts(enrich_jwt: bool) -> Result<Vec<Account>, String> {
     let records = crate::tokens::all();
     let mut seen: HashSet<String> = accounts.iter().map(|a| a.steamid.clone()).collect();
 
+    let loginusers_path = install.join("config").join("loginusers.vdf");
+    let config_path = install.join("config").join("config.vdf");
     for account in &mut accounts {
+        let from_config = crate::steam_config::config_vdf::account_name_for_steamid(
+            &config_path,
+            &account.steamid,
+        )
+        .ok()
+        .flatten()
+        .unwrap_or_default();
+        let from_store = records
+            .get(&account.steamid)
+            .map(|rec| rec.account_name.as_str())
+            .unwrap_or("");
+        let merged_login = crate::steam_config::loginusers::prefer_login_name(
+            &account.account_name,
+            &crate::steam_config::loginusers::prefer_login_name(from_store, &from_config),
+        );
+        if !merged_login.is_empty() && merged_login != account.account_name {
+            account.account_name.clone_from(&merged_login);
+        }
+        if crate::steam_config::loginusers::is_display_label(&account.account_name) {
+            let _ = crate::steam_config::loginusers::set_account_name_if_placeholder(
+                &loginusers_path,
+                &account.steamid,
+                &account.account_name,
+            );
+            let _ = crate::tokens::set_account_name(&account.steamid, &account.account_name);
+            let _ = crate::steam_config::config_vdf::add_account(
+                &config_path,
+                &account.account_name,
+                &account.steamid,
+            );
+        }
         if let Some(rec) = records.get(&account.steamid) {
-            if account.account_name.is_empty() {
-                account.account_name = rec.account_name.clone();
-            }
-            // Token store wins when Steam's file still has our `user######` placeholder.
             // An empty loginusers persona is not a display label, so this covers that too.
             if !crate::steam_config::loginusers::is_display_label(&account.persona_name)
                 && crate::steam_config::loginusers::is_display_label(&rec.persona_name)
