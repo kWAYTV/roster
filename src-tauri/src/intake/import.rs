@@ -108,18 +108,12 @@ fn store_entry(
         loginusers::account_name_for(loginusers_path, &steamid)?.unwrap_or_default();
     let from_config =
         config_vdf::account_name_for_steamid(&config_path, &steamid)?.unwrap_or_default();
-    // Steam refresh JWTs almost never carry a login. Prefer pasted username, then
-    // whatever Steam already knows in loginusers / config.vdf Accounts.
+    // Steam refresh JWTs almost never carry a login. Prefer a real name Steam already
+    // knows; otherwise keep the synthetic `user######` from the token (steamid----jwt).
     let username = loginusers::prefer_login_name(
         &parsed_username,
         &loginusers::prefer_login_name(&from_loginusers, &from_config),
     );
-    if !loginusers::is_display_label(&username) {
-        return Err(
-            "Token has no Steam login name. Import as login----token (not steamid----token)."
-                .to_string(),
-        );
-    }
 
     config_vdf::add_account(&config_path, &username, &steamid)?;
     let persona = persona_to_store(&username, community_persona(&username, &steamid).as_deref());

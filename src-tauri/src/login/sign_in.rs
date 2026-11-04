@@ -23,8 +23,9 @@ pub fn sign_in(account: &Account, force_invisible: bool) -> Result<String, Strin
     Ok(format!("Signed in as {}", account.display_name()))
 }
 
-/// Steam ConnectCache / AutoLoginUser need a real account name. Our `user######`
-/// placeholder authenticates enough to launch, then hangs on "Loading user data".
+/// ConnectCache / AutoLoginUser key. Prefer a real Steam login when one is already
+/// known locally; otherwise the synthetic `user######` from `steamid----token` is fine
+/// — Steam authenticates from the JWT `sub`, not the cache key string.
 fn resolve_steam_login_name(
     account: &Account,
     install: &std::path::Path,
@@ -41,21 +42,18 @@ fn resolve_steam_login_name(
         &account.account_name,
         &loginusers::prefer_login_name(&stored, &from_config),
     );
-    if loginusers::is_display_label(&login) {
-        if login != account.account_name || login != stored {
-            let path = install.join("config").join("loginusers.vdf");
-            let _ = loginusers::set_account_name_if_placeholder(&path, &account.steamid, &login);
-            let _ = crate::tokens::set_account_name(&account.steamid, &login);
-            let _ = config_vdf::add_account(
-                &install.join("config").join("config.vdf"),
-                &login,
-                &account.steamid,
-            );
-        }
-        return Ok(login);
+    if login.is_empty() {
+        return Err("No Steam login name for this account. Re-import it.".to_string());
     }
-    Err(
-        "No Steam login name for this account. Re-import as login----token (not steamid----token)."
-            .to_string(),
-    )
+    if loginusers::is_display_label(&login) && (login != account.account_name || login != stored) {
+        let path = install.join("config").join("loginusers.vdf");
+        let _ = loginusers::set_account_name_if_placeholder(&path, &account.steamid, &login);
+        let _ = crate::tokens::set_account_name(&account.steamid, &login);
+        let _ = config_vdf::add_account(
+            &install.join("config").join("config.vdf"),
+            &login,
+            &account.steamid,
+        );
+    }
+    Ok(login)
 }

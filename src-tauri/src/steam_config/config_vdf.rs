@@ -7,20 +7,24 @@ use crate::steam_config::loginusers::is_display_label;
 use crate::vdf::{block_body_offset, block_range, byte_offset_of_line, quoted_fields};
 
 /// Register `steamid` under the `Accounts` block; a no-op if already present.
-/// Never writes a `user######` placeholder key — that poisons later lookups.
+/// When a real login replaces a leftover `user######` key, the placeholder is rewritten.
 pub fn add_account(path: &Path, username: &str, steamid: &str) -> Result<(), String> {
-    if !is_display_label(username) {
+    let username = username.trim();
+    if username.is_empty() {
         return Ok(());
     }
     let content = fs::read_to_string(path).map_err(|_| "Failed to read config.vdf.")?;
     if let Some(existing) = account_name_in(&content, steamid) {
-        if is_display_label(&existing) {
+        if existing.eq_ignore_ascii_case(username) || is_display_label(&existing) {
             return Ok(());
         }
-        // Replace a leftover placeholder key with the real login.
-        let stripped = strip_account(&content, steamid);
-        let updated = insert_account(&stripped, username, steamid)?;
-        return fs::write(path, updated).map_err(|_| "Failed to write config.vdf.".to_string());
+        // Replace a leftover placeholder key with the real login (or a stable synthetic).
+        if is_display_label(username) {
+            let stripped = strip_account(&content, steamid);
+            let updated = insert_account(&stripped, username, steamid)?;
+            return fs::write(path, updated).map_err(|_| "Failed to write config.vdf.".to_string());
+        }
+        return Ok(());
     }
     let updated = insert_account(&content, username, steamid)?;
     fs::write(path, updated).map_err(|_| "Failed to write config.vdf.".to_string())
