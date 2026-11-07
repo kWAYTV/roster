@@ -7,6 +7,7 @@ import { useExport } from "../export/use-export";
 import { LogPanel } from "../feedback/log-panel";
 import { notify } from "../feedback/status";
 import { useForget } from "../forget/use-forget";
+import { ClipboardImportButton } from "../intake/clipboard-import-button";
 import { useSignIn } from "../login/use-login";
 import { commands } from "../platform/invoke";
 import { useMetadataBackup } from "../preferences/use-metadata-backup";
@@ -324,6 +325,11 @@ export function App() {
     <div className={styles.app} ref={frameRef}>
       <Toolbar
         accountCount={accounts.length}
+        clipboardImport={
+          <ClipboardImportButton
+            importWithoutSignIn={preferences.import_without_sign_in}
+          />
+        }
         countLabel={countLabel}
         filter={filter}
         groupByTag={groupByTag}

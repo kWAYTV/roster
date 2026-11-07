@@ -14,6 +14,7 @@ import { ViewMenu } from "./view-menu";
 
 interface ToolbarProps {
   accountCount: number;
+  clipboardImport?: ReactNode;
   countLabel: string;
   filter: RosterFilter;
   groupByTag: boolean;
@@ -38,6 +39,7 @@ export function Toolbar({
   query,
   countLabel,
   accountCount,
+  clipboardImport,
   filter,
   sort,
   groupByTag,
@@ -101,6 +103,7 @@ export function Toolbar({
             </Badge>
           ) : null}
           {selectionMenu}
+          {clipboardImport}
           {viewMenu}
           <IconAction
             icon={<XIcon />}
@@ -122,6 +125,7 @@ export function Toolbar({
             {selectionMenu}
           </div>
           <div className={styles.actions}>
+            {clipboardImport}
             <IconAction
               icon={<PlusIcon />}
               label="Import"
