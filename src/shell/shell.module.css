@@ -6,74 +6,130 @@
   background: var(--background);
 }
 
+/* Toolbar · 44px, one row: wordmark · count · filter · actions */
 .toolbar {
   display: flex;
   flex-shrink: 0;
-  gap: var(--space-2);
+  gap: 8px;
   align-items: center;
-  min-height: 40px;
-  padding: 8px 12px;
-  background: var(--background);
+  height: 44px;
+  padding: 0 8px 0 16px;
   border-bottom: 1px solid var(--border);
 }
 
 .brand {
   display: flex;
+  flex-shrink: 0;
   gap: 8px;
-  align-items: center;
-  min-width: 0;
+  align-items: baseline;
 }
 
 .title {
   font-size: var(--text-md);
   font-weight: 500;
-  letter-spacing: -0.01em;
 }
 
 .count {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
 }
 
-.actions {
+.spacer {
+  flex: 1;
+}
+
+.search {
   display: flex;
-  gap: 4px;
+  flex: 1;
+  gap: 8px;
   align-items: center;
-  margin-left: auto;
+  min-width: 96px;
+  height: 28px;
+  padding: 0 4px 0 8px;
+  margin-left: 8px;
+  color: var(--muted-foreground);
+  cursor: text;
+  background: var(--panel-raised);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition:
+    border-color 150ms var(--ease-out),
+    background-color 150ms var(--ease-out);
+}
+
+.search:hover {
+  border-color: var(--border);
+}
+
+.search[data-active="true"] {
+  background: var(--background);
+  border-color: var(--input);
+}
+
+.search:focus-within {
+  border-color: color-mix(in oklch, var(--ring) 60%, transparent);
 }
 
 .searchGlyph {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  color: var(--muted-foreground);
 }
 
 .searchInput {
   flex: 1;
   min-width: 0;
-  height: 28px;
-  padding-right: 0;
-  padding-left: 0;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  height: 100%;
+  padding: 0;
+  font-size: var(--text-base);
+  color: var(--foreground);
+  user-select: text;
+  outline: none;
+  background: transparent;
+  border: 0;
+}
+
+.searchInput::placeholder {
+  color: var(--muted-foreground);
+}
+
+.keycap {
+  flex-shrink: 0;
+  padding: 0 4px;
+  margin-right: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 16px;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  align-items: center;
+  margin-left: auto;
 }
 
 .main {
   flex: 1;
   min-height: 0;
-  padding: 8px 12px 12px;
+  padding: 8px;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
+/* Footer · 28px status line */
 .foot {
   display: flex;
   flex-shrink: 0;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
-  min-height: 32px;
-  padding: 4px 12px;
-  background: var(--background);
+  height: 28px;
+  padding: 0 16px;
   border-top: 1px solid var(--border);
 }
 
@@ -82,21 +138,47 @@
   flex-shrink: 0;
   gap: 12px;
   align-items: center;
-}
-
-.steamOn,
-.steamOff {
   font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
   color: var(--muted-foreground);
 }
 
-.steamOn {
-  color: var(--presence-ingame);
+.steam {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.steamDot {
+  width: 6px;
+  height: 6px;
+  background: var(--presence-offline);
+  border-radius: 50%;
+}
+
+.steam[data-running="true"] .steamDot {
+  background: var(--presence-ingame);
+}
+
+.footLink {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  transition: color 150ms var(--ease-out);
+}
+
+.footLink:hover {
+  color: var(--foreground);
+}
+
+.footLink:focus-visible {
+  outline: 2px solid color-mix(in oklch, var(--ring) 55%, transparent);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .version {
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  color: var(--muted-foreground);
 }

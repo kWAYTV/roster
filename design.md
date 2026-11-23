@@ -44,6 +44,19 @@ System stacks only (Tauri CSP — no remote fonts).
 ## Unslop polish (2026-10)
 Light pass over locked Cursor zinc. Quiet chrome, presence dots as signature, no hue gradients/glows/emoji chrome. Spacing on 4px grid; weights 400–500; micro type ≥11px.
 
+## Density pass (2026-11)
+The window is 560px, below every Tailwind `sm`/`md` breakpoint. Primitives use
+fixed desktop sizes (dialog 340/420/480, sheet 360, alert 320/360), never
+breakpoint-gated ones. Type scale is fixed px in `@theme`: 11 / 12 / 13 / 14 / 16.
+
+- Toolbar 44px: wordmark · mono count · permanent filter field (Ctrl F keycap) · icon actions
+- Rows 44px: 28px avatar (6px radius) · name + login lines · one trailing slot.
+  The slot shows quiet mono meta (cooldown drain, token state, last used) and
+  crossfades to actions (cooldown, sign in) on hover, focus or selection.
+- No bordered chips in rows. Tone carries state: warn = cooldown / expiring, danger = expired / missing.
+- Menus: 28px items, 13px, muted icons, 8px radius, hairline border.
+- Footer 28px: status line · Steam dot · GitHub · mono version.
+
 ## Microinteractions stance
 - Silent chrome: feedback lives in the footer status line (errors linger; click to dismiss)
 - Scale on press `0.97` for buttons
@@ -56,7 +69,7 @@ Light pass over locked Cursor zinc. Quiet chrome, presence dots as signature, no
 
 ## App chrome rules
 - Toolbar: plain title + count + icon actions. No mark glow, no segmented wells.
-- Rows: avatar · two-line info · trailing actions. No leading CTA column, no left accent stripe, no action wells.
+- Rows: avatar · two-line info · trailing meta/actions slot. No leading CTA column, no left accent stripe, no action wells, no filled button per row.
 - Badges: small, sentence case or as-data, hairline border — not UPPERCASE mono chips.
 - List: flat stack with hairline dividers OR 1px gap — no card-in-card.
 - Selection: compact "N selected" menu in the toolbar. No overlay dock.

@@ -1,103 +1,77 @@
 import {
   type KeyboardEvent,
   type MouseEvent,
+  memo,
   type ReactNode,
   useCallback,
   useMemo,
 } from "react";
 
 import { ArrowRightIcon } from "@/ui/icons/arrow-right";
-import { DeleteIcon } from "@/ui/icons/delete";
 import { Button } from "@/ui/primitives/button";
+import { cn } from "@/ui/primitives/cn";
 import { ContextMenu, ContextMenuTrigger } from "@/ui/primitives/context-menu";
 import { Hint } from "@/ui/widgets/hint";
 import { IconAction } from "@/ui/widgets/icon-action";
 import { SpinningLoader } from "@/ui/widgets/spinning-loader";
-import { nowSeconds } from "../cooldown/cooldown";
 import { CooldownBadge } from "../cooldown/cooldown-badge";
 import { CooldownMenu } from "../cooldown/cooldown-menu";
-import { useNow } from "../cooldown/use-now";
+import { isExportable } from "../export/use-export";
 import type { AccountStatus } from "../status/status";
 import { StatusDot } from "../status/status-dot";
 import { type AccountView, visibleAccountName } from "./account";
 import { AccountContextMenu } from "./account-context-menu";
 import styles from "./account-row.module.css";
+import type { AccountRowActions } from "./account-row-actions";
 import { formatJwtExpiry, jwtExpiryTooltip } from "./jwt-label";
 import { formatLastUsed } from "./last-used";
 
-const AVATAR_SIZE = 36;
+const AVATAR_SIZE = 28;
+const STREAMER_MASK = "•••••";
 
 interface AccountRowProps {
   account: AccountView;
+  actions: AccountRowActions;
   busy: boolean;
-  exportCount: number;
   index: number;
-  menuTargets: AccountView[];
-  onClearCooldown: (steamids: string[]) => void;
-  onCooldown: (steamids: string[], seconds: number) => void;
-  onCopyExport: (steamids: string[]) => void;
-  onCopySteamId: (account: AccountView) => void;
-  onCopyUsername: (account: AccountView) => void;
-  onCustomCooldown: (steamids: string[]) => void;
-  onEditNote: (account: AccountView) => void;
-  onEditOverrides: (account: AccountView) => void;
-  onEditTags: (account: AccountView) => void;
-  onExportFile: (steamids: string[]) => void;
-  onOpenProfile: (steamid: string) => void;
-  onReimport: (account: AccountView) => void;
-  onRemove: (accounts: AccountView[]) => void;
-  onSelect: (account: AccountView, additive: boolean) => void;
-  onSignIn: (steamid: string, forceInvisible?: boolean) => void;
-  onTogglePin: (account: AccountView) => void;
+  /** Clock in Unix seconds, ticked by the shell (coarse). */
+  now: number;
   selected: boolean;
+  /** Current multi-selection; used as context-menu targets when this row is in it. */
+  selection: AccountView[];
   status?: AccountStatus;
   streamer: boolean;
+  /** Expiry warning window in days (0 = off). */
+  warnJwtDays: number;
 }
 
-export function AccountRow({
+function AccountRowView({
   account,
+  actions,
   index,
+  now,
   streamer,
   busy,
   selected,
+  selection,
   status,
-  menuTargets,
-  exportCount,
-  onSelect,
-  onSignIn,
-  onRemove,
-  onCopyUsername,
-  onCopySteamId,
-  onOpenProfile,
-  onReimport,
-  onCopyExport,
-  onExportFile,
-  onCooldown,
-  onClearCooldown,
-  onCustomCooldown,
-  onTogglePin,
-  onEditNote,
-  onEditOverrides,
-  onEditTags,
+  warnJwtDays,
 }: AccountRowProps) {
-  const now = useNow(30_000);
+  const { onSelect, onSignIn, onOpenProfile } = actions;
   const name = streamer ? `Account ${index + 1}` : account.display_name;
-  const login = streamer
-    ? "\u2022\u2022\u2022\u2022\u2022"
-    : visibleAccountName(account);
-  const lastUsed = formatLastUsed(account.last_used, now || nowSeconds());
+  const login = streamer ? STREAMER_MASK : visibleAccountName(account);
   const game = status?.state === "in-game" ? status.game : "";
-  const jwtLabel = formatJwtExpiry(account.jwt_expires_in);
-  const jwtTip = jwtExpiryTooltip(account.jwt_expires_in);
   const note = streamer ? "" : account.note.trim();
   const tags = streamer ? [] : account.tags;
-  const rowClass = useMemo(() => {
-    const parts = [styles.row];
-    if (selected) {
-      parts.push(styles.selected);
-    }
-    return parts.join(" ");
-  }, [selected]);
+
+  const targets = useMemo(
+    () => (selected && selection.length > 1 ? selection : [account]),
+    [account, selected, selection]
+  );
+  const exportCount = useMemo(
+    () => targets.filter(isExportable).length,
+    [targets]
+  );
 
   const handleSelect = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
@@ -106,11 +80,14 @@ export function AccountRow({
     [account, onSelect]
   );
 
-  const handleContextMenu = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
-      onSelect(account, event.ctrlKey || event.metaKey);
+  // Right-click selects the row, but keeps a multi-selection it belongs to.
+  const handleMenuOpenChange = useCallback(
+    (open: boolean) => {
+      if (open && !selected) {
+        onSelect(account, false);
+      }
     },
-    [account, onSelect]
+    [account, onSelect, selected]
   );
 
   const handleDoubleClick = useCallback(() => {
@@ -119,21 +96,22 @@ export function AccountRow({
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLButtonElement>) => {
-      if (event.key === "Enter" || event.key === " ") {
+      if (event.key === "Enter" && !event.altKey) {
+        event.preventDefault();
+        onSignIn(account.steamid);
+        return;
+      }
+      if (event.key === " ") {
         event.preventDefault();
         onSelect(account, event.ctrlKey || event.metaKey);
       }
     },
-    [account, onSelect]
+    [account, onSelect, onSignIn]
   );
 
   const handleSignIn = useCallback(() => {
     onSignIn(account.steamid);
   }, [account.steamid, onSignIn]);
-
-  const handleRemove = useCallback(() => {
-    onRemove([account]);
-  }, [account, onRemove]);
 
   const handleOpenProfile = useCallback(
     (event: MouseEvent<HTMLAnchorElement>) => {
@@ -157,149 +135,183 @@ export function AccountRow({
   );
 
   return (
-    <ContextMenu>
+    <ContextMenu onOpenChange={handleMenuOpenChange}>
       <ContextMenuTrigger
-        render={<div className={rowClass} data-enter="row" />}
+        render={
+          <div
+            className={cn(
+              styles.row,
+              selected && styles.selected,
+              busy && styles.busy
+            )}
+            data-enter="row"
+          />
+        }
       >
         <div className={styles.avatarWrap}>
-          <Hint label="Open Steam profile">
-            <a
-              className={styles.avatar}
-              href={`https://steamcommunity.com/profiles/${account.steamid}`}
-              onClick={handleOpenProfile}
-              onKeyDown={handleAvatarKeyDown}
-            >
-              {avatarContent(streamer, index, account)}
-            </a>
-          </Hint>
+          <a
+            aria-label="Open Steam profile"
+            className={styles.avatar}
+            href={`https://steamcommunity.com/profiles/${account.steamid}`}
+            onClick={handleOpenProfile}
+            onKeyDown={handleAvatarKeyDown}
+            tabIndex={-1}
+            title="Open Steam profile"
+          >
+            {avatarContent(streamer, index, account)}
+          </a>
           <StatusDot status={status} />
         </div>
+
         <button
+          aria-pressed={selected}
           className={styles.selectHit}
           onClick={handleSelect}
-          onContextMenu={handleContextMenu}
           onDoubleClick={handleDoubleClick}
           onKeyDown={handleKeyDown}
           type="button"
         >
-          <div className={styles.info}>
-            <div className={styles.name}>
-              {account.pinned ? (
-                <span className={styles.pin} title="Pinned">
-                  <svg
-                    aria-hidden
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <title>Pinned</title>
-                    <path d="M12 17v5" />
-                    <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
-                  </svg>
-                </span>
-              ) : null}
-              {name}
+          <span className={styles.info}>
+            <span className={styles.line}>
+              <span className={styles.name}>{name}</span>
+              {account.pinned ? <PinGlyph /> : null}
               {account.most_recent ? (
-                <span className={styles.badge}>last used</span>
+                <span className={styles.recent}>Last used</span>
               ) : null}
-              {jwtLabel ? (
-                <Hint label={jwtTip || jwtLabel}>
-                  <span
-                    className={
-                      account.jwt_expires_in < 0
-                        ? `${styles.badge} ${styles.jwtExpired}`
-                        : styles.badge
-                    }
-                  >
-                    {jwtLabel}
-                  </span>
-                </Hint>
-              ) : null}
-              <CooldownBadge
-                duration={account.cooldown_duration}
-                until={account.cooldown_until}
-              />
+            </span>
+            <span className={styles.sub}>
+              <span className={styles.login}>{login}</span>
               {tags.map((tag) => (
                 <span className={styles.tag} key={tag}>
-                  #{tag}
+                  <span className={styles.sep}>·</span>#{tag}
                 </span>
               ))}
-            </div>
-            <div className={styles.login}>
-              {login}
-              {note ? <span className={styles.note}> · {note}</span> : null}
-              {game ? <span className={styles.game}> · {game}</span> : null}
-              {lastUsed ? (
-                <span className={styles.meta}> · {lastUsed}</span>
+              {note ? (
+                <span className={styles.note}>
+                  <span className={styles.sep}>·</span>
+                  {note}
+                </span>
               ) : null}
-            </div>
-          </div>
+              {game ? (
+                <span className={styles.game}>
+                  <span className={styles.sep}>·</span>
+                  {game}
+                </span>
+              ) : null}
+            </span>
+          </span>
         </button>
-        <div className={styles.actions}>
-          {busy ? (
-            <Hint label="Sign in">
+
+        <div className={styles.trail}>
+          <RowMeta account={account} now={now} warnJwtDays={warnJwtDays} />
+          <div className={styles.actions}>
+            <CooldownMenu
+              disabled={busy}
+              steamid={account.steamid}
+              until={account.cooldown_until}
+            />
+            {busy ? (
               <Button
-                aria-label="Sign in"
+                aria-label="Signing in"
                 disabled
                 size="icon-sm"
                 type="button"
+                variant="ghost"
               >
                 <SpinningLoader size={15} />
               </Button>
-            </Hint>
-          ) : (
-            <IconAction
-              icon={<ArrowRightIcon />}
-              iconSize={15}
-              label="Sign in"
-              onClick={handleSignIn}
-              size="icon-sm"
-            />
-          )}
-          <CooldownMenu
-            disabled={busy}
-            steamid={account.steamid}
-            until={account.cooldown_until}
-          />
-          <IconAction
-            className="text-muted-foreground hover:bg-destructive/15 hover:text-destructive"
-            disabled={busy}
-            icon={<DeleteIcon />}
-            iconSize={15}
-            label="Remove account"
-            onClick={handleRemove}
-            size="icon-sm"
-            variant="ghost"
-          />
+            ) : (
+              <IconAction
+                icon={<ArrowRightIcon />}
+                iconSize={15}
+                label="Sign in"
+                onClick={handleSignIn}
+                size="icon-sm"
+                variant="ghost"
+              />
+            )}
+          </div>
         </div>
       </ContextMenuTrigger>
       <AccountContextMenu
         account={account}
+        actions={actions}
         exportCount={exportCount}
         index={index}
-        onClearCooldown={onClearCooldown}
-        onCooldown={onCooldown}
-        onCopyExport={onCopyExport}
-        onCopySteamId={onCopySteamId}
-        onCopyUsername={onCopyUsername}
-        onCustomCooldown={onCustomCooldown}
-        onEditNote={onEditNote}
-        onEditOverrides={onEditOverrides}
-        onEditTags={onEditTags}
-        onExportFile={onExportFile}
-        onOpenProfile={onOpenProfile}
-        onReimport={onReimport}
-        onRemove={onRemove}
-        onSignIn={onSignIn}
-        onTogglePin={onTogglePin}
         streamer={streamer}
-        targets={menuTargets}
+        targets={targets}
       />
     </ContextMenu>
+  );
+}
+
+export const AccountRow = memo(AccountRowView);
+
+/** Right-aligned quiet facts: cooldown, token state, last sign-in. */
+function RowMeta({
+  account,
+  now,
+  warnJwtDays,
+}: {
+  account: AccountView;
+  now: number;
+  warnJwtDays: number;
+}) {
+  const jwtLabel = formatJwtExpiry(account.jwt_expires_in);
+  const jwtTone = jwtToneClass(account.jwt_expires_in, warnJwtDays);
+  const missingToken = !account.has_token;
+  const lastUsed = formatLastUsed(account.last_used, now);
+
+  return (
+    <div className={styles.meta}>
+      <CooldownBadge
+        duration={account.cooldown_duration}
+        until={account.cooldown_until}
+      />
+      {jwtLabel ? (
+        <Hint label={jwtExpiryTooltip(account.jwt_expires_in) || jwtLabel}>
+          <span className={jwtTone}>{jwtLabel}</span>
+        </Hint>
+      ) : null}
+      {missingToken && !jwtLabel ? (
+        <Hint label="No saved token. Re-import to sign in">
+          <span className={styles.danger}>No token</span>
+        </Hint>
+      ) : null}
+      {lastUsed ? <span>{lastUsed}</span> : null}
+    </div>
+  );
+}
+
+function jwtToneClass(
+  expiresIn: number,
+  warnJwtDays: number
+): string | undefined {
+  if (expiresIn < 0) {
+    return styles.danger;
+  }
+  const warnWindow = (warnJwtDays > 0 ? warnJwtDays : 7) * 86_400;
+  return expiresIn <= warnWindow ? styles.warn : undefined;
+}
+
+function PinGlyph() {
+  return (
+    <svg
+      aria-label="Pinned"
+      className={styles.pin}
+      fill="none"
+      role="img"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <title>Pinned</title>
+      <path d="M12 17v5" />
+      <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
+    </svg>
   );
 }
 
@@ -315,6 +327,7 @@ function avatarContent(
     return (
       <img
         alt=""
+        decoding="async"
         height={AVATAR_SIZE}
         src={account.avatar}
         width={AVATAR_SIZE}

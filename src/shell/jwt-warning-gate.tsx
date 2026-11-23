@@ -26,7 +26,7 @@ export function JwtWarningGate({ accounts, warnDays }: JwtWarningGateProps) {
     }
     if (soon.length && expired.length) {
       notify(
-        `${soon.length} token(s) expire soon · ${expired.length} expired`,
+        `${plural(soon.length, "token expires", "tokens expire")} soon · ${expired.length} expired`,
         "error"
       );
       return;
@@ -49,4 +49,8 @@ export function JwtWarningGate({ accounts, warnDays }: JwtWarningGateProps) {
   });
 
   return null;
+}
+
+function plural(count: number, one: string, many: string): string {
+  return count === 1 ? `1 ${one}` : `${count} ${many}`;
 }

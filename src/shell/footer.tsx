@@ -1,7 +1,5 @@
 import { useCallback } from "react";
 
-import { Button } from "@/ui/primitives/button";
-
 import { StatusLine } from "../feedback/status-line";
 import { commands } from "../platform/invoke";
 import { useSteamRunning } from "../status/use-steam-running";
@@ -25,20 +23,16 @@ export function Footer({ currentVersion }: FooterProps) {
       <StatusLine />
       <div className={styles.footMeta}>
         <span
-          className={steamRunning ? styles.steamOn : styles.steamOff}
+          className={styles.steam}
+          data-running={steamRunning}
           title={steamRunning ? "Steam is running" : "Steam is not running"}
         >
-          {steamRunning ? "Steam" : "Steam off"}
+          <span aria-hidden="true" className={styles.steamDot} />
+          {steamRunning ? "Steam running" : "Steam closed"}
         </span>
-        <Button
-          className="h-auto px-0 text-muted-foreground text-xs hover:text-foreground"
-          onClick={openGitHub}
-          size="sm"
-          type="button"
-          variant="link"
-        >
+        <button className={styles.footLink} onClick={openGitHub} type="button">
           GitHub
-        </Button>
+        </button>
         <span className={styles.version}>v{currentVersion ?? "…"}</span>
       </div>
     </footer>

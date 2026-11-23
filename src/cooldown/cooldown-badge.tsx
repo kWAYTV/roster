@@ -21,17 +21,18 @@ export function CooldownBadge({ until, duration }: CooldownBadgeProps) {
     return null;
   }
 
-  const percent = Math.round(cooldownProgress(until, duration, now) * 100);
+  const remaining = cooldownProgress(until, duration, now);
 
   return (
     <Hint label={`Cooldown ends ${new Date(until * 1000).toLocaleString()}`}>
-      <span
-        className={styles.badge}
-        style={{
-          background: `linear-gradient(to right, var(--danger-soft) ${percent}%, transparent ${percent}%)`,
-        }}
-      >
-        CD {formatRemaining(until, now)}
+      <span className={styles.badge}>
+        {formatRemaining(until, now)}
+        <span aria-hidden="true" className={styles.track}>
+          <span
+            className={styles.fill}
+            style={{ transform: `scaleX(${remaining})` }}
+          />
+        </span>
       </span>
     </Hint>
   );

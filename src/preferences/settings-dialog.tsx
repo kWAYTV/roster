@@ -103,10 +103,10 @@ export function SettingsDialog({
                   Updates
                 </TabsTrigger>
                 <TabsTrigger
-                  className="flex-1 rounded-none px-1.5 text-destructive text-xs after:bg-destructive hover:text-destructive data-active:text-destructive dark:text-destructive dark:data-active:text-destructive dark:hover:text-destructive"
+                  className="flex-1 rounded-none px-1.5 text-xs after:bg-destructive data-active:text-destructive dark:data-active:text-destructive"
                   value="danger"
                 >
-                  Danger
+                  Reset
                 </TabsTrigger>
               </TabsList>
 

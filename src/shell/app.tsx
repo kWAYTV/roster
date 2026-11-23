@@ -13,6 +13,7 @@ import { commands } from "../platform/invoke";
 import { useMetadataBackup } from "../preferences/use-metadata-backup";
 import { usePreferences } from "../preferences/use-preferences";
 import type { AccountView } from "../roster/account";
+import type { AccountRowActions } from "../roster/account-row-actions";
 import { liveJwtExpiresIn } from "../roster/jwt-label";
 import { RosterList } from "../roster/roster-list";
 import { SelectionMenu } from "../roster/selection-menu";
@@ -40,7 +41,11 @@ import { useShellUi } from "./use-shell-ui";
 export function App() {
   const { accounts, listedAt, loading, error, patchAccount, patchProfile } =
     useRoster();
-  const statuses = useStatus(!loading, patchProfile);
+  const rosterKey = useMemo(
+    () => accounts.map((account) => account.steamid).join(","),
+    [accounts]
+  );
+  const statuses = useStatus(!loading, rosterKey, patchProfile);
   const { preferences, setPreference, patchPreferences } = usePreferences();
   useTheme(preferences.theme);
   const { signIn, pending } = useSignIn();
@@ -75,7 +80,8 @@ export function App() {
   } = useSelection();
   const { filter, sort, groupByTag, setFilter, setSort, toggleGroupByTag } =
     useRosterView();
-  const now = useNow(1000);
+  // Coarse shell clock: JWT/last-used labels and filters. Cooldown badges tick themselves.
+  const now = useNow(30_000);
   const {
     ui,
     openSearch,
@@ -97,13 +103,27 @@ export function App() {
   const {
     target: detailTarget,
     openNote,
-    openTags,
     openOverrides,
     close: closeDetail,
     setTab: setDetailTab,
   } = useAccountEditors();
 
   const clock = now || nowSeconds();
+
+  const searchRef = useRef<HTMLInputElement>(null);
+  const focusSearch = useCallback(() => {
+    searchRef.current?.focus();
+    searchRef.current?.select();
+  }, []);
+  const dismissSearch = useCallback(() => {
+    closeSearch();
+    searchRef.current?.blur();
+  }, [closeSearch]);
+  const handleSearchBlur = useCallback(() => {
+    if (!ui.query) {
+      closeSearch();
+    }
+  }, [closeSearch, ui.query]);
 
   // Tick JWT remaining time down from the last list snapshot so expiry badges
   // flip without waiting for another accounts-changed refresh.
@@ -244,14 +264,53 @@ export function App() {
     askRemove(selected);
   }, [askRemove, filtered, visibleSelectedIds]);
 
+  const rowActions = useMemo<AccountRowActions>(
+    () => ({
+      onClearCooldown: clearMany,
+      onCooldown: startMany,
+      onCopyExport: copyExport,
+      onCopySteamId: copySteamId,
+      onCopyUsername: copyUsername,
+      onCustomCooldown: askBulkCooldown,
+      onEditDetails: openNote,
+      onEditOverrides: openOverrides,
+      onExportFile: exportFile,
+      onOpenProfile: openProfile,
+      onPin: setPinnedMany,
+      onReimport: handleReimport,
+      onRemove: askRemove,
+      onSelect: selectAccount,
+      onSignIn: requestSignIn,
+      onTogglePin: handleTogglePin,
+    }),
+    [
+      askBulkCooldown,
+      askRemove,
+      clearMany,
+      copyExport,
+      copySteamId,
+      copyUsername,
+      exportFile,
+      handleReimport,
+      handleTogglePin,
+      openNote,
+      openOverrides,
+      openProfile,
+      requestSignIn,
+      selectAccount,
+      setPinnedMany,
+      startMany,
+    ]
+  );
+
   useShellEvents({ openImport });
   useShellShortcuts({
     clearSelection,
-    closeSearch,
+    closeSearch: dismissSearch,
     commandOpen: ui.commandOpen,
     onInvertSelection: handleInvertSelection,
     onSelectAll: handleSelectAll,
-    openSearch,
+    openSearch: focusSearch,
     requestRemoveSelection,
     requestSignIn,
     searchOpen: ui.searchOpen,
@@ -333,18 +392,20 @@ export function App() {
         countLabel={countLabel}
         filter={filter}
         groupByTag={groupByTag}
-        onCloseSearch={closeSearch}
+        onCloseSearch={dismissSearch}
         onFilter={setFilter}
         onInvertSelection={handleInvertSelection}
         onOpenImport={openImport}
         onOpenSearch={openSearch}
         onOpenSettings={openSettings}
         onQueryChange={setQuery}
+        onSearchBlur={handleSearchBlur}
         onSelectAll={handleSelectAll}
         onSort={setSort}
         onToggleGroupByTag={toggleGroupByTag}
         query={ui.query}
         searchOpen={ui.searchOpen}
+        searchRef={searchRef}
         selectionMenu={
           <SelectionMenu
             exportCount={exportCountForFiltered(selectedSteamids)}
@@ -366,36 +427,22 @@ export function App() {
       <main className={styles.main}>
         <RosterList
           accounts={filtered}
+          actions={rowActions}
           emptyHint={
             accounts.length > 0
-              ? "Try another filter or clear search."
-              : "Import a refresh token to get started."
+              ? "Try another filter or clear the search"
+              : "Import a refresh token to get started"
           }
           emptyTitle={accounts.length > 0 ? "No matches" : "No accounts yet"}
-          exportCountFor={exportCountForFiltered}
           groupByTag={groupByTag}
           loading={loading}
-          onClearCooldown={clearMany}
-          onCooldown={startMany}
-          onCopyExport={copyExport}
-          onCopySteamId={copySteamId}
-          onCopyUsername={copyUsername}
-          onCustomCooldown={askBulkCooldown}
-          onEditNote={openNote}
-          onEditOverrides={openOverrides}
-          onEditTags={openTags}
-          onExportFile={exportFile}
+          now={clock}
           onImport={accounts.length === 0 ? openImport : undefined}
-          onOpenProfile={openProfile}
-          onReimport={handleReimport}
-          onRemove={askRemove}
-          onSelect={selectAccount}
-          onSignIn={requestSignIn}
-          onTogglePin={handleTogglePin}
           pending={pending}
           selectedIds={visibleSelectedIds}
           statuses={statuses}
           streamer={preferences.streamer_mode}
+          warnJwtDays={preferences.warn_jwt_expiry_days}
         />
       </main>
 

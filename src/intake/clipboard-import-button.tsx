@@ -73,12 +73,13 @@ export function ClipboardImportButton({
         <IconAction
           disabled={busy}
           icon={<ClipboardPasteIcon />}
-          label="Import token from clipboard"
+          iconSize={14}
+          label="Import the token on the clipboard"
           onClick={handleClick}
           size="sm"
           variant="secondary"
         >
-          Import
+          Import copied
         </IconAction>
       ) : null}
       <ImportSignInAsk

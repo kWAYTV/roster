@@ -1,7 +1,8 @@
-import { useCallback, useMemo } from "react";
+import { type MouseEvent, useCallback, useMemo } from "react";
 
 import { ArrowRightIcon } from "@/ui/icons/arrow-right";
 import { BanIcon } from "@/ui/icons/ban";
+import { ClipboardPasteIcon } from "@/ui/icons/clipboard-paste";
 import { ClockIcon } from "@/ui/icons/clock";
 import { CopyIcon } from "@/ui/icons/copy";
 import { DeleteIcon } from "@/ui/icons/delete";
@@ -15,282 +16,329 @@ import {
   ContextMenuGroup,
   ContextMenuItem,
   ContextMenuSeparator,
+  ContextMenuShortcut,
   ContextMenuSub,
   ContextMenuSubContent,
 } from "@/ui/primitives/context-menu";
 
-import { COOLDOWN_PRESETS } from "../cooldown/cooldown";
+import { COOLDOWN_PRESETS, isCooldownActive } from "../cooldown/cooldown";
 import { type AccountView, visibleAccountName } from "./account";
+import type { AccountRowActions } from "./account-row-actions";
 import { IconItem, IconSubTrigger } from "./menu-icon-item";
 
-const AVATAR_SIZE = 28;
+const AVATAR_SIZE = 24;
 
 interface AccountContextMenuProps {
   account: AccountView;
+  actions: AccountRowActions;
   exportCount: number;
   index: number;
-  onClearCooldown: (steamids: string[]) => void;
-  onCooldown: (steamids: string[], seconds: number) => void;
-  onCopyExport: (steamids: string[]) => void;
-  onCopySteamId: (account: AccountView) => void;
-  onCopyUsername: (account: AccountView) => void;
-  onCustomCooldown: (steamids: string[]) => void;
-  onEditNote: (account: AccountView) => void;
-  onEditOverrides: (account: AccountView) => void;
-  onEditTags: (account: AccountView) => void;
-  onExportFile: (steamids: string[]) => void;
-  onOpenProfile: (steamid: string) => void;
-  onReimport: (account: AccountView) => void;
-  onRemove: (accounts: AccountView[]) => void;
-  onSignIn: (steamid: string, forceInvisible?: boolean) => void;
-  onTogglePin: (account: AccountView) => void;
   streamer: boolean;
   targets: AccountView[];
 }
 
+/// Right-click menu for one row, or for the whole selection when the row is in it.
 export function AccountContextMenu({
   account,
+  actions,
   targets,
   exportCount,
   streamer,
   index,
-  onSignIn,
-  onCopyUsername,
-  onCopySteamId,
-  onOpenProfile,
-  onCopyExport,
-  onExportFile,
-  onReimport,
-  onRemove,
-  onCooldown,
-  onClearCooldown,
-  onCustomCooldown,
-  onTogglePin,
-  onEditNote,
-  onEditOverrides,
-  onEditTags,
 }: AccountContextMenuProps) {
   const multi = targets.length > 1;
-  const hasCooldown = targets.some((item) => item.cooldown_until > 0);
-  const steamids = useMemo(
-    () => targets.map((item) => item.steamid),
-    [targets]
-  );
-  const title = streamer ? `Account ${index + 1}` : account.display_name;
-  const copyTokenLabel = copyTokensLabel(exportCount, targets.length, multi);
-
-  const handleSignIn = useCallback(() => {
-    onSignIn(account.steamid);
-  }, [onSignIn, account.steamid]);
-
-  const handleSignInInvisible = useCallback(() => {
-    onSignIn(account.steamid, true);
-  }, [onSignIn, account.steamid]);
-
-  const handleCopyUsername = useCallback(() => {
-    onCopyUsername(account);
-  }, [onCopyUsername, account]);
-
-  const handleCopySteamId = useCallback(() => {
-    onCopySteamId(account);
-  }, [onCopySteamId, account]);
-
-  const handleOpenProfile = useCallback(() => {
-    onOpenProfile(account.steamid);
-  }, [onOpenProfile, account.steamid]);
-
-  const handleCopyExport = useCallback(() => {
-    onCopyExport(steamids);
-  }, [onCopyExport, steamids]);
-
-  const handleExportFile = useCallback(() => {
-    onExportFile(steamids);
-  }, [onExportFile, steamids]);
-
-  const handleCustomCooldown = useCallback(() => {
-    onCustomCooldown(steamids);
-  }, [onCustomCooldown, steamids]);
-
-  const handleClearCooldown = useCallback(() => {
-    onClearCooldown(steamids);
-  }, [onClearCooldown, steamids]);
-
-  const handleRemove = useCallback(() => {
-    onRemove(targets);
-  }, [onRemove, targets]);
-
-  const handleReimport = useCallback(() => {
-    onReimport(account);
-  }, [account, onReimport]);
-
-  const handleTogglePin = useCallback(() => {
-    onTogglePin(account);
-  }, [account, onTogglePin]);
-
-  const needsToken = !account.has_token || account.jwt_expires_in < 0;
-
-  const handleEditNote = useCallback(() => {
-    onEditNote(account);
-  }, [account, onEditNote]);
-
-  const handleEditOverrides = useCallback(() => {
-    onEditOverrides(account);
-  }, [account, onEditOverrides]);
-
-  const handleEditTags = useCallback(() => {
-    onEditTags(account);
-  }, [account, onEditTags]);
-
-  const handlePresetClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      const seconds = Number(event.currentTarget.dataset.seconds);
-      if (Number.isFinite(seconds)) {
-        onCooldown(steamids, seconds);
-      }
-    },
-    [onCooldown, steamids]
-  );
 
   return (
-    <ContextMenuContent className="w-56">
+    <ContextMenuContent className="w-60">
       {multi ? (
-        <div className="px-2 py-1.5 font-medium text-muted-foreground text-xs">
-          {targets.length} selected
-        </div>
+        <MultiTargetMenu
+          actions={actions}
+          exportCount={exportCount}
+          targets={targets}
+        />
       ) : (
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted font-medium text-[10px] text-muted-foreground">
-            {avatarContent(streamer, index, account)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate font-medium text-sm leading-tight">
-              {title}
-            </div>
-            {streamer ? null : (
-              <div className="truncate text-muted-foreground text-xs leading-tight">
-                {visibleAccountName(account)}
-              </div>
-            )}
-          </div>
-        </div>
+        <SingleTargetMenu
+          account={account}
+          actions={actions}
+          exportCount={exportCount}
+          index={index}
+          streamer={streamer}
+        />
       )}
+    </ContextMenuContent>
+  );
+}
+
+function SingleTargetMenu({
+  account,
+  actions,
+  exportCount,
+  index,
+  streamer,
+}: Omit<AccountContextMenuProps, "targets">) {
+  const steamids = useMemo(() => [account.steamid], [account.steamid]);
+  const needsToken = !account.has_token || account.jwt_expires_in < 0;
+  const title = streamer ? `Account ${index + 1}` : account.display_name;
+
+  const signIn = useCallback(() => {
+    actions.onSignIn(account.steamid);
+  }, [actions, account.steamid]);
+  const signInInvisible = useCallback(() => {
+    actions.onSignIn(account.steamid, true);
+  }, [actions, account.steamid]);
+  const togglePin = useCallback(() => {
+    actions.onTogglePin(account);
+  }, [actions, account]);
+  const editDetails = useCallback(() => {
+    actions.onEditDetails(account);
+  }, [actions, account]);
+  const editOverrides = useCallback(() => {
+    actions.onEditOverrides(account);
+  }, [actions, account]);
+  const copyUsername = useCallback(() => {
+    actions.onCopyUsername(account);
+  }, [actions, account]);
+  const copySteamId = useCallback(() => {
+    actions.onCopySteamId(account);
+  }, [actions, account]);
+  const copyToken = useCallback(() => {
+    actions.onCopyExport(steamids);
+  }, [actions, steamids]);
+  const saveToken = useCallback(() => {
+    actions.onExportFile(steamids);
+  }, [actions, steamids]);
+  const openProfile = useCallback(() => {
+    actions.onOpenProfile(account.steamid);
+  }, [actions, account.steamid]);
+  const reimport = useCallback(() => {
+    actions.onReimport(account);
+  }, [actions, account]);
+  const remove = useCallback(() => {
+    actions.onRemove([account]);
+  }, [actions, account]);
+
+  return (
+    <>
+      <div className="flex items-center gap-2 px-2 pt-1.5 pb-2">
+        <div className="flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-[5px] bg-muted font-medium text-[10px] text-muted-foreground">
+          {menuAvatar(streamer, index, account)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium text-base leading-4">
+            {title}
+          </div>
+          {streamer ? null : (
+            <div className="truncate font-mono text-muted-foreground text-xs leading-4">
+              {visibleAccountName(account)}
+            </div>
+          )}
+        </div>
+      </div>
 
       <ContextMenuSeparator />
 
-      {multi ? null : (
-        <ContextMenuGroup>
-          <IconItem icon={<ArrowRightIcon />} onClick={handleSignIn}>
-            Sign in
-          </IconItem>
-          <IconItem icon={<BanIcon />} onClick={handleSignInInvisible}>
-            Sign in invisible
-          </IconItem>
-          <IconItem
-            disabled={streamer}
-            icon={<CopyIcon />}
-            onClick={handleCopyUsername}
-          >
-            Copy username
-          </IconItem>
-          <IconItem
-            disabled={streamer}
-            icon={<CopyIcon />}
-            onClick={handleCopySteamId}
-          >
-            Copy SteamID
-          </IconItem>
-          <IconItem icon={<UserIcon />} onClick={handleOpenProfile}>
-            Open profile
-          </IconItem>
-          {needsToken ? (
-            <IconItem icon={<DownloadIcon />} onClick={handleReimport}>
-              Re-import token…
-            </IconItem>
-          ) : null}
-        </ContextMenuGroup>
-      )}
-
-      {multi ? null : <ContextMenuSeparator />}
-
-      {multi ? null : (
-        <ContextMenuGroup>
-          <IconItem icon={<PinIcon />} onClick={handleTogglePin}>
-            {account.pinned ? "Unpin" : "Pin"}
-          </IconItem>
-          <IconItem icon={<CopyIcon />} onClick={handleEditNote}>
-            {account.note ? "Edit note…" : "Add note…"}
-          </IconItem>
-          <IconItem icon={<ListFilterIcon />} onClick={handleEditTags}>
-            {account.tags.length ? "Edit tags…" : "Add tags…"}
-          </IconItem>
-          <IconItem icon={<SettingsIcon />} onClick={handleEditOverrides}>
-            Sign-in overrides…
-          </IconItem>
-        </ContextMenuGroup>
-      )}
-
-      {multi ? null : <ContextMenuSeparator />}
-
       <ContextMenuGroup>
-        <IconItem
-          disabled={exportCount === 0}
-          icon={<CopyIcon />}
-          onClick={handleCopyExport}
-        >
-          {copyTokenLabel}
+        <IconItem icon={<ArrowRightIcon />} onClick={signIn}>
+          Sign in
+          <ContextMenuShortcut>Enter</ContextMenuShortcut>
         </IconItem>
-        <IconItem
-          disabled={exportCount === 0}
-          icon={<DownloadIcon />}
-          onClick={handleExportFile}
-        >
-          Save to file…
+        <IconItem icon={<BanIcon />} onClick={signInInvisible}>
+          Sign in invisible
         </IconItem>
       </ContextMenuGroup>
 
       <ContextMenuSeparator />
 
-      <ContextMenuSub>
-        <IconSubTrigger icon={<ClockIcon />}>Cooldown</IconSubTrigger>
-        <ContextMenuSubContent className="w-44">
-          {COOLDOWN_PRESETS.map((preset) => (
-            <ContextMenuItem
-              data-seconds={preset.seconds}
-              key={preset.seconds}
-              onClick={handlePresetClick}
-            >
-              {preset.label}
-            </ContextMenuItem>
-          ))}
-          <ContextMenuSeparator />
-          <ContextMenuItem onClick={handleCustomCooldown}>
-            Custom…
-          </ContextMenuItem>
-          {hasCooldown ? (
-            <ContextMenuItem
-              onClick={handleClearCooldown}
-              variant="destructive"
-            >
-              Clear cooldown
-            </ContextMenuItem>
-          ) : null}
-        </ContextMenuSubContent>
-      </ContextMenuSub>
+      <ContextMenuGroup>
+        <IconItem icon={<PinIcon />} onClick={togglePin}>
+          {account.pinned ? "Unpin" : "Pin to top"}
+        </IconItem>
+        <IconItem icon={<ListFilterIcon />} onClick={editDetails}>
+          Note and tags…
+        </IconItem>
+        <IconItem icon={<SettingsIcon />} onClick={editOverrides}>
+          Sign-in overrides…
+        </IconItem>
+        <CooldownSubmenu actions={actions} targets={[account]} />
+      </ContextMenuGroup>
 
       <ContextMenuSeparator />
 
-      <IconItem
-        icon={<DeleteIcon />}
-        onClick={handleRemove}
-        variant="destructive"
-      >
-        {multi ? `Remove ${targets.length} accounts` : "Remove account"}
+      <ContextMenuGroup>
+        <ContextMenuSub>
+          <IconSubTrigger icon={<CopyIcon />}>Copy</IconSubTrigger>
+          <ContextMenuSubContent className="w-44">
+            <ContextMenuItem disabled={streamer} onClick={copyUsername}>
+              Username
+            </ContextMenuItem>
+            <ContextMenuItem disabled={streamer} onClick={copySteamId}>
+              SteamID
+            </ContextMenuItem>
+            <ContextMenuItem disabled={exportCount === 0} onClick={copyToken}>
+              Token line
+            </ContextMenuItem>
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+        <IconItem
+          disabled={exportCount === 0}
+          icon={<DownloadIcon />}
+          onClick={saveToken}
+        >
+          Save token to file…
+        </IconItem>
+        <IconItem icon={<UserIcon />} onClick={openProfile}>
+          Open Steam profile
+        </IconItem>
+        {needsToken ? (
+          <IconItem icon={<ClipboardPasteIcon />} onClick={reimport}>
+            Re-import token…
+          </IconItem>
+        ) : null}
+      </ContextMenuGroup>
+
+      <ContextMenuSeparator />
+
+      <IconItem icon={<DeleteIcon />} onClick={remove} variant="destructive">
+        Remove account
+        <ContextMenuShortcut>Del</ContextMenuShortcut>
       </IconItem>
-    </ContextMenuContent>
+    </>
   );
 }
 
-function avatarContent(
+function MultiTargetMenu({
+  actions,
+  exportCount,
+  targets,
+}: Pick<AccountContextMenuProps, "actions" | "exportCount" | "targets">) {
+  const steamids = useMemo(
+    () => targets.map((item) => item.steamid),
+    [targets]
+  );
+  const anyUnpinned = targets.some((item) => !item.pinned);
+  const count = targets.length;
+
+  const togglePin = useCallback(() => {
+    actions.onPin(steamids, anyUnpinned);
+  }, [actions, anyUnpinned, steamids]);
+  const copyTokens = useCallback(() => {
+    actions.onCopyExport(steamids);
+  }, [actions, steamids]);
+  const saveTokens = useCallback(() => {
+    actions.onExportFile(steamids);
+  }, [actions, steamids]);
+  const remove = useCallback(() => {
+    actions.onRemove(targets);
+  }, [actions, targets]);
+
+  return (
+    <>
+      <div className="px-2 pt-1.5 pb-1 text-muted-foreground text-xs tabular-nums">
+        {count} accounts selected
+      </div>
+      <ContextMenuGroup>
+        <IconItem icon={<PinIcon />} onClick={togglePin}>
+          {anyUnpinned ? "Pin all" : "Unpin all"}
+        </IconItem>
+        <CooldownSubmenu actions={actions} targets={targets} />
+      </ContextMenuGroup>
+
+      <ContextMenuSeparator />
+
+      <ContextMenuGroup>
+        <IconItem
+          disabled={exportCount === 0}
+          icon={<CopyIcon />}
+          onClick={copyTokens}
+        >
+          Copy token lines
+          <ContextMenuShortcut>
+            {countLabel(exportCount, count)}
+          </ContextMenuShortcut>
+        </IconItem>
+        <IconItem
+          disabled={exportCount === 0}
+          icon={<DownloadIcon />}
+          onClick={saveTokens}
+        >
+          Save tokens to file…
+        </IconItem>
+      </ContextMenuGroup>
+
+      <ContextMenuSeparator />
+
+      <IconItem icon={<DeleteIcon />} onClick={remove} variant="destructive">
+        Remove {count} accounts
+        <ContextMenuShortcut>Del</ContextMenuShortcut>
+      </IconItem>
+    </>
+  );
+}
+
+function CooldownSubmenu({
+  actions,
+  targets,
+}: {
+  actions: AccountRowActions;
+  targets: AccountView[];
+}) {
+  const steamids = useMemo(
+    () => targets.map((item) => item.steamid),
+    [targets]
+  );
+  const hasCooldown = targets.some((item) =>
+    isCooldownActive(item.cooldown_until)
+  );
+
+  const handlePreset = useCallback(
+    (event: MouseEvent<HTMLDivElement>) => {
+      const seconds = Number(event.currentTarget.dataset.seconds);
+      if (Number.isFinite(seconds)) {
+        actions.onCooldown(steamids, seconds);
+      }
+    },
+    [actions, steamids]
+  );
+  const custom = useCallback(() => {
+    actions.onCustomCooldown(steamids);
+  }, [actions, steamids]);
+  const clear = useCallback(() => {
+    actions.onClearCooldown(steamids);
+  }, [actions, steamids]);
+
+  return (
+    <ContextMenuSub>
+      <IconSubTrigger icon={<ClockIcon />}>Cooldown</IconSubTrigger>
+      <ContextMenuSubContent className="w-44">
+        {COOLDOWN_PRESETS.map((preset) => (
+          <ContextMenuItem
+            data-seconds={preset.seconds}
+            key={preset.seconds}
+            onClick={handlePreset}
+          >
+            {preset.label}
+          </ContextMenuItem>
+        ))}
+        <ContextMenuSeparator />
+        <ContextMenuItem onClick={custom}>Custom…</ContextMenuItem>
+        {hasCooldown ? (
+          <ContextMenuItem onClick={clear} variant="destructive">
+            Clear cooldown
+          </ContextMenuItem>
+        ) : null}
+      </ContextMenuSubContent>
+    </ContextMenuSub>
+  );
+}
+
+function countLabel(exportCount: number, selected: number): string {
+  if (exportCount === selected) {
+    return `${exportCount}`;
+  }
+  return `${exportCount}/${selected}`;
+}
+
+function menuAvatar(
   streamer: boolean,
   index: number,
   account: AccountView
@@ -310,21 +358,4 @@ function avatarContent(
     );
   }
   return <span>{account.initials}</span>;
-}
-
-function copyTokensLabel(
-  exportCount: number,
-  selectedCount: number,
-  multi: boolean
-): string {
-  if (!multi) {
-    return exportCount === 1 ? "Copy token" : "Copy tokens";
-  }
-  if (exportCount === 0) {
-    return "Copy tokens";
-  }
-  if (exportCount === selectedCount) {
-    return `Copy tokens (${exportCount})`;
-  }
-  return `Copy tokens (${exportCount}/${selectedCount})`;
 }

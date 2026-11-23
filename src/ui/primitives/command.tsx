@@ -19,7 +19,7 @@ function Command({
   return (
     <CommandPrimitive
       className={cn(
-        "flex w-full flex-col overflow-hidden rounded-xl bg-popover p-1 text-popover-foreground",
+        "flex w-full flex-col overflow-hidden rounded-[10px] bg-popover p-1 text-popover-foreground",
         className
       )}
       data-slot="command"
@@ -45,12 +45,10 @@ function CommandDialog({
   return (
     <Dialog {...props}>
       <DialogContent
-        className={cn(
-          "top-1/3 translate-y-0 overflow-hidden rounded-xl p-0 sm:max-w-lg",
-          className
-        )}
+        className={cn("top-24 translate-y-0 overflow-hidden p-0", className)}
         motion={false}
         showCloseButton={showCloseButton}
+        size="lg"
       >
         <DialogHeader className="sr-only">
           <DialogTitle>{title}</DialogTitle>
@@ -74,7 +72,7 @@ function CommandInput({
       <SearchIcon className="opacity-50" size={16} />
       <CommandPrimitive.Input
         className={cn(
-          "flex h-9 w-full bg-transparent py-2 text-sm outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+          "flex h-10 w-full bg-transparent py-2 text-base outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}
         data-slot="command-input"
@@ -150,7 +148,7 @@ function CommandItem({
   return (
     <CommandPrimitive.Item
       className={cn(
-        "group/command-item relative flex cursor-default select-none items-center gap-2 in-data-[slot=dialog-content]:rounded-lg rounded-sm px-2 py-1.5 text-sm outline-hidden data-[disabled=true]:pointer-events-none data-selected:bg-muted data-selected:text-foreground data-[disabled=true]:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 data-selected:*:[svg]:text-foreground",
+        "group/command-item relative flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5 text-base outline-hidden data-[disabled=true]:pointer-events-none data-selected:bg-muted data-selected:text-foreground data-[disabled=true]:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0 data-selected:*:[svg]:text-foreground",
         className
       )}
       data-slot="command-item"
@@ -172,7 +170,7 @@ function CommandShortcut({
   return (
     <span
       className={cn(
-        "ml-auto text-muted-foreground text-xs tracking-widest group-data-selected/command-item:text-foreground",
+        "ml-auto font-mono text-muted-foreground text-xs group-data-selected/command-item:text-foreground",
         className
       )}
       data-slot="command-shortcut"

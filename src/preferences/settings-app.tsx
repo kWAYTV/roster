@@ -81,6 +81,7 @@ export function SettingsApp({
           </p>
         </div>
         <Select
+          items={THEME_LABELS}
           onValueChange={handleThemeChange}
           value={normalizeTheme(preferences.theme)}
         >

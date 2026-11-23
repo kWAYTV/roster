@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 
 import { PlusIcon } from "@/ui/icons/plus";
 import {
@@ -7,98 +7,49 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/ui/primitives/accordion";
-import { Badge } from "@/ui/primitives/badge";
 import { EnterStagger } from "@/ui/widgets/enter-stagger";
 import { IconAction } from "@/ui/widgets/icon-action";
 import type { StatusMap } from "../status/status";
 import type { AccountView } from "./account";
 import { AccountRow } from "./account-row";
+import type { AccountRowActions } from "./account-row-actions";
 import { groupAccountsByTag } from "./group-accounts";
 import styles from "./roster-list.module.css";
 
 interface RosterListProps {
   accounts: AccountView[];
+  actions: AccountRowActions;
   emptyHint?: string;
   emptyTitle?: string;
-  exportCountFor: (steamids: string[]) => number;
   groupByTag?: boolean;
   loading: boolean;
-  onClearCooldown: (steamids: string[]) => void;
-  onCooldown: (steamids: string[], seconds: number) => void;
-  onCopyExport: (steamids: string[]) => void;
-  onCopySteamId: (account: AccountView) => void;
-  onCopyUsername: (account: AccountView) => void;
-  onCustomCooldown: (steamids: string[]) => void;
-  onEditNote: (account: AccountView) => void;
-  onEditOverrides: (account: AccountView) => void;
-  onEditTags: (account: AccountView) => void;
-  onExportFile: (steamids: string[]) => void;
+  now: number;
   onImport?: () => void;
-  onOpenProfile: (steamid: string) => void;
-  onReimport: (account: AccountView) => void;
-  onRemove: (accounts: AccountView[]) => void;
-  onSelect: (account: AccountView, additive: boolean) => void;
-  onSignIn: (steamid: string, forceInvisible?: boolean) => void;
-  onTogglePin: (account: AccountView) => void;
   pending: string | null;
   selectedIds: Set<string>;
   statuses: StatusMap;
   streamer: boolean;
+  warnJwtDays: number;
 }
 
 export function RosterList({
   accounts,
+  actions,
   emptyTitle = "No accounts yet",
-  emptyHint = "Import a refresh token to get started.",
+  emptyHint = "Import a refresh token to get started",
   loading,
+  now,
   streamer,
   groupByTag = false,
   pending,
   statuses,
   selectedIds,
-  onSelect,
-  onSignIn,
-  onRemove,
-  onCopyUsername,
-  onCopySteamId,
-  onOpenProfile,
-  onReimport,
-  onCopyExport,
-  onExportFile,
-  onCooldown,
-  onClearCooldown,
-  onCustomCooldown,
-  onTogglePin,
-  onEditNote,
-  onEditOverrides,
-  onEditTags,
   onImport,
-  exportCountFor,
+  warnJwtDays,
 }: RosterListProps) {
-  const byId = useMemo(
-    () => new Map(accounts.map((account) => [account.steamid, account])),
-    [accounts]
-  );
-
-  const selectedAccounts = useMemo(() => {
-    const items: AccountView[] = [];
-    for (const steamid of selectedIds) {
-      const account = byId.get(steamid);
-      if (account) {
-        items.push(account);
-      }
-    }
-    return items;
-  }, [byId, selectedIds]);
-
-  const menuTargetsFor = useCallback(
-    (account: AccountView) => {
-      if (selectedIds.has(account.steamid) && selectedAccounts.length > 0) {
-        return selectedAccounts;
-      }
-      return [account];
-    },
-    [selectedAccounts, selectedIds]
+  const selection = useMemo(
+    () => accounts.filter((account) => selectedIds.has(account.steamid)),
+    [accounts, selectedIds]
   );
 
   const indexById = useMemo(() => {
@@ -116,65 +67,43 @@ export function RosterList({
     return groupAccountsByTag(accounts);
   }, [accounts, groupByTag, streamer]);
 
-  const renderRow = (account: AccountView) => {
-    const targets = menuTargetsFor(account);
-    return (
-      <AccountRow
-        account={account}
-        busy={pending === account.steamid}
-        exportCount={exportCountFor(targets.map((item) => item.steamid))}
-        index={indexById.get(account.steamid) ?? 0}
-        key={account.steamid}
-        menuTargets={targets}
-        onClearCooldown={onClearCooldown}
-        onCooldown={onCooldown}
-        onCopyExport={onCopyExport}
-        onCopySteamId={onCopySteamId}
-        onCopyUsername={onCopyUsername}
-        onCustomCooldown={onCustomCooldown}
-        onEditNote={onEditNote}
-        onEditOverrides={onEditOverrides}
-        onEditTags={onEditTags}
-        onExportFile={onExportFile}
-        onOpenProfile={onOpenProfile}
-        onReimport={onReimport}
-        onRemove={onRemove}
-        onSelect={onSelect}
-        onSignIn={onSignIn}
-        onTogglePin={onTogglePin}
-        selected={selectedIds.has(account.steamid)}
-        status={statuses[account.steamid]}
-        streamer={streamer}
-      />
-    );
-  };
+  const renderRow = (account: AccountView) => (
+    <AccountRow
+      account={account}
+      actions={actions}
+      busy={pending === account.steamid}
+      index={indexById.get(account.steamid) ?? 0}
+      key={account.steamid}
+      now={now}
+      selected={selectedIds.has(account.steamid)}
+      selection={selection}
+      status={statuses[account.steamid]}
+      streamer={streamer}
+      warnJwtDays={warnJwtDays}
+    />
+  );
 
   if (accounts.length === 0 && loading) {
     return null;
   }
   if (accounts.length === 0) {
     return (
-      <EnterStagger
-        blur={4}
-        className={styles.empty}
-        duration={0.28}
-        stagger={0.06}
-        y={8}
-      >
+      <div className={styles.empty}>
         <p className={styles.emptyTitle}>{emptyTitle}</p>
         <p className={styles.emptyHint}>{emptyHint}</p>
         {onImport ? (
           <IconAction
             className={styles.emptyAction}
             icon={<PlusIcon />}
-            label="Import account"
+            iconSize={14}
+            label="Import accounts"
             onClick={onImport}
             size="sm"
           >
-            Import account
+            Import accounts
           </IconAction>
         ) : null}
-      </EnterStagger>
+      </div>
     );
   }
 
@@ -189,25 +118,27 @@ export function RosterList({
         y={4}
       >
         <Accordion
-          className="gap-1"
+          className="gap-2"
           defaultValue={groups.map((group) => group.key)}
           multiple
         >
           {groups.map((group) => (
             <AccordionItem
-              className="border-0"
+              className="border-0 not-last:border-0"
               key={group.key}
               value={group.key}
             >
-              <AccordionTrigger className="px-1 py-1.5 hover:no-underline">
-                <span className="flex min-w-0 items-center gap-2">
+              <AccordionTrigger className={styles.groupTrigger}>
+                <span className={styles.groupLabel}>
                   <span className="truncate">{group.label}</span>
-                  <Badge variant="secondary">{group.accounts.length}</Badge>
+                  <span className={styles.groupCount}>
+                    {group.accounts.length}
+                  </span>
                 </span>
               </AccordionTrigger>
               <AccordionContent className="pb-0">
                 <div className={styles.list}>
-                  {group.accounts.map((account) => renderRow(account))}
+                  {group.accounts.map(renderRow)}
                 </div>
               </AccordionContent>
             </AccordionItem>
@@ -226,7 +157,7 @@ export function RosterList({
       stagger={0.02}
       y={4}
     >
-      {accounts.map((account) => renderRow(account))}
+      {accounts.map(renderRow)}
     </EnterStagger>
   );
 }

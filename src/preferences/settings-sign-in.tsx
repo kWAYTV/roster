@@ -57,16 +57,13 @@ export function SettingsSignIn({
   );
 
   return (
-    <TabsContent
-      className="mt-0 min-h-52 space-y-3 outline-none"
-      value="sign-in"
-    >
+    <TabsContent className="mt-0 min-h-52 outline-none" value="sign-in">
       <SettingList
         items={SIGN_IN_SETTINGS}
         onChange={onChange}
         preferences={preferences}
       />
-      <div className="flex items-center justify-between gap-3 border-border/80 border-b py-2.5">
+      <div className="flex items-center justify-between gap-3 border-border/80 border-t py-2.5">
         <div className="min-w-0 flex-1">
           <label
             className="block font-medium text-sm leading-snug tracking-tight"
@@ -80,6 +77,7 @@ export function SettingsSignIn({
           </p>
         </div>
         <Select
+          items={IMPORT_WITHOUT_SIGN_IN_LABELS}
           onValueChange={handleImportWithoutSignInChange}
           value={normalizeImportWithoutSignIn(
             preferences.import_without_sign_in
@@ -102,7 +100,10 @@ export function SettingsSignIn({
         </Select>
       </div>
       {preferences.launch_cs2_on_login ? (
-        <label className="flex flex-col gap-1.5" htmlFor={CS2_OPTIONS_ID}>
+        <label
+          className="flex flex-col gap-1.5 border-border/80 border-t pt-2.5"
+          htmlFor={CS2_OPTIONS_ID}
+        >
           <span className="font-medium text-sm">CS2 launch options</span>
           <Input
             id={CS2_OPTIONS_ID}

@@ -62,7 +62,7 @@ export function AccountSheet({
 
   return (
     <Sheet onOpenChange={handleOpenChange} open={open}>
-      <SheetContent className="w-full gap-0 sm:max-w-md" side="right">
+      <SheetContent className="gap-0" side="right">
         {account ? (
           <AccountSheetForm
             account={account}

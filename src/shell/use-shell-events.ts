@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 
 import { notify } from "../feedback/status";
+import { looksLikeImport } from "../intake/looks-like-import";
 import {
   onCooldownFinished,
   onImportRequest,
@@ -25,7 +26,10 @@ export function useShellEvents({ openImport }: ShellEventsOptions) {
           notify(`${names.length} accounts ready`);
         }
       }),
-      onImportRequest((text) => openImport(text.trim())),
+      // Only seed the dialog with clipboard text that actually carries a token.
+      onImportRequest((text) =>
+        openImport(looksLikeImport(text) ? text.trim() : "")
+      ),
     ];
     return () => {
       for (const subscription of subscriptions) {

@@ -1,7 +1,12 @@
 import { useCallback, useRef, useState } from "react";
-
+import { notify } from "@/feedback/status";
 import { ImportComposer } from "@/intake/import-composer";
-import { importLabel, isImportFile, seedText } from "@/intake/import-seed";
+import {
+  appendEntries,
+  importLabel,
+  isImportFile,
+  seedText,
+} from "@/intake/import-seed";
 import { ImportSignInAsk } from "@/intake/import-sign-in-ask";
 import { useClassifyImport } from "@/intake/use-classify-import";
 import { useImport } from "@/intake/use-intake";
@@ -43,7 +48,8 @@ export function ImportDialog({
   const dragDepthRef = useRef(0);
   const classified = useClassifyImport(draft, open);
   const filled = draft.trim().length > 0;
-  const canImport = classified.count > 0 && !busy;
+  const knownEmpty = !classified.pending && classified.count === 0;
+  const canImport = filled && !busy && !knownEmpty;
 
   const runImport = useCallback(
     async (payload: string, withoutSignIn: boolean) => {
@@ -71,20 +77,23 @@ export function ImportDialog({
 
   const handleOpenChange = useCallback(
     (next: boolean) => {
-      if (!next) {
+      // Keep the dialog up while Steam is being rewritten, so the result lands here.
+      if (!(next || busy)) {
         onClose();
       }
     },
-    [onClose]
+    [busy, onClose]
   );
 
   const pasteDraft = useCallback(() => {
     paste()
       .then((text) => {
         const next = text.trim();
-        if (next) {
-          setDraft(next);
+        if (!next) {
+          notify("Clipboard is empty", "error");
+          return;
         }
+        setDraft((current) => appendEntries(current, next));
       })
       .catch(() => undefined);
   }, [paste]);
@@ -122,9 +131,10 @@ export function ImportDialog({
   const applyDroppedText = useCallback((text: string) => {
     const next = text.trim();
     if (!next) {
+      notify("Nothing to import in that drop", "error");
       return;
     }
-    setDraft(next);
+    setDraft((current) => appendEntries(current, next));
   }, []);
 
   const handleDragEnter = useCallback((event: React.DragEvent) => {
@@ -153,17 +163,24 @@ export function ImportDialog({
       event.preventDefault();
       dragDepthRef.current = 0;
       setDragging(false);
-      const file = [...event.dataTransfer.files].find(isImportFile);
-      if (!file) {
+      if (busy) {
+        return;
+      }
+      const dropped = [...event.dataTransfer.files];
+      const files = dropped.filter(isImportFile);
+      if (files.length === 0) {
+        if (dropped.length > 0) {
+          notify("Drop a .txt file with tokens", "error");
+          return;
+        }
         applyDroppedText(event.dataTransfer.getData("text/plain"));
         return;
       }
-      file
-        .text()
-        .then(applyDroppedText)
-        .catch(() => undefined);
+      Promise.all(files.map((file) => file.text()))
+        .then((texts) => applyDroppedText(texts.join("\n")))
+        .catch(() => notify("Could not read that file", "error"));
     },
-    [applyDroppedText]
+    [applyDroppedText, busy]
   );
 
   const handleDialogKeyDown = useCallback(
@@ -191,17 +208,18 @@ export function ImportDialog({
     <>
       <Dialog onOpenChange={handleOpenChange} open={open}>
         <DialogContent
-          className="sm:max-w-lg"
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
           onKeyDown={handleDialogKeyDown}
+          showCloseButton={!busy}
+          size="lg"
         >
           <DialogHeader>
             <DialogTitle>Import accounts</DialogTitle>
             <DialogDescription>
-              One token or a list. Expired entries are skipped.
+              Paste or drop tokens, one per line. Expired entries are skipped
             </DialogDescription>
           </DialogHeader>
 
@@ -218,11 +236,14 @@ export function ImportDialog({
             />
           </DialogBody>
 
-          <DialogFooter className="sm:items-center">
+          <DialogFooter>
             {canImport ? (
-              <kbd className="mr-auto rounded-sm border border-border bg-muted px-1.5 font-medium text-[10px] text-muted-foreground leading-[18px]">
-                Ctrl+Enter
-              </kbd>
+              <span className="mr-auto flex items-center gap-1.5 text-muted-foreground text-xs">
+                <kbd className="rounded-[4px] border border-border px-1 font-mono text-[10px] leading-4">
+                  Ctrl Enter
+                </kbd>
+                to import
+              </span>
             ) : null}
             <div className="flex justify-end gap-2">
               <IconAction

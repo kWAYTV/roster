@@ -1,12 +1,29 @@
+/* Cooldown · warn-toned countdown with a thin drain track underneath. */
 .badge {
+  display: inline-flex;
   flex-shrink: 0;
-  padding: 0 4px;
+  flex-direction: column;
+  gap: 2px;
+  align-items: stretch;
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
-  font-weight: 500;
-  line-height: 16px;
-  color: var(--danger);
+  font-variant-numeric: tabular-nums;
+  line-height: 12px;
+  color: var(--warn);
   white-space: nowrap;
-  background: var(--danger-soft);
-  border: 1px solid color-mix(in oklch, var(--danger) 40%, transparent);
-  border-radius: var(--r-xs);
+}
+
+.track {
+  height: 2px;
+  overflow: hidden;
+  background: color-mix(in oklch, var(--warn) 18%, transparent);
+  border-radius: 1px;
+}
+
+.fill {
+  height: 100%;
+  background: var(--warn);
+  border-radius: inherit;
+  transform-origin: left center;
+  transition: transform 300ms var(--ease-out);
 }

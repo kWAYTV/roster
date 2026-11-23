@@ -7,6 +7,8 @@ export interface ClassifyHint {
   expired: number;
   hint: string;
   newCount: number;
+  /** True while the latest text has not been classified yet. */
+  pending: boolean;
   updateCount: number;
 }
 
@@ -15,6 +17,7 @@ const EMPTY: ClassifyHint = {
   expired: 0,
   hint: "",
   newCount: 0,
+  pending: false,
   updateCount: 0,
 };
 
@@ -24,6 +27,7 @@ export function useClassifyImport(
   enabled: boolean
 ): ClassifyHint {
   const [result, setResult] = useState<ClassifyHint>(EMPTY);
+  const [classifiedFor, setClassifiedFor] = useState("");
 
   useEffect(() => {
     if (!enabled) {
@@ -45,6 +49,7 @@ export function useClassifyImport(
           if (!active) {
             return;
           }
+          setClassifiedFor(payload);
           setResult({
             count: classified.importable.length,
             expired: classified.expired.length,
@@ -55,6 +60,7 @@ export function useClassifyImport(
               classified.update_count
             ),
             newCount: classified.new_count,
+            pending: false,
             updateCount: classified.update_count,
           });
         })
@@ -62,6 +68,7 @@ export function useClassifyImport(
           if (!active) {
             return;
           }
+          setClassifiedFor(payload);
           setResult(EMPTY);
         });
     }, 250);
@@ -72,6 +79,13 @@ export function useClassifyImport(
     };
   }, [enabled, value]);
 
+  const payload = value.trim();
+  if (!(enabled && payload)) {
+    return EMPTY;
+  }
+  if (classifiedFor !== payload) {
+    return { ...result, pending: true };
+  }
   return result;
 }
 

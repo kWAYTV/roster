@@ -1,36 +1,63 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
+}
+
+/* Tag group header · 24px, quiet label + mono count, chevron right. */
+.groupTrigger {
+  align-items: center !important;
+  height: 24px;
+  padding: 0 8px !important;
+  font-size: var(--text-xs) !important;
+  font-weight: 400 !important;
+  color: var(--text-muted);
+  border-radius: 4px !important;
+}
+
+.groupTrigger:hover {
+  color: var(--text);
+  text-decoration: none !important;
+}
+
+.groupLabel {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.groupCount {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
 }
 
 .empty {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 4px;
   align-items: center;
-  padding: 32px 16px;
-  color: var(--text-secondary);
+  justify-content: center;
+  min-height: 100%;
+  padding: 48px 16px;
   text-align: center;
-  background: var(--panel);
-  border: 1px dashed var(--border);
-  border-radius: var(--r);
 }
 
 .emptyTitle {
-  font-size: var(--text-base);
+  font-size: var(--text-md);
   font-weight: 500;
   color: var(--text);
   text-wrap: balance;
 }
 
 .emptyHint {
-  max-width: 28ch;
+  max-width: 32ch;
   font-size: var(--text-sm);
   color: var(--text-muted);
   text-wrap: pretty;
 }
 
 .emptyAction {
-  margin-top: var(--space-2);
+  margin-top: 16px;
 }

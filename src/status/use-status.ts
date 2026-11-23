@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { notify } from "../feedback/status";
-import { onAccountStatus, onAccountsChanged } from "../platform/events";
+import { onAccountStatus } from "../platform/events";
 import { commands } from "../platform/invoke";
 import type { ProfilePatch } from "../roster/use-roster";
 import type { StatusMap } from "./status";
@@ -11,30 +11,61 @@ const STARTUP_DELAY_MS = 400;
 
 let statusFailureNotified = false;
 
+const MIN_SWEEP_GAP_MS = 60_000;
+let lastSweepAt = 0;
+
+/// Ask the backend for a sweep. Unforced calls are dropped within a minute of
+/// the last one, so tray show/hide does not hammer Steam Community.
+export function refreshStatuses(force = false): void {
+  const at = Date.now();
+  if (!force && at - lastSweepAt < MIN_SWEEP_GAP_MS) {
+    return;
+  }
+  lastSweepAt = at;
+  commands.refreshStatuses().catch((cause) => {
+    if (statusFailureNotified) {
+      return;
+    }
+    statusFailureNotified = true;
+    notify(`Status refresh failed: ${cause}`, "error");
+  });
+}
+
 /// Statuses per SteamID, streamed in as the backend sweep progresses.
-/// Sweeps start after the roster loads, then every five minutes.
+/// Sweeps start after the roster loads, every five minutes, when the window
+/// becomes visible, and when the set of accounts changes. Metadata edits
+/// (pins, notes, cooldowns) do not trigger a network sweep.
 export function useStatus(
   rosterReady: boolean,
+  rosterKey: string,
   onProfile?: (patch: ProfilePatch) => void
 ): StatusMap {
   const [statuses, setStatuses] = useState<StatusMap>({});
+  const sweptKey = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!rosterReady) {
+      return;
+    }
+    if (sweptKey.current === null) {
+      sweptKey.current = rosterKey;
+      return;
+    }
+    if (sweptKey.current === rosterKey) {
+      return;
+    }
+    sweptKey.current = rosterKey;
+    refreshStatuses(true);
+  }, [rosterKey, rosterReady]);
 
   useEffect(() => {
     if (!rosterReady) {
       return;
     }
 
-    const refresh = () => {
-      commands.refreshStatuses().catch((cause) => {
-        if (statusFailureNotified) {
-          return;
-        }
-        statusFailureNotified = true;
-        notify(`Status refresh failed: ${cause}`, "error");
-      });
-    };
+    const refresh = refreshStatuses;
 
-    const startup = window.setTimeout(refresh, STARTUP_DELAY_MS);
+    const startup = window.setTimeout(() => refresh(true), STARTUP_DELAY_MS);
     const onVisibility = () => {
       if (document.visibilityState === "visible") {
         refresh();
@@ -59,9 +90,8 @@ export function useStatus(
           steamid: payload.steamid,
         });
       }),
-      onAccountsChanged(refresh),
     ];
-    const timer = setInterval(refresh, REFRESH_INTERVAL_MS);
+    const timer = setInterval(() => refresh(true), REFRESH_INTERVAL_MS);
 
     return () => {
       window.clearTimeout(startup);

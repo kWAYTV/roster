@@ -20,9 +20,13 @@ export function ExportConfirm({
     }
     const count = pending.steamids.length;
     if (pending.kind === "copy") {
-      return `Copy ${count} refresh token(s) to the clipboard?`;
+      return count === 1
+        ? "Copy this refresh token to the clipboard? It clears after 30 seconds"
+        : `Copy ${count} refresh tokens to the clipboard? They clear after 30 seconds`;
     }
-    return `Save ${count} refresh token(s) to a file?`;
+    return count === 1
+      ? "Save this refresh token to a text file?"
+      : `Save ${count} refresh tokens to a text file?`;
   }, [pending]);
 
   return (

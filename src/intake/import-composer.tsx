@@ -34,7 +34,8 @@ export function ImportComposer({
   const fieldRef = useRef<HTMLTextAreaElement>(null);
   const filled = value.trim().length > 0;
   const showEmpty = !(filled || focused || dragging);
-  const invalid = filled && classified.hint === "No valid tokens";
+  const invalid =
+    filled && !classified.pending && classified.hint === "No valid tokens";
   const statusId = "import-status";
 
   const handleChange = useCallback(
@@ -44,9 +45,17 @@ export function ImportComposer({
     [onChange]
   );
 
-  const handleFocus = useCallback(() => {
-    setFocused(true);
-  }, []);
+  const handleFocus = useCallback(
+    (event: React.FocusEvent<HTMLTextAreaElement>) => {
+      setFocused(true);
+      // Prefilled re-import ("name----"): put the caret where the token goes.
+      const field = event.currentTarget;
+      if (field.value.endsWith("----")) {
+        field.setSelectionRange(field.value.length, field.value.length);
+      }
+    },
+    []
+  );
 
   const handleBlur = useCallback(() => {
     setFocused(false);
@@ -61,12 +70,12 @@ export function ImportComposer({
         return;
       }
       event.preventDefault();
-      if (classified.count === 0) {
+      if (busy || (!classified.pending && classified.count === 0)) {
         return;
       }
       onSubmit();
     },
-    [classified.count, onSubmit, value]
+    [busy, classified.count, classified.pending, onSubmit, value]
   );
 
   const handleClear = useCallback(() => {
@@ -101,7 +110,7 @@ export function ImportComposer({
           onChange={handleChange}
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
-          placeholder="account----token"
+          placeholder="username----token"
           ref={fieldRef}
           spellCheck={false}
           tabIndex={showEmpty ? -1 : undefined}
@@ -109,10 +118,8 @@ export function ImportComposer({
         />
         {showEmpty ? (
           <div className={styles.curtain}>
-            <p className={styles.lead}>
-              Drop a .txt, or paste from the clipboard
-            </p>
-            <p className={styles.example}>account----token</p>
+            <p className={styles.lead}>Paste here, or drop a .txt file</p>
+            <p className={styles.example}>username----token</p>
           </div>
         ) : null}
         {dragging ? (
@@ -140,9 +147,26 @@ export function ImportComposer({
   );
 }
 
-function ImportChips({ classified }: { classified: ClassifyHint }) {
+/** Blocking message for the status row, or null when chips should show. */
+function importNotice(classified: ClassifyHint): string | null {
   if (classified.hint === "No valid tokens") {
-    return <p className={styles.invalid}>No valid tokens</p>;
+    return "No Steam refresh tokens found. Use username----token or a bare token";
+  }
+  if (classified.count === 0 && classified.expired > 0) {
+    return classified.expired === 1
+      ? "This token has expired"
+      : `All ${classified.expired} tokens have expired`;
+  }
+  return null;
+}
+
+function ImportChips({ classified }: { classified: ClassifyHint }) {
+  if (classified.pending) {
+    return <p className={styles.checking}>Checking…</p>;
+  }
+  const notice = importNotice(classified);
+  if (notice) {
+    return <p className={styles.invalid}>{notice}</p>;
   }
 
   const singleReady = classified.count <= 1 && classified.expired === 0;
