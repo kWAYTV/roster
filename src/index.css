@@ -114,18 +114,18 @@
   --shadow-2xl: 0 12px 24px 0 hsl(0 0% 0% / 0.6);
 }
 
-/* Dense desktop type scale. The window is 560px wide, so sizes are fixed px. */
+/* Dense desktop type scale. The window is 460px wide, so sizes are fixed px. */
 @theme {
   --text-xs: 11px;
   --text-xs--line-height: 16px;
-  --text-sm: 12px;
+  --text-sm: 11.5px;
   --text-sm--line-height: 16px;
-  --text-base: 13px;
-  --text-base--line-height: 20px;
-  --text-md: 14px;
-  --text-md--line-height: 20px;
-  --text-lg: 16px;
-  --text-lg--line-height: 24px;
+  --text-base: 12px;
+  --text-base--line-height: 16px;
+  --text-md: 13px;
+  --text-md--line-height: 18px;
+  --text-lg: 15px;
+  --text-lg--line-height: 20px;
 }
 
 @theme inline {

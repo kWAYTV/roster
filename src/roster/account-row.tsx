@@ -26,7 +26,7 @@ import type { AccountRowActions } from "./account-row-actions";
 import { formatJwtExpiry, jwtExpiryTooltip } from "./jwt-label";
 import { formatLastUsed } from "./last-used";
 
-const AVATAR_SIZE = 28;
+const AVATAR_SIZE = 26;
 const STREAMER_MASK = "•••••";
 
 interface AccountRowProps {

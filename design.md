@@ -45,17 +45,17 @@ System stacks only (Tauri CSP — no remote fonts).
 Light pass over locked Cursor zinc. Quiet chrome, presence dots as signature, no hue gradients/glows/emoji chrome. Spacing on 4px grid; weights 400–500; micro type ≥11px.
 
 ## Density pass (2026-11)
-The window is 560px, below every Tailwind `sm`/`md` breakpoint. Primitives use
-fixed desktop sizes (dialog 340/420/480, sheet 360, alert 320/360), never
-breakpoint-gated ones. Type scale is fixed px in `@theme`: 11 / 12 / 13 / 14 / 16.
+The window is 460×500, below every Tailwind `sm`/`md` breakpoint. Primitives use
+fixed desktop sizes (dialog 340/400/440, sheet 340, alert 320/360), never
+breakpoint-gated ones. Type scale is fixed px in `@theme`: 11 / 11.5 / 12 / 13 / 15. Body and menus are 12px.
 
-- Toolbar 44px: wordmark · mono count · permanent filter field (Ctrl F keycap) · icon actions
-- Rows 44px: 28px avatar (6px radius) · name + login lines · one trailing slot.
+- Toolbar 40px: wordmark · mono count · permanent filter field (Ctrl F keycap) · icon actions
+- Rows 40px: 26px avatar (6px radius) · name + login lines · one trailing slot.
   The slot shows quiet mono meta (cooldown drain, token state, last used) and
   crossfades to actions (cooldown, sign in) on hover, focus or selection.
 - No bordered chips in rows. Tone carries state: warn = cooldown / expiring, danger = expired / missing.
-- Menus: 28px items, 13px, muted icons, 8px radius, hairline border.
-- Footer 28px: status line · Steam dot · GitHub · mono version.
+- Menus: 28px items, 12px, muted icons, 8px radius, hairline border.
+- Footer 26px: status line · Steam dot · GitHub · mono version.
 
 ## Microinteractions stance
 - Silent chrome: feedback lives in the footer status line (errors linger; click to dismiss)

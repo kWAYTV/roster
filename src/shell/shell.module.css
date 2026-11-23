@@ -6,14 +6,14 @@
   background: var(--background);
 }
 
-/* Toolbar · 44px, one row: wordmark · count · filter · actions */
+/* Toolbar · 40px, one row: wordmark · count · filter · actions */
 .toolbar {
   display: flex;
   flex-shrink: 0;
   gap: 8px;
   align-items: center;
-  height: 44px;
-  padding: 0 8px 0 16px;
+  height: 40px;
+  padding: 0 6px 0 12px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -45,10 +45,10 @@
   flex: 1;
   gap: 8px;
   align-items: center;
-  min-width: 96px;
-  height: 28px;
+  min-width: 80px;
+  height: 26px;
   padding: 0 4px 0 8px;
-  margin-left: 8px;
+  margin-left: 4px;
   color: var(--muted-foreground);
   cursor: text;
   background: var(--panel-raised);
@@ -117,19 +117,19 @@
 .main {
   flex: 1;
   min-height: 0;
-  padding: 8px;
+  padding: 6px;
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
 
-/* Footer · 28px status line */
+/* Footer · 26px status line */
 .foot {
   display: flex;
   flex-shrink: 0;
   gap: 16px;
   align-items: center;
-  height: 28px;
-  padding: 0 16px;
+  height: 26px;
+  padding: 0 12px;
   border-top: 1px solid var(--border);
 }
 

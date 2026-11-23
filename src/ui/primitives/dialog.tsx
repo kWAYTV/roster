@@ -8,8 +8,8 @@ import { EnterStagger } from "@/ui/widgets/enter-stagger";
 type DialogSize = "sm" | "md" | "lg";
 
 const DIALOG_WIDTH: Record<DialogSize, string> = {
-  lg: "max-w-[480px]",
-  md: "max-w-[420px]",
+  lg: "max-w-[440px]",
+  md: "max-w-[400px]",
   sm: "max-w-[340px]",
 };
 
@@ -67,7 +67,7 @@ function DialogContent({
       <DialogOverlay motion={motion} />
       <DialogPrimitive.Popup
         className={cn(
-          "fixed top-1/2 left-1/2 z-[calc(var(--z-overlay)+1)] grid w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-[10px] border border-border bg-popover p-4 text-popover-foreground text-sm shadow-xl outline-none",
+          "fixed top-1/2 left-1/2 z-[calc(var(--z-overlay)+1)] grid max-h-[calc(100%-2rem)] w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-[10px] border border-border bg-popover p-4 text-popover-foreground text-sm shadow-xl outline-none",
           motion &&
             "data-open:fade-in-0 data-open:zoom-in-95 data-closed:fade-out-0 data-closed:zoom-out-95 duration-200 data-closed:animate-out data-open:animate-in",
           DIALOG_WIDTH[size],

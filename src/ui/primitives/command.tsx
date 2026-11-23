@@ -45,7 +45,7 @@ function CommandDialog({
   return (
     <Dialog {...props}>
       <DialogContent
-        className={cn("top-24 translate-y-0 overflow-hidden p-0", className)}
+        className={cn("top-16 translate-y-0 overflow-hidden p-0", className)}
         motion={false}
         showCloseButton={showCloseButton}
         size="lg"

@@ -1,12 +1,12 @@
-/* Account row · 44px. Avatar · two lines · trailing slot (meta ⇄ actions). */
+/* Account row · 40px. Avatar · two lines · trailing slot (meta ⇄ actions). */
 .row {
   --row-bg: var(--background);
 
   position: relative;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  height: 44px;
+  height: 40px;
   padding: 0 8px;
   cursor: default;
   background: var(--row-bg);
@@ -38,8 +38,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   overflow: hidden;
   font-size: var(--text-xs);
   font-weight: 500;
@@ -187,6 +187,10 @@
 }
 
 .actions {
+  /* Above the meta layer: a faded (opacity < 1) sibling paints on top of
+     non-positioned content and would otherwise swallow clicks. */
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 2px;
   align-items: center;
@@ -207,5 +211,6 @@
 .row:focus-within .meta,
 .selected .meta,
 .busy .meta {
+  pointer-events: none;
   opacity: 0;
 }
